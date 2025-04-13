@@ -1,0 +1,24 @@
+/* .hero-section {
+  background-size: cover;
+  background-position: center;
+  height: 700px;
+} */
+.sale-badge {
+  background-color: #FFD700;
+  color: #000;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.promo-banner {
+  color: white;
+  background-image: url('/images/promo_bg.png');
+  background-size: cover;
+  height: 500px;
+}
+.logo{
+  width: 50px;
+  height: 50px;
+}
+

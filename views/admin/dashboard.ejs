@@ -1,0 +1,96 @@
+<%- include('../partials/admin/header', { title: 'Admin Panel - Sign In' }) %>
+
+
+
+  <!-- Main Content -->
+  <main class="flex-1 p-8 space-y-8">
+    <!-- Dashboard Summary Cards -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="bg-green-100 p-6 rounded-xl shadow-md text-center">
+        <h2 class="text-sm font-medium text-gray-600">Total Sales</h2>
+        <p class="text-3xl font-bold text-green-700">₹5,55,000</p>
+      </div>
+      <div class="bg-gray-200 p-6 rounded-xl shadow-md text-center">
+        <h2 class="text-sm font-medium text-gray-600">Visitors</h2>
+        <p class="text-3xl font-bold text-gray-800">2,500</p>
+      </div>
+      <div class="bg-blue-200 p-6 rounded-xl shadow-md text-center">
+        <h2 class="text-sm font-medium text-gray-600">Total Orders</h2>
+        <p class="text-3xl font-bold text-blue-800">1,500</p>
+      </div>
+      <div class="bg-yellow-200 p-6 rounded-xl shadow-md text-center">
+        <h2 class="text-sm font-medium text-gray-600">Users</h2>
+        <p class="text-3xl font-bold text-yellow-800">1,013</p>
+      </div>
+    </section>
+
+    <!-- Charts & Recent Sales -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Chart -->
+      <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
+        <h3 class="text-lg font-semibold mb-4">Sales & Users Growth</h3>
+        <canvas id="salesChart" class="w-full h-64"></canvas>
+      </div>
+
+      <!-- Sales List -->
+      <div class="bg-white rounded-xl shadow-md p-6 overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold">Recent Sales</h3>
+          <a href="#" class="text-sm text-blue-600 hover:underline">View all</a>
+        </div>
+        <ul class="divide-y divide-gray-200">
+          <li class="py-3 flex justify-between font-medium">
+            <span>Abinshad</span><span>₹263,099.00</span>
+          </li>
+          <li class="py-3 flex justify-between">
+            <span>Sachu</span><span>₹45,922.00</span>
+          </li>
+          <li class="py-3 flex justify-between">
+            <span>Jordan Fisher</span><span>₹61,231.00</span>
+          </li>
+          <li class="py-3 flex justify-between">
+            <span>Paulson Rame</span><span>₹23,342.00</span>
+          </li>
+          <li class="py-3 flex justify-between">
+            <span>Andrea Netto</span><span>₹79,239.00</span>
+          </li>
+          <li class="py-3 flex justify-between">
+            <span>Agnes Xavier</span><span>₹6,590.00</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctx = document.getElementById('salesChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'],
+      datasets: [{
+        label: 'Sales in Rupees',
+        data: [1500, 2500, 3200, 4000, 5000, 5800, 6200, 7000, 7600, 8100],
+        backgroundColor: '#3B82F6'
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+</script>
+
+<%- include('../partials/admin/footer') %>
+</body>
+</html>

@@ -1,0 +1,78 @@
+<%- include('../partials/admin/header', { title: 'Admin Panel - Customers' }) %>
+
+<div class="flex flex-1 min-h-screen bg-gray-50">
+  <!-- Main content -->
+  <main class="flex-1 flex flex-col p-8">
+    <!-- Page title -->
+    <h1 class="text-3xl font-bold text-gray-800 mb-8">Customers</h1>
+
+    <!-- Search bar -->
+    <form action="/admin/users" method="get" class="flex justify-center mb-8">
+      <div class="flex w-full max-w-xl border border-gray-300 rounded-full overflow-hidden">
+        <input 
+          type="text" 
+          name="search" 
+          value="<%= searchQuery %>" 
+          placeholder="Search customers..." 
+          class="flex-1 px-4 py-2 text-sm focus:outline-none"
+        >
+        <button type="submit" class="bg-gray-800 text-white px-6 py-2 text-sm font-medium hover:bg-indigo-700 transition">
+          Search
+        </button>
+      </div>
+    </form>
+
+    <!-- User table -->
+    <div class="overflow-x-auto bg-white shadow-md rounded-xl">
+      <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <thead class="bg-gray-100 text-gray-700">
+          <tr>
+            <th class="px-6 py-3 text-left font-semibold">Name</th>
+            <th class="px-6 py-3 text-left font-semibold">Email</th>
+            <th class="px-6 py-3 text-left font-semibold">Phone No</th>
+            <th class="px-6 py-3 text-center font-semibold">Action</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <% if (users.length === 0) { %>
+            <tr>
+              <td colspan="4" class="text-center py-6 text-gray-500">No users found.</td>
+            </tr>
+          <% } else { %>
+            <% users.forEach(user => { %>
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4"><%= user.name %></td>
+                <td class="px-6 py-4"><%= user.email %></td>
+                <td class="px-6 py-4"><%= user.phone || 'N/A' %></td>
+                <td class="px-6 py-4 text-center">
+                  <% if (!user.isBlocked) { %>
+                    <a href="/admin/blockCustomer?id=<%= user._id %>" class="inline-block px-4 py-2 text-sm font-semibold rounded-md bg-red-500 hover:bg-red-600 text-white">Block</a>
+                  <% } else { %>
+                    <a href="/admin/unblockCustomer?id=<%= user._id %>" class="inline-block px-4 py-2 text-sm font-semibold rounded-md bg-green-500 hover:bg-green-600 text-white">Unblock</a>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+
+   <!-- Pagination -->
+   <div class="flex-1 flex items-end justify-center mt-auto mb-4">
+  <ul class="flex space-x-2">
+    <% for (let i = 1; i <= totalPages; i++) { %>
+      <li>
+        <a href="?page=<%= i %>&search=<%= searchQuery %>" 
+           class="px-4 py-2 rounded-md text-sm font-semibold 
+           <%= (i === currentPage) ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100' %>">
+          <%= i %>
+        </a>
+      </li>
+    <% } %>
+  </ul>
+</div>
+  </main>
+</div>
+</div>
+<%- include('../partials/admin/footer') %>

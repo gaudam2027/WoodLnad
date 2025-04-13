@@ -1,0 +1,174 @@
+
+<link rel="stylesheet" href="./css/home.css">
+<!-- Swiper CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css">
+
+
+<%- include('../../views/partials/user/header') %>
+  
+
+  <!-- Hero Section Slider -->
+<div class="swiper hero-section h-[500px]">
+  <div class="swiper-wrapper">
+
+    <!-- Slide 1 -->
+    <div class="swiper-slide flex items-center bg-cover bg-center" style="background-image: url('/images/banner-sofa.png');">
+      <div class="container mx-auto px-6">
+        <h1 class="text-4xl font-bold text-white mb-4">Find the Perfect Sofa</h1>
+        <p class="text-white mb-8">Comfort and elegance combined</p>
+        <button class="bg-white text-gray-800 px-6 py-3 rounded-md font-medium hover:bg-gray-100 opacity-60">Shop Now</button>
+      </div>
+    </div>
+
+    <!-- Slide 2 -->
+    <div class="swiper-slide flex items-center bg-cover bg-center" style="background-image: url('/images/hero-chair.jpg');">
+      <div class="container mx-auto px-6">
+        <h1 class="text-4xl font-bold text-white mb-4">Stylish Chairs</h1>
+        <p class="text-white mb-8">Modern designs for your space</p>
+        <button class="bg-white text-gray-800 px-6 py-3 rounded-md font-medium hover:bg-gray-100">Explore</button>
+      </div>
+    </div>
+
+    <!-- Slide 3 -->
+    <div class="swiper-slide flex items-center bg-cover bg-center" style="background-image: url('/images/hero-table.jpg');">
+      <div class="container mx-auto px-6">
+        <h1 class="text-4xl font-bold text-white mb-4">Elegant Tables</h1>
+        <p class="text-white mb-8">Perfect for every occasion</p>
+        <button class="bg-white text-gray-800 px-6 py-3 rounded-md font-medium hover:bg-gray-100">Browse</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Swiper Controls -->
+  <div class="swiper-pagination "></div>
+  <div class="swiper-button-prev"></div>
+  <div class="swiper-button-next"></div>
+</div>
+
+
+  <!-- Sale Section -->
+  <div class="bg-gray-50 py-12">
+    <div class="container mx-auto px-6 text-center">
+      <span class="sale-badge inline-block mb-4">SALE</span>
+      <h2 class="text-3xl font-semibold mb-6">New collection arrivals are<br>ready to shop</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+        <% const categories = [
+          { name: "Chairs", image: "/images/chairs/chair1.png", price: "$199.99" },
+          { name: "Tables", image: "/images/table.jpg", price: "$299.99" },
+          { name: "Sofas", image: "/images/sofa.jpg", price: "$499.99" }
+        ]; %>
+        
+        <% categories.forEach(category => { %>
+          <div class="bg-white rounded-lg overflow-hidden shadow-md">
+            <img src="<%= category.image %>" alt="<%= category.name %>" class="w-full h-64 object-cover">
+            <div class="p-4">
+              <h3 class="text-xl font-semibold"><%= category.name %></h3>
+              <p class="text-gray-600 mt-2"><%= category.price %></p>
+              <button class="mt-4 bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-700">Shop Now</button>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Home Space Section -->
+  <div class="py-16 bg-white">
+    <div class="container mx-auto px-6">
+      <div class="flex flex-col md:flex-row items-center">
+        <div class="md:w-1/2 mb-8 md:mb-0">
+          <h2 class="text-3xl font-bold mb-4">Your Home Space Starts Here</h2>
+          <p class="text-gray-600 mb-6">Transform your living space with our curated collection of furniture and home decor.</p>
+          <button class="bg-gray-800 text-white px-6 py-3 rounded-md font-medium hover:bg-gray-700">Learn More</button>
+        </div>
+        <div class="md:w-1/2">
+          <img src="/images/interior.png" alt="Modern Interior" class="rounded-lg shadow-lg">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Featured Products -->
+  <div class="bg-gray-50 py-16">
+    <div class="container mx-auto px-6">
+      <h2 class="text-3xl font-bold mb-12 text-center">Featured Products</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <% const products = [
+          { name: "Coffee Table", image: "/images/coffee-table.jpg", price: "$129.99" },
+          { name: "Bedside Cabinet", image: "/images/bedside-cabinet.jpg", price: "$89.99" },
+          { name: "Wooden Cabinet", image: "/images/wooden-cabinet.jpg", price: "$199.99" },
+          { name: "Bookcase Shelfs", image: "/images/bookcase.jpg", price: "$159.99" },
+          { name: "Floor Lamp", image: "/images/floor-lamp.jpg", price: "$79.99" },
+          { name: "TV Stand", image: "/images/tv-stand.jpg", price: "$149.99" },
+          { name: "Dining Table", image: "/images/dining-table.jpg", price: "$249.99" },
+          { name: "Desk Lamp", image: "/images/desk-lamp.jpg", price: "$49.99" }
+        ]; %>
+        
+        <% products.forEach(product => { %>
+          <div class="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+            <img src="<%= product.image %>" alt="<%= product.name %>" class="w-full h-48 object-cover">
+            <div class="p-4">
+              <h3 class="text-lg font-medium"><%= product.name %></h3>
+              <p class="text-gray-600 mt-2"><%= product.price %></p>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Testimonials -->
+  <div class="py-16 bg-white">
+    <div class="container mx-auto px-6">
+      <h2 class="text-3xl font-bold mb-12 text-center">What People Are Saying About Us</h2>
+      <div class="flex flex-col md:flex-row items-center justify-center">
+        <div class="md:w-1/2 flex items-center mb-8 md:mb-0">
+          <img src="/images/review_prof.png" alt="Customer" class="w-16 h-16 rounded-full mr-4">
+          <div>
+            <p class="text-gray-600 italic mb-2">"The furniture is beautiful and the quality is exceptional. Delivery was prompt and the assembly was easy. Highly recommend!"</p>
+            <p class="font-semibold">- Sarah Johnson</p>
+          </div>
+        </div>
+        <div class="md:w-1/2">
+          <img src="/images/interior.png" alt="Interior Design" class="rounded-lg shadow-lg">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Promo Banner -->
+  <div class="promo-banner py-12">
+    <div class="container mx-auto px-6 text-center">
+      <h2 class="text-3xl font-bold mb-4">Get 10% off your first order</h2>
+      <p class="mb-8">Sign up for our newsletter and receive a discount code</p>
+      <div class="max-w-md mx-auto flex">
+        <input type="email" placeholder="Your email address" class="flex-1 px-4 py-3 rounded-l-md focus:outline-none">
+        <button class="bg-white text-gray-800 px-6 py-3 rounded-r-md font-medium hover:bg-gray-100">Subscribe</button>
+      </div>
+    </div>
+  </div>
+
+  <%- include('../../views/partials/user/footer') %>
+
+  <!-- Swiper JS -->
+<script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
+
+<script>
+  const swiper = new Swiper('.swiper', {
+    loop: true,
+    autoplay: {
+      delay: 4000,
+    },
+    pagination: {
+      el: '.swiper-pagination',
+      clickable: true,
+    },
+    navigation: {
+      nextEl: '.swiper-button-next',
+      prevEl: '.swiper-button-prev',
+    },
+  });
+</script>
+
+

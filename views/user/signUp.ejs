@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./css/signUp.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="flex flex-col min-h-screen bg-gray-900">
+
+    <!-- Content Wrapper -->
+    
+    <!-- Navigation -->
+    <nav class="absolute top-0 left-0 w-full bg-white shadow-md  flex justify-center items-center z-20">
+        <div class="text-2xl font-bold text-gray-800 flex items-center" style="font-family: 'Raleway', sans-serif;">
+            <img src="./images/logo.png" class="logo bgImg " alt="logo">
+            <div class="pl-2">WOODLAND</div>
+        </div>
+    </nav>
+    <div class="flex-grow relative flex flex-col items-center">
+
+        <!-- Background Image with Overlay -->
+        <div class="absolute inset-0 bg-cover  bg-center" style="background-image: url('/images/signUpBg.jpg');">
+            <div class="absolute inset-0 bg-black bg-opacity-70"></div>
+        </div>
+
+        <!-- Sign-Up Form -->
+<div class="relative z-10 bg-gray-200 p-6 rounded-[15px] shadow-md max-w-sm w-full opacity-90 mt-[80px]">
+    <h2 class="text-xl font-bold text-center text-gray-800">Create an Account</h2>
+    <div id="server-message" class="hidden text-sm text-red-800 bg-red-100 border border-red-400 px-4 py-2 rounded-md text-center font-semibold mb-3"></div>
+
+    <form id="signupform" class="mt-3">
+        <div class="mb-3">
+            <label class="block text-sm font-medium text-gray-600">Full Name</label>
+            <input id="name" type="text" name="name" required 
+                class="w-full px-3 py-1.5 border border-gray-400 rounded-md focus:ring-2 focus:ring-gray-400 focus:outline-none">
+            <div id="error1" class="text-sm text-red-600 mt-1 ml-1"></div>
+        </div>
+        <div class="mb-3">
+            <label class="block text-sm font-medium text-gray-600">Email</label>
+            <input id="email" type="email" name="email" required 
+                class="w-full px-3 py-1.5 border border-gray-400 rounded-md focus:ring-2 focus:ring-gray-400 focus:outline-none">
+            <div id="error2" class="text-sm text-red-600 mt-1 ml-1"></div>
+        </div>
+        <div class="mb-3">
+            <label class="block text-sm font-medium text-gray-600">Phone Number</label>
+            <input id="phone" type="tel" name="phone" required 
+                class="w-full px-3 py-1.5 border border-gray-400 rounded-md focus:ring-2 focus:ring-gray-400 focus:outline-none">
+            <div id="error3" class="text-sm text-red-600 mt-1 ml-1"></div>
+        </div>
+        <div class="mb-3">
+            <label class="block text-sm font-medium text-gray-600">Password</label>
+            <input id="password" type="password" name="password" required 
+                class="w-full px-3 py-1.5 border border-gray-400 rounded-md focus:ring-2 focus:ring-gray-400 focus:outline-none">
+            <div id="error4" class="text-sm text-red-600 mt-1 ml-1"></div>
+        </div>
+        <div class="mb-3">
+            <label class="block text-sm font-medium text-gray-600">Re-enter Password</label>
+            <input id="confirm-password" type="password" name="confirm-password" required 
+                class="w-full px-3 py-1.5 border border-gray-400 rounded-md focus:ring-2 focus:ring-gray-400 focus:outline-none">
+            <div id="error5" class="text-sm text-red-600 mt-1 ml-1"></div>
+        </div>
+        <button type="submit" class="w-[60%] mx-auto block bg-gray-800 text-white py-1.5 rounded-md hover:bg-gray-700">
+            Sign Up
+        </button>
+        <div class="mt-4 text-center">
+            <p class="text-xs text-gray-600">Or sign up with</p>
+        </div>
+        <div class="flex flex-col items-center justify-center">
+            <a href="/auth/google" class="flex items-center justify-center bg-red-500 text-white py-1.5 px-5 rounded-md w-[60%] hover:bg-red-600 mt-3">
+              <i class="fab fa-google mr-2"></i> Google
+            </a>
+            <button class="flex items-center justify-center bg-blue-600 text-white py-1.5 px-5 rounded-md w-[60%] hover:bg-blue-700 mt-3">
+              <i class="fab fa-facebook-f mr-2"></i> Facebook
+            </button>
+        </div>
+        <p class="mt-3 text-center text-xs text-gray-600">
+            Already have an account? 
+            <a href="/signIn" class="text-gray-800 font-semibold hover:underline">Log In</a>
+        </p>
+    </form>
+</div>
+
+<div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center hidden">
+    <div class="text-white text-lg font-semibold pointer-events-auto">
+      <i class="fas fa-spinner fa-spin mr-2"></i> Processing, please wait...
+    </div>
+  </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+
+    const nameid = document.getElementById("name");
+    const emailid = document.getElementById("email");
+    const phoneid = document.getElementById("phone");
+    const passid = document.getElementById("password");
+    const cPassid = document.getElementById("confirm-password");
+    const error1 = document.getElementById("error1");
+    const error2 = document.getElementById("error2");
+    const error3 = document.getElementById("error3");
+    const error4 = document.getElementById("error4");
+    const error5 = document.getElementById("error5");
+    const signupform = document.getElementById("signupform")
+    const serverMsg = document.getElementById("server-message");
+
+    function nameValidateChecking(e){
+
+        const nameval = nameid.value;
+        const namePattern = /^[A-Za-z\s]+$/;
+
+        if(nameval.trim()===""){
+            error1.style.display = "block";
+            error1.innerHTML = "Please enter a valid name";
+        }else if(!namePattern.test(nameval)){
+            error1.style.display = "block";
+            error1.innerHTML = "Name can only contain alphabets and spaces";
+        }else{
+            error1.style.display = "none";
+            error1.innerHTML = "";
+        }
+    }
+
+    function emailValidateChecking(e){
+
+        const emailval = emailid.value;
+        const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,4}$/;
+
+        if(!emailPattern.test(emailval)){
+            error2.style.display = "block";
+            error2.innerHTML = "Invalid email format";
+        }else{
+            error2.style.display = "none";
+            error2.innerHTML = "";
+        }
+    }
+
+    function phoneValidateChecking(e){
+
+        const phoneval = phoneid.value;
+
+        if(phoneval.trim()===""){
+            error3.style.display = "block";
+            error3.innerHTML = "Plese enter the phone No.";
+        }else if(phoneval.length!==10){
+            error3.style.display = "block";
+            error3.innerHTML = "Enter 10-digits phone No.";
+        }else{
+            error3.style.display = "none";
+            error3.innerHTML = "";
+        }
+    }
+
+    function passValidateChecking(e){
+
+        const passval = passid.value;
+        const cpassval = cPassid.value;
+        const alpha = /[a-zA-Z]/;
+        const digit = /\d/;
+
+        if(passval.length<8){
+            error4.style.display = "block";
+            error4.innerHTML = "Should contain atleast 8 characters";
+        }else if(!alpha.test(passval)||!digit.test(passval)){
+            error4.style.display = "block";
+            error4.innerHTML = "Should contain alphabets and numbers";
+        }else{
+            error4.style.display = "none";
+            error4.innerHTML = "";
+        }
+
+        if(passval!==cpassval){
+            error5.style.display = "block";
+            error5.innerHTML = "Passwords deosn't match";
+        }else{
+            error5.style.display = "none";
+            error5.innerHTML = "";
+        }
+
+        
+    }
+
+
+
+    document.addEventListener("DOMContentLoaded",function(){
+        signupform.addEventListener("submit",function(e){
+            e.preventDefault();
+
+            nameValidateChecking();
+            emailValidateChecking();
+            phoneValidateChecking();
+            passValidateChecking();
+
+            if(
+                !nameid||!emailid||!phoneid||!passid||!error1||!error2||!error3||!error4||!error5||!signupform
+            ){
+                console.error('One or more elements not found');
+                return;
+            }
+
+            if(
+                error1.innerHTML||error2.innerHTML||error3.innerHTML||error4.innerHTML||error5.innerHTML
+            ){
+                return;
+            }
+            const formData = {
+                name: nameid.value,
+                email: emailid.value,
+                phone: phoneid.value,
+                password: passid.value,
+            };
+
+            const overlay = document.getElementById("loading-overlay");
+            overlay.classList.remove("hidden");
+
+
+            $.ajax({
+                url: "/signUp",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(formData),
+                success: function (data) {
+                    overlay.classList.add("hidden");
+
+                    if (data.success) {
+                        window.location.href = data.redirectUrl;
+                    } else {
+                        serverMsg.textContent = data.message;
+                        serverMsg.style.display = "block";
+                    }
+                },
+                error: function () {
+                    overlay.classList.add("hidden");
+
+                    serverMsg.textContent = "Server error. Please try again.";
+                    serverMsg.style.display = "block";
+                }
+            });
+        });
+    });
+</script>
+
+
+</body>
+</html>
+
+

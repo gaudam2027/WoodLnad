@@ -1,0 +1,32 @@
+.orders-container {
+    background-color: #e9e9e9bb; /* Dark Blue-Green */
+    color: rgba(53, 52, 52, 0.74);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 4px 4px 10px rgba(34, 23, 72, 0.404);
+    
+}
+
+.orders-container1 {
+    background-color: #ffffffbb; /* Dark Blue-Green */
+    color: rgba(53, 52, 52, 0.74);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 4px 4px 10px rgba(34, 23, 72, 0.404);
+    overflow-y: auto; /* Enables scrolling */
+    scrollbar-width: none; /* For Firefox */
+    -ms-overflow-style: none; /* For Internet Explorer and Edge */
+}
+
+
+.order-item img {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    border: 2px solid #151433;
+    object-fit: cover;
+}
+
+.s1{
+    color: #13062e;
+  }

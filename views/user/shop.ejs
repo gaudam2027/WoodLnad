@@ -1,0 +1,88 @@
+<%- contentFor('body') %>
+
+<!-- Shop Banner -->
+<div class="bg-gray-800 text-white py-16">
+  <div class="container mx-auto px-6 text-center">
+    <h1 class="text-4xl font-bold mb-4">Shop Our Collection</h1>
+    <p class="mb-8">Browse our wide selection of quality furniture</p>
+  </div>
+</div>
+
+<!-- Product Categories -->
+<div class="py-12">
+  <div class="container mx-auto px-6">
+    <h2 class="text-3xl font-bold mb-8">Categories</h2>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <% const categories = [
+        { name: "Living Room", image: "/images/living-room.jpg" },
+        { name: "Bedroom", image: "/images/bedroom.jpg" },
+        { name: "Dining Room", image: "/images/dining-room.jpg" },
+        { name: "Office", image: "/images/office.jpg" }
+      ]; %>
+      
+      <% categories.forEach(category => { %>
+        <a href="/shop/<%= category.name.toLowerCase().replace(' ', '-') %>" class="block">
+          <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+            <img src="<%= category.image %>" alt="<%= category.name %>" class="w-full h-64 object-cover">
+            <div class="p-4 text-center">
+              <h3 class="text-xl font-semibold"><%= category.name %></h3>
+            </div>
+          </div>
+        </a>
+      <% }); %>
+    </div>
+  </div>
+</div>
+
+<!-- All Products -->
+<div class="py-12 bg-gray-50">
+  <div class="container mx-auto px-6">
+    <div class="flex justify-between items-center mb-8">
+      <h2 class="text-3xl font-bold">All Products</h2>
+      <div class="flex items-center">
+        <label for="sort" class="mr-2">Sort by:</label>
+        <select id="sort" class="border rounded-md px-3 py-2">
+          <option>Featured</option>
+          <option>Price: Low to High</option>
+          <option>Price: High to Low</option>
+          <option>Newest</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <% const products = [
+        { name: "Modern Sofa", image: "/images/modern-sofa.jpg", price: "$699.99" },
+        { name: "Dining Chair", image: "/images/dining-chair.jpg", price: "$129.99" },
+        { name: "Coffee Table", image: "/images/coffee-table.jpg", price: "$249.99" },
+        { name: "Bed Frame", image: "/images/bed-frame.jpg", price: "$499.99" },
+        { name: "Bookshelf", image: "/images/bookshelf.jpg", price: "$349.99" },
+        { name: "Floor Lamp", image: "/images/floor-lamp.jpg", price: "$89.99" },
+        { name: "Desk", image: "/images/desk.jpg", price: "$299.99" },
+        { name: "Armchair", image: "/images/armchair.jpg", price: "$399.99" }
+      ]; %>
+      
+      <% products.forEach(product => { %>
+        <div class="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+          <img src="<%= product.image %>" alt="<%= product.name %>" class="w-full h-64 object-cover">
+          <div class="p-4">
+            <h3 class="text-lg font-medium"><%= product.name %></h3>
+            <p class="text-gray-600 mt-2"><%= product.price %></p>
+            <button class="mt-4 w-full bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-700">Add to Cart</button>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+    
+    <!-- Pagination -->
+    <div class="flex justify-center mt-12">
+      <nav class="inline-flex">
+        <a href="#" class="px-4 py-2 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">Previous</a>
+        <a href="#" class="px-4 py-2 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">1</a>
+        <a href="#" class="px-4 py-2 border border-gray-300 bg-white text-blue-600 font-medium">2</a>
+        <a href="#" class="px-4 py-2 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">3</a>
+        <a href="#" class="px-4 py-2 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">Next</a>
+      </nav>
+    </div>
+  </div>
+</div>

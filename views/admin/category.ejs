@@ -1,0 +1,162 @@
+<%- include('../partials/admin/header') %>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css"/>
+</head>
+<body>
+  <section class="content-main px-6 py-8">
+    <div class="content-header mb-6">
+      <h2 class="content-title text-3xl font-bold">Category</h2>
+    </div>
+    <header class="card-header text-center mb-10">
+       <!-- Search bar -->
+    <form action="/admin/users" method="get" class="flex justify-center mb-8">
+      <div class="flex w-full max-w-xl border border-gray-300 rounded-full overflow-hidden">
+        <input 
+          type="text" 
+          name="search" 
+          value="<%= searchQuery %>" 
+          placeholder="Search customers..." 
+          class="flex-1 px-4 py-2 text-sm focus:outline-none"
+        >
+        <button type="submit" class="bg-gray-800 text-white px-6 py-2 text-sm font-medium hover:bg-indigo-700 transition">
+          Search
+        </button>
+      </div>
+    </form>
+    </header>
+    <div class="card">
+      <div class="card-body">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="col-span-1">
+            <form method="post" action="/admin/addCategory" onsubmit="return handleFormSubmit(event)" class="space-y-4">
+              <div class="mb-4">
+                <label for="product_name" class="form-label text-lg font-semibold">Name</label>
+                <input type="text" name="name" placeholder="Type here" class="form-control p-3 border border-gray-300 rounded-md w-full" id="product_name" required/>
+                <div id="name-error" class="error-message text-red-500"></div>
+              </div>
+              <div class="mb-4">
+                <label class="form-label text-lg font-semibold">Description</label>
+                <textarea placeholder="Type here" name="description" class="form-control p-3 border border-gray-300 rounded-md w-full" id="descriptionId" required></textarea>
+                <div id="description-error" class="error-message text-red-500"></div>
+              </div>
+              <div class="d-grid mt-6">
+                <button class="btn btn-primary w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700" type="submit">
+                  Create category
+                </button>
+              </div>
+            </form>
+          </div>
+          <div class="col-span-2">
+            <div class="table-responsive overflow-x-auto">
+              <table class="table table-hover w-full">
+                <thead class="bg-gray-200">
+                  <tr>
+                    <th class="text-center px-4 py-2">#</th>
+                    <th class="text-left px-4 py-2">Name</th>
+                    <th class="text-left px-4 py-2">Description</th>
+                    <th class="text-left px-4 py-2">Offer Price</th>
+                    <th class="text-left px-4 py-2">Offer</th>
+                    <th class="text-left px-4 py-2">Status</th>
+                    <th class="text-left px-4 py-2">List/Unlist</th>
+                    <th class="text-left px-4 py-2">Edit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="text-center px-4 py-2"></td>
+                    <td class="text-left px-4 py-2"></td>
+                    <td class="text-left px-4 py-2"></td>
+                    <td class="px-4 py-2"></td>
+                    <td class="text-left px-4 py-2">
+                      <button class="btn bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">
+                        <a href="#" class="text-white">Add Offer</a>
+                      </button>
+                      <button class="btn bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 mt-2">
+                        <a href="#" class="text-white">Remove</a>
+                      </button>
+                    </td>
+                    <td class="text-left px-4 py-2">
+                      <span class="badge rounded-full bg-green-500 text-white px-3 py-1">Listed</span>
+                      <span class="badge rounded-full bg-red-500 text-white px-3 py-1">Unlisted</span>
+                    </td>
+                    <td class="text-left px-4 py-2">
+                      <button class="btn bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700">
+                        <a href="#" class="text-white">Unlist</a>
+                      </button>
+                      <button class="btn bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 mt-2">
+                        <a href="" class="text-white">List</a>
+                      </button>
+                    </td>
+                    <td class="text-left px-4 py-2">
+                      <a href="" class="btn bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">Edit</a>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pagination-container my-6 text-center">
+      <a href="#" class="text-blue-600 hover:text-blue-800">&laquo; Previous</a>
+      <span class="current-page text-gray-600 mx-2">1</span>
+      <a href="#" class="text-blue-600 hover:text-blue-800">Next &raquo;</a>
+    </div>
+  </section>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+<script>
+
+  function handleFormSubmit(event){
+
+    event.preventDefault();
+    if(!validateForm()){
+      return 
+    }
+
+    const name = document.getElementsByName("name")[0].value
+    
+  }
+
+  function validateForm(){
+    clearErrorMessaage();
+    const name = document.getElementsByName("name")[0].value.trim();
+    const description = document.getElementById("description").value.trim();
+    isvalid = true;
+
+    if(name===""){
+      displayErrorMessage("name-error","Please enter a name");
+      isvalid = false;
+    }else if(!/^[A-Za-z\s]+$/.test(name)){
+      displayErrorMessage("name-error","Category should only be contain alphabetic characters");
+      isvalid = false;
+    }
+
+    if(description===""){
+      displayErrorMessage("description-error","Please enter a descibtion");
+      isvalid = false;
+    }
+    return false;
+  }
+
+
+  function clearErrorMessaage(){
+    const errorElements = document.getElementsByClassName("error-message");
+    Array.from(errorElements).forEach((element)=>{
+      element.innerText = "";
+      element.style.display = "none";
+    });
+  }
+
+  function displayErrorMessage(eleId,message){
+    var errorElement = document.getElementById(elementId);
+    errorElement.innerText = message;
+    errorElement.style.display = "block";
+  }
+
+</script>
+
+  <%- include('../partials/admin/footer') %>

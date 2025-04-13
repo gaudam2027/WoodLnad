@@ -1,0 +1,65 @@
+<link rel="stylesheet" href="./css/profile.css">
+<%- include('../../views/partials/user/header') %>
+<div class="container mx-auto px-6 py-12 ">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Sidebar -->
+      <div class="bg-white p-6 rounded-lg shadow-md profile-card">
+        <ul class="space-y-2">
+          <li><a href="#" class="font-semibold s1 block py-2 px-4 rounded hover:bg-gray-200">Gautham</a></li>
+          <li><a href="#" class="block py-2 px-4 rounded hover:bg-gray-200">My Orders</a></li>
+          <li><a href="#" class="block py-2 px-4 rounded hover:bg-gray-200">Manage Address</a></li>
+          <li><a href="#" class="block py-2 px-4 rounded hover:bg-gray-200">Favorites</a></li>
+          <li><a href="#" class="block py-2 px-4 rounded hover:bg-gray-200">Wallet</a></li>
+          <button class="absolute bottom-0  w-100% bg-gray-800 text-white px-14 py-2 rounded-md hover:bg-gray-700">Logout</button>
+        </ul>
+      </div>
+      
+      <!-- Profile Info -->
+      <div class="col-span-2 bg-white p-6 rounded-lg shadow-md profile-card">
+        <h2 class="text-xl font-semibold mb-4 s1">Personal Information</h2>
+        <div class="flex flex-row items-center mb-6">
+            <img src="./images/profile.jpg" alt="Profile" class="profile-img">
+          <h3 class="profile-name">Gautham</h3>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="text-gray-500 s1" for="fullname">Full Name</label>
+            <input type="text" id="fullname" class="border p-2 w-full profile-input" value="Gautham">
+          </div>
+          <div>
+            <label class="text-gray-500 s1" for="dob">D.O.B</label>
+            <input type="date" id="dob" class="border p-2 w-full profile-input" value="2000-10-17">
+          </div>
+          <div>
+            <label class="text-gray-500 s1" for="email">Email</label>
+            <input type="email" id="email" class="border p-2 w-full profile-input" value="someone@gmail.com">
+          </div>
+          <div>
+            <label class="text-gray-500 s1" for="phone">Phone No.</label>
+            <input type="tel" id="phone" class="border p-2 w-full profile-input" value="+91 8135 67890">
+          </div>
+          <div>
+            <label class="text-gray-500 s1" for="state">State</label>
+            <input type="text" id="state" class="border p-2 w-full profile-input" value="Kerala">
+          </div>
+          <div>
+            <label class="text-gray-500 s1" for="district">District/City/Town</label>
+            <input type="text" id="district" class="border p-2 w-full profile-input" value="Kochi">
+          </div>
+          <div class="col-span-2">
+            <label class="text-gray-500 s1" for="address">Address</label>
+            <input type="text" id="address" class="border p-2 w-full profile-input" value="Vytilla, near Hyundai store">
+          </div>
+          <div class="col-span-2">
+            <label class="text-gray-500 s1" for="password">Password</label>
+            <input type="password" id="password" class="border p-2 w-full profile-input" value="**********">
+          </div>
+        </div>
+        <div class="mt-6 flex space-x-4">
+          <button class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-400 w-full">Edit</button>
+          <button class="bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-400 w-full">Change Password</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <%- include('../../views/partials/user/footer') %>

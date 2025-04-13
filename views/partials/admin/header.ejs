@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title><%= typeof title !== 'undefined' ? title : 'Admin Panel' %></title>
+  <link rel="stylesheet" href="/css/signUp.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex flex-col min-h-screen">
+
+  <!-- Admin Navigation -->
+<nav class="relative w-full bg-white shadow-md flex justify-between items-center px-6 py-3 z-20">
+  <!-- Logo Section -->
+  <div class="text-2xl font-bold text-gray-800 flex items-center" style="font-family: 'Raleway', sans-serif;">
+    <img src="/images/logo.png" class="h-10 w-auto object-contain" alt="logo">
+    <div class="pl-2">WOODLAND <span class="text-gray-500 text-base ml-1">Admin</span></div>
+  </div>
+
+  <!-- Profile Dropdown -->
+  <div class="relative">
+    <button id="profileBtn" class="flex items-center space-x-3 focus:outline-none">
+      <img src="/images/profile.jpg" alt="Admin" class="w-10 h-10 rounded-full border-2 border-gray-300 object-cover">
+      <span class="text-gray-700 font-medium hidden sm:inline">Admin</span>
+    </button>
+
+    <!-- Dropdown Menu -->
+    <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md border z-50">
+      <a href="/admin/settings" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
+      <a href="/admin/logout" class="block px-4 py-2 text-sm text-white bg-gray-800 hover:bg-gray-700 rounded-b-md">Logout</a>
+    </div>
+  </div>
+</nav>
+
+  <div class=" bg-gray-100 flex ">
+  <!-- Sidebar -->
+<aside class="w-64 bg-white shadow-md border-r border-gray-200 flex flex-col justify-start p-4 min-h-[calc(100vh-64px)] mt-[0px]">
+  <!-- Sidebar Navigation -->
+  <nav class="space-y-2">
+    <a href="/admin" class="flex items-center px-4 py-2 text-gray-700 hover:text-white hover:bg-gray-700 rounded-md transition">
+      <i class="fas fa-tachometer-alt mr-3"></i>
+      Dashboard
+    </a>
+    <a href="/admin/users" class="flex items-center px-4 py-2 text-gray-700 hover:text-white hover:bg-gray-700 rounded-md transition">
+      <i class="fas fa-users mr-3"></i>
+      Users
+    </a>
+    <a href="#" class="flex items-center px-4 py-2 text-gray-700 hover:text-white hover:bg-gray-700 rounded-md transition">
+      <i class="fas fa-boxes mr-3"></i>
+      Products
+    </a>
+    <a href="/admin/order" class="flex items-center px-4 py-2 text-gray-700 hover:text-white hover:bg-gray-700 rounded-md transition">
+      <i class="fas fa-shopping-cart mr-3"></i>
+      Orders
+    </a>
+    <a href="#" class="flex items-center px-4 py-2 text-gray-700 hover:text-white hover:bg-gray-700 rounded-md transition">
+      <i class="fas fa-gift mr-3"></i>
+      Offers
+    </a>
+    <a href="#" class="flex items-center px-4 py-2 text-gray-700 hover:text-white hover:bg-gray-700 rounded-md transition">
+      <i class="fas fa-image mr-3"></i>
+      Banner Management
+    </a>
+    <a href="#" class="flex items-center px-4 py-2 text-gray-700 hover:text-white hover:bg-gray-700 rounded-md transition">
+      <i class="fas fa-ticket-alt mr-3"></i>
+      Coupon Management
+    </a>
+    <a href="#" class="flex items-center px-4 py-2 text-gray-700 hover:text-white hover:bg-gray-700 rounded-md transition">
+      <i class="fas fa-chart-line mr-3"></i>
+      Sales Report
+    </a>
+    <a href="/admin/category" class="flex items-center px-4 py-2 text-gray-700 hover:text-white hover:bg-gray-700 rounded-md transition">
+      <i class="fas fa-tags mr-3"></i>
+      Category
+    </a>
+  </nav>
+</aside>
+
+
+
+
+
+
+    
