@@ -1,8 +1,10 @@
 const User = require('../../model/userSchema');
+const Category = require('../../model/categorySchema');
+const Product = require('../../model/productSchema');
 const nodemailer =  require('nodemailer')
 const env = require('dotenv').config();
 const bcrypt = require("bcrypt");
-const { response } = require('express');
+
 
 //loading error page
 const pageNotFound = async (req,res)=>{
@@ -17,21 +19,44 @@ const pageNotFound = async (req,res)=>{
 
 
 
-const loadHomepage = async (req,res)=>{
+const loadHomepage = async (req, res) => {
     try {
-        const sessionUser = req.session.userData || req.session.user
-        const passportUser = req.user;
+        // const sessionUserData = req.session.userData; // form sign up data (otp time)
+        const sessionUser = req.session.user;       // Only the user._id from signin
+        // const passportUser = req.user;                // data from Google
 
-        const user = sessionUser || passportUser;
-        // console.log('User in home:', user);
-        console.log(user);
-        return res.render('home', { user });
-    } catch (error) {
-        console.log('Home page not found');
-        res.status(500).send('Server error')
+        let user = sessionUser
+        const categories = await Category.find({isListed:true});
+        let productData = await Product.find(
+            {isBlocked:false,
+             category:{$in:categories.map(category=>category._id)},
+             variants: { $elemMatch: { quantity: { $gt: 0 } } }
+            }
+        )
+
+        // console.log(productData[0].images[0]);
         
+        
+
+        productData.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+        productData = productData.slice(0,4)
+
+
+
+        if (user) {
+           const userData = await User.findOne({id:user._id});
+           return res.render('home',{user:userData,products:productData});
+        }else{
+            return res.render('home',{products:productData})
+        }
+
+        
+        
+    } catch (error) {
+        console.log('Home page not found', error);
+        res.status(500).send('Server error');
     }
-}
+};
 
 
 const loadSignuppage = async (req,res)=>{
@@ -110,7 +135,7 @@ const signup = async (req, res) => {
         }
 
         req.session.userOtp = otp;
-        req.session.userData = { name, phone, email, password };
+        
 
         
         console.log("OTP sent", otp);
@@ -167,7 +192,7 @@ const otp = async (req,res)=>{
 
             // saving user in user collection
             await saveUserData.save();
-            req.session.user = saveUserData._id;
+            req.session.user = saveUserData;
             res.json({success:true,redirectUrl:"/"})
         }else{
             res.status(400).json({success:false,message:"Inavaild OTP please try again"})
@@ -257,7 +282,7 @@ const signin= async (req,res)=>{
             return res.json({success: false,message: 'Incorrect password'});
         }
 
-        req.session.user = findUser._id;
+        req.session.user = findUser;
         res.json({success: true,redirectUrl: '/'});
 
     } catch (error) {
@@ -268,12 +293,155 @@ const signin= async (req,res)=>{
     }
 }
 
+//------------------------------------------------------------------------shop-page-------------------------------------------------------------
+
+const loadShoppage = async (req, res) => {
+    try {
+      const user = req.session.user;
+      const search = req.query.search ? req.query.search.trim() : '';
+  
+      
+      const userData = await User.findOne({ _id:user._id });
+      const categories = await Category.find({ isListed: true });
+      const categoriesIds = categories.map(category => category._id.toString());
+
+  
+      const page = parseInt(req.query.page || 1);
+      const limit = 9;
+      const skip = (page - 1) * limit;
+  
+      // Search filter
+      const searchFilter = search
+        ? {
+            $or: [
+              { productName: { $regex: search, $options: 'i' } },
+              { description: { $regex: search, $options: 'i' } }
+            ]
+          }
+        : {};
+  
+      const query = {
+        isBlocked: false,
+        category: { $in: categoriesIds },
+        variants: { $elemMatch: { quantity: { $gt: 0 } } },
+        ...searchFilter
+      };
+  
+      const products = await Product.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+  
+      const totalProducts = await Product.countDocuments(query);
+      const totalPages = Math.ceil(totalProducts / limit);
+  
+      const categoriesWithIds = categories.map(category => ({
+        _id: category._id,
+        name: category.name
+      }));
+
+      
+      // unique variants type
+      let allVariants = [];
+      
+        products.forEach(product => {
+        product.variants.forEach(variant => {
+            allVariants.push(variant);
+        });
+    });
+
+        // Use JSON.stringify to compare full object uniqueness
+        const uniqueVariants = Array.from(
+            new Map(allVariants.map(obj => [JSON.stringify(obj), obj])).values()
+        );
+        
+
+  
+      res.render('shop', {
+        user: userData,
+        products,
+        category: categoriesWithIds,
+        variants: uniqueVariants,
+        totalProducts,
+        currentPage: page,
+        totalPages,
+        searchQuery: search // Send this back to show it in input field
+      });
+    } catch (error) {
+      console.log('shop page not found', error);
+      res.status(500).send('Server error');
+    }
+  };
+
+  //filter product
+
+  const filterProduct = async(req,res)=>{
+    try {
+
+        const user = req.session.user;
+        const { search, price, categories, page = 1 } = req.query;
+
+        // console.log(categories);
+        
+
+        const limit = 9;
+        const skip = (page - 1) * limit;
+    
+        // Build the filter object
+        const searchFilter = search
+          ? {
+              $or: [
+                { productName: { $regex: search, $options: 'i' } },
+                { description: { $regex: search, $options: 'i' } }
+              ]
+            }
+          : {};
+    
+        // Category Filter
+        const categoryFilter = categories && categories.length > 0
+          ? { category: { $in: categories } } // Match products where the category is in the selected categories
+          : {};
+    
+        // Price Filter
+        const priceFilter = price === 'below-30000'
+          ? { 'variants.salePrice': { $lt: 30000 } }
+          : {};
+    
+        const query = {
+          isBlocked: false,
+          ...searchFilter,
+          ...categoryFilter,
+          ...priceFilter,
+          'variants.quantity': { $gt: 0 } // Ensure the variant quantity is greater than 0
+        };
+    
+        // Fetch the products with the filters
+        const products = await Product.find(query)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit);
+    
+        const totalProducts = await Product.countDocuments(query);
+        const totalPages = Math.ceil(totalProducts / limit);
+    
+        res.json({
+          products,
+          totalProducts,
+          totalPages
+        });
+      } catch (error) {
+        console.log('Error filtering products:', error);
+        res.status(500).json({ error: 'Server error' });
+      }
+    }
+  
 
 const loadProfilepage = async (req,res)=>{
     try {
+        console.log('reached');
         
         const sessionUser = req.session.userData;
-        const passportUser = req.user;
+        // const passportUser = req.user;
 
         const user = sessionUser || passportUser;
         
@@ -326,6 +494,8 @@ module.exports = {
     resendOtp,
     loadSigninpage,
     signin,
+    loadShoppage,
+    filterProduct,
     loadProfilepage,
     loadOrderpage,
     logout

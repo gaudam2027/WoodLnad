@@ -1,0 +1,466 @@
+<%- include("../../views/partials/admin/header") %>
+
+<link href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css" rel="stylesheet">
+
+<style>
+
+  .cropper-container {
+    width: 100%; /* makes the container responsive */
+    max-width: 500px; /* optional: you can set a max-width for the container */
+    height: auto; /* make the height adapt to the width */
+    position: relative; /* ensures the cropping area behaves properly */
+  }
+  
+  .image-cropper img {
+    width: 100%; /* ensures image fills the container */
+    height: auto; /* keeps the image aspect ratio */
+  }
+  
+
+  .error-message {
+    color: red;
+    font-size: 0.875rem;
+  }
+
+  .thumbnails-container {
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+  }
+</style>
+
+<div class="pt-24 h-[calc(100vh-6rem)] overflow-y-scroll scrollbar-hide px-6 bg-gray-100 w-full">
+  <h1 class="text-3xl font-bold text-slate-800 mb-6">Add New Product</h1>
+
+  <form method="post" action="/admin/addProduct" enctype="multipart/form-data" onsubmit="return validateForm()" class="bg-white rounded-lg shadow-md p-6">
+    <!-- Product Name -->
+    <div class="mb-4">
+      <label for="product_name" class="block text-gray-700 font-medium mb-1">Product Name</label>
+      <input type="text" name="productName" id="product_name" placeholder="Type here"
+        class="w-full px-4 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800">
+        <div id="productName-error" class="error-message text-red-500 text-sm mt-1"></div>
+    </div>
+
+    <!-- Description -->
+    <div class="mb-4">
+      <label for="descriptionid" class="block text-gray-700 font-medium mb-1">Full Description</label>
+      <textarea id="descriptionid" name="description" rows="4" placeholder="Type here"
+        class="w-full px-4 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800"></textarea>
+        <div id="description-error" class="error-message text-red-500 text-sm mt-1"></div>
+    </div>
+
+    
+
+    <!-- Category -->
+    <div class="mb-4">
+      <label class="block text-gray-700 font-medium mb-1">Category</label>
+      <select name="category"
+        class="w-full px-4 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800">
+        
+        <!-- Default disabled option -->
+        <option value="" disabled selected>Select a category</option>
+        
+        <% for(let i = 0; i < cat.length; i++) { %>
+          <option value="<%= cat[i].name %>"><%= cat[i].name %></option>
+        <% } %>
+    
+      </select>
+      <div id="category-error" class="error-message"></div>
+    </div>
+
+    <!-- Image Uploads (manual setup for 4 images) -->
+    <h2 class="text-lg font-semibold text-slate-700 mb-3">Upload Images</h2>
+    <div class="bg-gray-50 border border-slate-200 rounded-md p-4 mb-6">
+
+      <!-- Image Uploads -->
+      <div class="space-y-6">
+
+        <!-- image - 1 -->
+        <div>
+          <div class="flex flex-col items-center gap-2">
+            <img src="" alt="" id="imgView1">
+            <input class="form-control" type="file" name="images" id="input1" accept="image/png, image/jpeg, image/jpg" onchange="viewImage1(event), viewImage(event, 1)">
+          </div>
+          <div class="image-cropper flex-col items-center hidden w-[300px] h-[200px] mt-2">
+            <img src="" id="croppedImg1" alt="">
+            <button type="button" id="saveButton1" class="ml-2 px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition duration-200">
+              Save
+            </button>
+          </div>
+        </div>
+        
+        <!-- image - 2 -->
+        <div>
+          <div class="flex flex-col items-center gap-2">
+            <img src="" alt="" id="imgView2">
+            <input class="form-control" type="file" name="images" id="input2" accept="image/png, image/jpeg, image/jpg" onchange="viewImage2(event), viewImage(event, 2)">
+          </div>
+          <div class="image-cropper flex-col items-center hidden w-[300px] h-[200px] mt-2">
+            <img src="" id="croppedImg2" alt="">
+            <button type="button" id="saveButton2" class="ml-2 px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition duration-200">
+              Save
+            </button>
+          </div>
+        </div>
+        
+        <!-- image - 3 -->
+        <div>
+          <div class="flex flex-col items-center gap-2">
+            <img src="" alt="" id="imgView3">
+            <input class="form-control" type="file" name="images" id="input3" accept="image/png, image/jpeg, image/jpg" onchange="viewImage3(event), viewImage(event, 3)">
+          </div>
+          <div class="image-cropper flex-col items-center hidden w-[300px] h-[200px] mt-2">
+            <img src="" id="croppedImg3" alt="">
+            <button type="button" id="saveButton3" class="ml-2 px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition duration-200">
+              Save
+            </button>
+          </div>
+        </div>
+
+        <!-- image - 4 -->
+        <div>
+          <div class="flex flex-col items-center gap-2">
+            <img src="" alt="" id="imgView4">
+            <input class="form-control" type="file" name="images" id="input4" accept="image/png, image/jpeg, image/jpg" onchange="viewImage4(event), viewImage(event, 4)">
+          </div>
+          <div class="image-cropper flex-col items-center hidden w-[300px] h-[200px] mt-2">
+            <img src="" id="croppedImg4" alt="">
+            <button type="button" id="saveButton4" class="ml-2 px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition duration-200">
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+      <div id="images-error" class="error-message text-red-500 text-sm mt-1"></div>
+    </div>
+
+    <div id="variants-section" class="mb-6">
+      <label class="block text-gray-700 font-medium mb-2">Variants</label>
+      <div id="variants-container"></div>
+      <button type="button" onclick="addVariantField()" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 mt-2">Add Variant</button>
+    </div>
+    <div id="variant-error" class="error-message text-red-500 text-sm mt-1"></div>
+    
+
+    <!-- Submit Button -->
+    <div class="text-right">
+      <button type="button" onclick="validateAndSubmit()"
+        class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-500 transition font-medium">
+        Publish
+      </button>
+    </div>
+  </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
+
+</div>
+
+
+<script>
+
+  let variantIndex = 0;
+  function validateAndSubmit(){
+    if(validateForm()){
+      document.forms[0].submit();
+    }
+  }
+
+  function viewImage1(event) {
+    document.getElementById('imgView1').src = URL.createObjectURL(event.target.files[0])
+}
+
+
+function viewImage2(event) {
+    document.getElementById('imgView2').src = URL.createObjectURL(event.target.files[0])
+}
+
+
+function viewImage3(event) {
+    document.getElementById('imgView3').src = URL.createObjectURL(event.target.files[0])
+}
+
+
+function viewImage4(event) {
+    document.getElementById('imgView4').src = URL.createObjectURL(event.target.files[0])
+}
+
+
+
+
+function viewImage(event, index) {
+   const input = event.target;
+   const file = input.files[0];
+   const reader = new FileReader();
+
+   reader.onload = function () {
+       const dataURL = reader.result;
+
+       // Show the crop container
+       const cropperContainer = document.querySelector(`#croppedImg${index}`).parentNode;
+       cropperContainer.classList.remove('hidden'); // Make it visible
+
+       // Set the image source in cropper image
+       const cropImage = document.getElementById(`croppedImg${index}`);
+       cropImage.src = dataURL;
+
+       // Destroy existing cropper if already applied
+       if (cropImage.cropper) {
+           cropImage.cropper.destroy();
+       }
+
+       // Apply cropper on new image
+       const cropper = new Cropper(cropImage, {
+           aspectRatio: 1,
+           viewMode: 1,
+           autoCropArea: 1,
+           background: false,
+           zoomable: true
+       });
+
+       // Store cropper instance for later use
+       cropImage.cropper = cropper;
+
+       // Save cropped image on button click
+       const saveButton = document.getElementById(`saveButton${index}`);
+       saveButton.onclick = function () {
+           const canvas = cropper.getCroppedCanvas();
+           const croppedDataUrl = canvas.toDataURL('image/jpeg', 1.0);
+           document.getElementById(`imgView${index}`).src = croppedDataUrl;
+
+           // Hide cropper after saving
+           cropperContainer.classList.add('hidden');
+
+
+       };
+   };
+
+   if (file) {
+       reader.readAsDataURL(file);
+   }
+}
+
+
+const selectedImages = [];
+document.querySelectorAll('input[type="file"]').forEach(inputElement => {
+ inputElement.addEventListener("change", handleFileSelect);
+});
+
+
+function handleFileSelect(event) {
+    const addedImagesContainer = document.getElementById("addedImagesContainer");
+    addedImagesContainer.innerHTML = "";
+    const files = event.target.files;
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        selectedImages.push(file);
+        const thumbnail = document.createElement("div");
+        thumbnail.classList.add("thumbnail");
+        const img = document.createElement("img");
+        img.src = URL.createObjectURL(file);
+        img.alt = "thumbnail";
+        img.style.width = "50px";
+        img.style.height = "auto";
+        const removeIcon = document.createElement("span");
+        removeIcon.classList.add("remove-icon");
+        removeIcon.innerHTML = "&times;";
+        removeIcon.addEventListener("click", function () {
+            const index = selectedImages.indexOf(file);
+            if (index !== -1) {
+                selectedImages.splice(index, 1);
+            }
+            thumbnail.remove();
+        });
+        thumbnail.appendChild(img);
+        thumbnail.appendChild(removeIcon);
+        addedImagesContainer.appendChild(thumbnail);
+    }
+};
+
+function validateForm() {
+  clearErrorMessages();
+
+  const name = document.getElementsByName('productName')[0].value;
+  const description = document.getElementById('descriptionid').value;
+  const category = document.getElementsByName('category')[0].value;
+  const images = document.getElementById('input1');
+  let isValid = true;
+
+  // Validate product name
+  if (name.trim() === "") {
+      displayErrorMessage('productName-error', 'Please enter a product name.');
+      isValid = false;
+  } else if (!/^[a-zA-Z\s]+$/.test(name.trim())) {
+      displayErrorMessage('productName-error', 'Product name should contain only alphabetic characters.');
+      isValid = false;
+  }
+
+  // Validate description
+  if (description.trim() === "") {
+      displayErrorMessage('description-error', 'Please enter a product description.');
+      isValid = false;
+  } else if (!/^[a-zA-Z0-9\s.,'’"!?()\-]+$/.test(description.trim())) {
+  displayErrorMessage('description-error', 'Description contains invalid characters.');
+  isValid = false;
+}
+
+  if (!category) {
+    displayErrorMessage('category-error', 'Please select a category.');
+    isValid = false;
+  }
+
+  // Validate image
+  if (images.files.length === 0) {
+      displayErrorMessage("images-error", 'Please select an image.');
+      isValid = false;
+  }
+
+  const variantBlocks = document.querySelectorAll('#variants-container .border');
+if (variantBlocks.length === 0) {
+    displayErrorMessage("variant-error", 'There should be at least 1 variant.');
+    isValid = false;
+} else {
+    variantBlocks.forEach((block, index) => {
+        const regularPrice = block.querySelector(`[name="variants[${index}][regularPrice]"]`)?.value.trim();
+        const salePrice = block.querySelector(`[name="variants[${index}][salePrice]"]`)?.value.trim();
+        const quantity = block.querySelector(`[name="variants[${index}][quantity]"]`)?.value.trim();
+        const color = block.querySelector(`[name="variants[${index}][color]"]`)?.value.trim();
+        const errorMessages = block.querySelectorAll('.error-message');
+
+        // Ensure errorMessages contains enough elements
+        if (errorMessages.length < 4) {
+            console.error("Not enough error message elements.");
+            return;  // Skip the current block
+        }
+
+        // Validate Regular Price
+        if (!regularPrice || isNaN(regularPrice) || parseFloat(regularPrice) <= 0) {
+            errorMessages[0].innerText = 'Enter a valid regular price.';
+            isValid = false;
+        } else {
+            errorMessages[0].innerText = '';  // Clear the error message if valid
+        }
+
+        // Validate Sale Price (must be less than regular price)
+        if (!salePrice || isNaN(salePrice) || parseFloat(salePrice) <= 0 || parseFloat(salePrice) >= parseFloat(regularPrice)) {
+            errorMessages[1].innerText = 'Enter a valid sale price and it should be less than the regular price.';
+            isValid = false;
+        } else {
+            errorMessages[1].innerText = '';  // Clear the error message if valid
+        }
+
+        // Validate Quantity
+        if (!quantity || isNaN(quantity) || parseInt(quantity) <= 0) {
+            errorMessages[2].innerText = 'Enter a valid quantity.';
+            isValid = false;
+        } else {
+            errorMessages[2].innerText = '';  // Clear the error message if valid
+        }
+
+        // Validate Color (alphabetic characters only)
+        if (!color || !/^[a-zA-Z\s]+$/.test(color)) {
+            errorMessages[3].innerText = 'Color must be alphabetic.';
+            isValid = false;
+        } else {
+            errorMessages[3].innerText = '';  // Clear the error message if valid
+        }
+    });
+}
+
+
+  return isValid;
+}
+
+
+
+function displayErrorMessage(elementId, message) {
+  const errorElement = document.getElementById(elementId);
+  if (errorElement) {
+      errorElement.innerText = message;
+      errorElement.style.display = "block";
+  } else {
+      console.warn(`Error element with ID '${elementId}' not found.`);
+  }
+}
+
+
+function clearErrorMessages() {
+  const errorElements = document.getElementsByClassName('error-message');
+  Array.from(errorElements).forEach(element => {
+      element.innerText = '';
+  });
+}
+
+console.log(errorMessages);
+
+
+
+function addVariantField() {
+  const container = document.getElementById('variants-container');
+
+  const variantHTML = `
+    <div class="border p-4 rounded mb-4 bg-gray-50 relative">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Regular Price -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Regular Price</label>
+          <input 
+            type="text" 
+            name="variants[${variantIndex}][regularPrice]" 
+            placeholder="$" 
+            class="form-control border w-full px-3 py-2 rounded">
+          <div class="error-message text-red-500 text-xs mt-1"></div>
+        </div>
+
+        <!-- Sale Price -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Sale Price</label>
+          <input 
+            type="text" 
+            name="variants[${variantIndex}][salePrice]" 
+            class="form-control border w-full px-3 py-2 rounded">
+          <div class="error-message text-red-500 text-xs mt-1"></div>
+        </div>
+
+        <!-- Quantity -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+          <input 
+            type="number" 
+            name="variants[${variantIndex}][quantity]" 
+            placeholder="Quantity" 
+            class="form-control border w-full px-3 py-2 rounded">
+          <div class="error-message text-red-500 text-xs mt-1"></div>
+        </div>
+
+        <!-- Color -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Color</label>
+          <input 
+            type="text" 
+            name="variants[${variantIndex}][color]" 
+            placeholder="Color" 
+            class="form-control border w-full px-3 py-2 rounded">
+          <div class="error-message text-red-500 text-xs mt-1"></div>
+        </div>
+      </div>
+
+      <button type="button" onclick="removeVariantField(this)" class="text-red-500 text-sm mt-4">Remove</button>
+    </div>
+  `;
+
+  container.insertAdjacentHTML('beforeend', variantHTML);
+  variantIndex++;
+}
+
+function removeVariantField(button) {
+  const variantBlock = button.closest('.border');
+  if (variantBlock) {
+    variantBlock.remove();
+  }
+}
+
+
+</script>
+
+<%- include("../../views/partials/admin/footer") %>

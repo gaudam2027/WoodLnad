@@ -24,6 +24,8 @@ router.post('/signIn',userController.signin);
 
 //home page & shopping page
 router.get('/',userController.loadHomepage);
+router.get('/shop',userController.loadShoppage);
+router.get('/filter',userAuth,userController.filterProduct);
 
 router.get('/profile',userController.loadProfilepage);
 router.get('/order',userController.loadOrderpage);

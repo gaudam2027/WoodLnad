@@ -17,6 +17,30 @@ const productSchema = new mongoose.Schema({
     ref: 'Category',
     required: true
    },
+//    color: {
+//     type: String
+//    },
+   images: [{
+    type: String
+    }],
+    // quantity: {
+    //     type: Number,
+    //     required: true
+    // },
+    // regularPrice: {
+    //     type: Number,
+    //     required: true
+    // },
+    // salePrice: {
+    //     type: Number,
+    //     required: true
+    // },
+    
+    // offerPrice: {
+    //     type: Number, // Discounted price for this variant
+    //     required: false
+    // },
+
 
    variants: [{
     color: {
@@ -31,19 +55,17 @@ const productSchema = new mongoose.Schema({
     },
     quantity: {
         type: Number,
-        required: true
+        
     },
     regularPrice: {
         type: Number,
-        required: true
+        
     },
     salePrice: {
         type: Number,
-        required: true
+        
     },
-    images: [{
-        type: String
-    }],
+    
     offerPrice: {
         type: Number, // Discounted price for this variant
         required: false
@@ -55,7 +77,7 @@ const productSchema = new mongoose.Schema({
     default:0
    },
 
-   isBloacked:{
+   isBlocked:{
     type: Boolean,
     default: false
    },

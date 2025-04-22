@@ -1,162 +1,408 @@
-<%- include('../partials/admin/header') %>
-<head>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css"/>
-</head>
-<body>
-  <section class="content-main px-6 py-8">
-    <div class="content-header mb-6">
-      <h2 class="content-title text-3xl font-bold">Category</h2>
+<%- include('../partials/admin/header', { title: 'Admin Panel - Categories' }) %>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="min-h-screen bg-gray-100 p-6 w-full">
+  <h1 class="text-3xl font-bold mb-4 text-slate-800">Category Products</h1>
+
+  <!-- Search Bar -->
+  <div class="mb-6">
+    <form method="GET" action="/admin/category" class="flex gap-2">
+      <input type="text" name="search" placeholder="Search categories..."
+        value="<%= searchQuery %>"
+        class="w-full md:w-1/3 px-4 py-2 rounded-md border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800" />
+      <button type="submit"
+        class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition font-medium">
+        Search
+      </button>
+      <% if (searchQuery) { %>
+        <a href="/admin/category" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-400 transition">
+          Clear
+        </a>
+      <% } %>
+    </form>
+  </div>
+
+  <div class="flex flex-col lg:flex-row gap-8 w-full">
+    <!-- Add Category Form -->
+    <div class="lg:w-1/4 bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
+      <h2 class="text-xl font-semibold mb-4 text-gray-700">Add Category</h2>
+      <form method="POST" action="/admin/addCategory" onsubmit="return handleFormSubmit(event)">
+        <div class="mb-4">
+          <label class="block text-sm font-medium mb-1 text-slate-700">Category Name</label>
+          <input type="text" name="name" class="w-full border rounded-md p-2 focus:ring-2 focus:ring-gray-400" required />
+          <div id="name-error" class="text-red-600 text-sm mt-1 error-message hidden"></div>
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium mb-1 text-slate-700">Description</label>
+          <textarea name="description" id="description" class="w-full border rounded-md p-2 h-24 resize-none focus:ring-2 focus:ring-gray-400" required></textarea>
+          <div id="description-error" class="text-red-600 text-sm mt-1 error-message hidden"></div>
+        </div>
+        <button type="submit" class="w-full bg-gray-800 text-white py-2 rounded-md hover:bg-gray-700 transition">Add Category</button>
+      </form>
     </div>
-    <header class="card-header text-center mb-10">
-       <!-- Search bar -->
-    <form action="/admin/users" method="get" class="flex justify-center mb-8">
-      <div class="flex w-full max-w-xl border border-gray-300 rounded-full overflow-hidden">
-        <input 
-          type="text" 
-          name="search" 
-          value="<%= searchQuery %>" 
-          placeholder="Search customers..." 
-          class="flex-1 px-4 py-2 text-sm focus:outline-none"
-        >
-        <button type="submit" class="bg-gray-800 text-white px-6 py-2 text-sm font-medium hover:bg-indigo-700 transition">
-          Search
-        </button>
+
+    <!-- Category List -->
+    <div class="lg:w-3/4 bg-white shadow-lg rounded-2xl p-4 border border-slate-200">
+      <h2 class="text-xl font-semibold mb-4 text-gray-700">Category List</h2>
+      <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-2 text-left font-medium text-slate-700">Name</th>
+            <th class="px-4 py-2 text-left font-medium text-slate-700">Description</th>
+            <th class="px-4 py-2 text-left font-medium text-slate-700">Applied Offer</th>
+            <th class="px-4 py-2 text-left font-medium text-slate-700">Add/Rm Offer</th>
+            <th class="px-4 py-2 text-left font-medium text-slate-700">Status</th>
+            <th class="px-4 py-2 text-left font-medium text-slate-700">Action</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 text-slate-700 text-sm">
+          <% if (cat.length > 0) { %>
+            <% cat.forEach(category => { %>
+              <tr class="hover:bg-gray-50 transition-all duration-200">
+                <td class="px-4 py-3"><%= category.name %></td>
+                <td class="px-4 py-3"><%= category.description %></td>
+                <td class="px-4 py-3">
+                  <%if(category.categoryOffer){%>
+                    <%=category.categoryOffer%>%
+                  <%}%>
+                </td>
+                <td class="px-4 py-3">
+                  <div class="flex gap-2 mt-2">
+                    <%if(category.categoryOffer===0){%>
+                      <button onclick="addOffer('<%=category._id%>')" class="bg-blue-500 text-white text-xs px-3 py-1 rounded hover:bg-blue-600 transition">
+                        Add Offer
+                      </button>                      
+                    <%}else{%>
+                      <button onclick="removeOffer('<%=category._id%>')" class="bg-blue-500 text-white text-xs px-3 py-1 rounded hover:bg-blue-600 transition">
+                        Remove Offer
+                      </button>                      
+                    <%}%>
+                  </div>
+                </td>
+                <td class="px-4 py-3">
+                  <%if(category.isListed) {%>
+                    <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-green-100 text-green-700">Listed</span>
+                  <%}else{%>
+                    <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-red-100 text-red-700">Unlisted</span>
+                  <%}%>
+                </td>
+                <td class="px-4 py-3 space-x-2">
+                  <button onclick='showEditForm("<%= category._id %>", "<%= category.name %>", "<%= category.description %>")' class="bg-slate-800 text-white text-xs px-3 py-1 rounded hover:bg-slate-900 transition">Edit</button>
+                  <%if(category.isListed) {%>
+                    <a href="/admin/listCategory?id=<%=category._id%>" class="bg-yellow-500 text-white text-xs px-3 py-1 rounded hover:bg-yellow-600 transition inline-block">Unlist</a>
+                  <%}else{%>
+                    <a href="/admin/unlistCategory?id=<%=category._id%>" class="bg-green-500 text-white text-xs px-3 py-1 rounded hover:bg-green-600 transition inline-block">List</a>
+                  <%}%>
+                </td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td class="px-4 py-4 text-center text-gray-500" colspan="6">No categories found.</td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+
+      <!-- Edit Category Modal -->
+<div id="editCategoryModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-xl shadow-lg w-full max-w-lg p-6 relative">
+    <h2 class="text-xl font-bold mb-4 text-gray-800">Edit Category</h2>
+    <form id="editCategoryForm" onsubmit="handleEditFormSubmit(event)">
+      <input type="hidden" name="id" id="editCategoryId" />
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700">Category Name</label>
+        <input type="text" name="name" id="editCategoryName" class="w-full border rounded-md p-2" required />
+        <p id="edit-name-error" class="text-red-500 text-sm mt-1 hidden"></p>
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700">Description</label>
+        <textarea name="description" id="editCategoryDescription" class="w-full border rounded-md p-2 h-24 resize-none" required></textarea>
+        <p id="edit-description-error" class="text-red-500 text-sm mt-1 hidden"></p>
+      </div>      
+      <div class="flex justify-end gap-3 mt-4">
+        <button type="submit" class="bg-gray-900 text-white px-4 py-2 rounded-md hover:bg-gray-700">Update</button>
+        <button type="button" onclick="hideEditForm()" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-400">Cancel</button>
       </div>
     </form>
-    </header>
-    <div class="card">
-      <div class="card-body">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class="col-span-1">
-            <form method="post" action="/admin/addCategory" onsubmit="return handleFormSubmit(event)" class="space-y-4">
-              <div class="mb-4">
-                <label for="product_name" class="form-label text-lg font-semibold">Name</label>
-                <input type="text" name="name" placeholder="Type here" class="form-control p-3 border border-gray-300 rounded-md w-full" id="product_name" required/>
-                <div id="name-error" class="error-message text-red-500"></div>
-              </div>
-              <div class="mb-4">
-                <label class="form-label text-lg font-semibold">Description</label>
-                <textarea placeholder="Type here" name="description" class="form-control p-3 border border-gray-300 rounded-md w-full" id="descriptionId" required></textarea>
-                <div id="description-error" class="error-message text-red-500"></div>
-              </div>
-              <div class="d-grid mt-6">
-                <button class="btn btn-primary w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700" type="submit">
-                  Create category
-                </button>
-              </div>
-            </form>
-          </div>
-          <div class="col-span-2">
-            <div class="table-responsive overflow-x-auto">
-              <table class="table table-hover w-full">
-                <thead class="bg-gray-200">
-                  <tr>
-                    <th class="text-center px-4 py-2">#</th>
-                    <th class="text-left px-4 py-2">Name</th>
-                    <th class="text-left px-4 py-2">Description</th>
-                    <th class="text-left px-4 py-2">Offer Price</th>
-                    <th class="text-left px-4 py-2">Offer</th>
-                    <th class="text-left px-4 py-2">Status</th>
-                    <th class="text-left px-4 py-2">List/Unlist</th>
-                    <th class="text-left px-4 py-2">Edit</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="text-center px-4 py-2"></td>
-                    <td class="text-left px-4 py-2"></td>
-                    <td class="text-left px-4 py-2"></td>
-                    <td class="px-4 py-2"></td>
-                    <td class="text-left px-4 py-2">
-                      <button class="btn bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">
-                        <a href="#" class="text-white">Add Offer</a>
-                      </button>
-                      <button class="btn bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 mt-2">
-                        <a href="#" class="text-white">Remove</a>
-                      </button>
-                    </td>
-                    <td class="text-left px-4 py-2">
-                      <span class="badge rounded-full bg-green-500 text-white px-3 py-1">Listed</span>
-                      <span class="badge rounded-full bg-red-500 text-white px-3 py-1">Unlisted</span>
-                    </td>
-                    <td class="text-left px-4 py-2">
-                      <button class="btn bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700">
-                        <a href="#" class="text-white">Unlist</a>
-                      </button>
-                      <button class="btn bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 mt-2">
-                        <a href="" class="text-white">List</a>
-                      </button>
-                    </td>
-                    <td class="text-left px-4 py-2">
-                      <a href="" class="btn bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">Edit</a>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="pagination-container my-6 text-center">
-      <a href="#" class="text-blue-600 hover:text-blue-800">&laquo; Previous</a>
-      <span class="current-page text-gray-600 mx-2">1</span>
-      <a href="#" class="text-blue-600 hover:text-blue-800">Next &raquo;</a>
-    </div>
-  </section>
+    <button onclick="hideEditForm()" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-xl">&times;</button>
+  </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+
+    </div>
+  </div>
+
+  <!-- Pagination Section -->
+  <% if (totalPages > 1) { %>
+    <div class="flex justify-center mt-8">
+      <ul class="flex gap-2">
+        <% for (let i = 1; i <= totalPages; i++) { %>
+          <li>
+            <a href="?page=<%= i %>&search=<%= searchQuery %>"
+              class="px-4 py-2 rounded-md text-sm font-semibold border transition
+              <%= i === currentPage 
+                ? 'bg-gray-600 text-white border-gray-600' 
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' %>">
+              <%= i %>
+            </a>
+          </li>
+        <% } %>
+      </ul>
+    </div>
+  <% } %>
+</div>
+</div>
 
 <script>
-
-  function handleFormSubmit(event){
-
-    event.preventDefault();
-    if(!validateForm()){
-      return 
-    }
-
-    const name = document.getElementsByName("name")[0].value
-    
+  function showEditForm(id, name, description) {
+    document.getElementById("editCategoryModal").classList.remove("hidden");
+    document.getElementById("editCategoryId").value = id;
+    document.getElementById("editCategoryName").value = name;
+    document.getElementById("editCategoryDescription").value = description;
   }
 
-  function validateForm(){
-    clearErrorMessaage();
+  function hideEditForm() {
+    document.getElementById("editCategoryModal").classList.add("hidden");
+  }
+
+  // Optional: Hide modal when clicking on the dark background
+  document.getElementById("editCategoryModal").addEventListener("click", function (e) {
+    if (e.target.id === "editCategoryModal") {
+      hideEditForm();
+    }
+  });
+
+  //update category method
+  function handleEditFormSubmit(event) {
+    event.preventDefault();
+  
+    clearEditFormErrors(); // Clear previous errors
+  
+    const id = document.getElementById("editCategoryId").value;
+    const name = document.getElementById("editCategoryName").value.trim();
+    const description = document.getElementById("editCategoryDescription").value.trim();
+  
+    let isValid = true;
+  
+    if (!name) {
+      displayEditError("edit-name-error", "Please enter a category name.");
+      isValid = false;
+    } else if (!/^[a-zA-Z\s]+$/.test(name)) {
+      displayEditError("edit-name-error", "Category name should only contain letters and spaces.");
+      isValid = false;
+    }
+  
+    if (!description) {
+      displayEditError("edit-description-error", "Please enter a description.");
+      isValid = false;
+    }
+  
+    if (!isValid) return;
+  
+    fetch("/admin/updateCategory", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ id, name, description })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === true) {
+        Swal.fire("Updated", "Category updated successfully", "success").then(() => location.reload());
+      } else {
+        Swal.fire("Error", data.message || "Failed to update category", "error");
+      }
+    })
+    .catch(() => {
+      Swal.fire("Error", "An error occurred during update", "error");
+    });
+  }
+  
+  function displayEditError(elementId, message) {
+    const el = document.getElementById(elementId);
+    el.innerText = message;
+    el.classList.remove("hidden");
+  }
+  
+  function clearEditFormErrors() {
+    document.getElementById("edit-name-error").classList.add("hidden");
+    document.getElementById("edit-description-error").classList.add("hidden");
+  }
+  
+  
+
+  function handleFormSubmit(event) {
+    event.preventDefault();
+
+    if (!validateForm()) return;
+
+    const name = document.getElementsByName("name")[0].value;
+    const description = document.getElementById("description").value;
+
+    fetch('/admin/addCategory', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({ name, description })
+    })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(err => {
+            throw new Error(err.error);
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        location.reload();
+      })
+      .catch(error => {
+        if (error.message === "Category already exists") {
+          Swal.fire({
+            icon: "error",
+            title: "Oops",
+            text: "Category already exists"
+          });
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "Oops",
+            text: "An error occurred while adding the category"
+          });
+        }
+      });
+  }
+
+  function validateForm() {
+    clearErrorMessages();
     const name = document.getElementsByName("name")[0].value.trim();
     const description = document.getElementById("description").value.trim();
-    isvalid = true;
+    let isValid = true;
 
-    if(name===""){
-      displayErrorMessage("name-error","Please enter a name");
-      isvalid = false;
-    }else if(!/^[A-Za-z\s]+$/.test(name)){
-      displayErrorMessage("name-error","Category should only be contain alphabetic characters");
-      isvalid = false;
+    if (name === "") {
+      displayErrorMessage("name-error", "Please enter a name");
+      isValid = false;
+    } else if (!/^[a-zA-Z\s]+$/.test(name)) {
+      displayErrorMessage("name-error", "Category name should only contain alphabetic characters");
+      isValid = false;
     }
 
-    if(description===""){
-      displayErrorMessage("description-error","Please enter a descibtion");
-      isvalid = false;
+    if (description === "") {
+      displayErrorMessage("description-error", "Please enter a description");
+      isValid = false;
     }
-    return false;
+
+    return isValid;
   }
 
+  function displayErrorMessage(elementId, message) {
+    const errorElement = document.getElementById(elementId);
+    errorElement.innerText = message;
+    errorElement.style.display = "block";
+  }
 
-  function clearErrorMessaage(){
+  function clearErrorMessages() {
     const errorElements = document.getElementsByClassName("error-message");
-    Array.from(errorElements).forEach((element)=>{
+    Array.from(errorElements).forEach((element) => {
       element.innerText = "";
       element.style.display = "none";
     });
   }
 
-  function displayErrorMessage(eleId,message){
-    var errorElement = document.getElementById(elementId);
-    errorElement.innerText = message;
-    errorElement.style.display = "block";
+
+  async function addOffer(category){
+    const {value:amount} = await Swal.fire({
+      title:"Offer in percentage",
+      input:"number",
+      inputLabel:"Percentage",
+      inputPlaceholder:"%",
+    });
+
+    if(amount){
+      try {
+
+        const response = await fetch('/admin/addCategoryOffer', {
+          method:"POST",
+          headers:{
+            'content-type': 'application/json'
+          },
+          body:JSON.stringify({
+            percentage:amount,
+            categoryId:category,
+          })
+        });
+        
+
+        const data = await response.json();
+        if(response.ok && data.status === true){
+          Swal.fire(
+            "Offer added",
+            "The Offer has been add",
+            "Success"
+          ).then(()=>{
+            location.reload();
+          })
+        }else{
+          Swal.fire(
+            'Failed',data.message || "Adding Offer failed","error"
+          );
+        }
+      } catch {
+        Swal.fire(
+          "Error",
+          "An error occured while adding the offer",
+          "error"
+        );
+        console.log("Error adding offer",error);
+      }
+    }
   }
+
+  async function removeOffer(categoryId){
+    try{
+
+      const response = await fetch('/admin/removeCategoryOffer',{
+        method:"POST",
+          headers:{
+            'content-type': 'application/json'
+          },
+          body:JSON.stringify({
+            categoryId:categoryId,
+          })
+      })
+
+      const data = await response.json();
+
+      if(response.ok && data.status === true){
+        Swal.fire(
+          "Offer removed",
+          "The Offer has been removed",
+          "Success"
+        ).then(()=>{
+          location.reload();
+        })
+      }else{
+        Swal.fire(
+          "Failed",data.message || "Removing offer failed","error"
+        )
+      }
+    }catch{
+      Swal.fire(
+
+        "Error",
+        "An error occured by removing the offer",
+        "error"
+      )
+      console.log('error while removing the offer')
+    }
+  }
+
+  //
+
 
 </script>
 
-  <%- include('../partials/admin/footer') %>
+<%- include('../partials/admin/footer') %>

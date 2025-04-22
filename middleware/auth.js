@@ -20,6 +20,7 @@ const userAuth = (req,res,next)=>{
 }
 
 const adminAuth = (req, res, next) => {
+  
     if (req.session.admin) {
       User.findById(req.session.admin)
         .then(admin => {

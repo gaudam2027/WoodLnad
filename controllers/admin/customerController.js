@@ -9,10 +9,7 @@ const customerInfo = async (req, res) => {
       search = req.query.search;
     }
 
-    let page = 1;
-    if (req.query.page) {
-      page = req.query.page;
-    }
+    let page = parseInt(req.query.page) || 1;
 
     const limit = 3;
 
@@ -20,8 +17,8 @@ const customerInfo = async (req, res) => {
     const userData = await User.find({
       isAdmin: false,
       $or: [
-        { name: { $regex: ".*" + search + ".*" } },
-        { email: { $regex: ".*" + search + ".*" } }
+        { name: { $regex: ".*" + search + ".*",$options: "i" } },
+        { email: { $regex: ".*" + search + ".*",$options: "i" } }
       ]
     })
       .limit(limit)
@@ -48,12 +45,12 @@ const customerInfo = async (req, res) => {
       currentPage: page,        
     });
   } catch (error) {
-    console.log(error);
+    console.error("Error in customerInfo:", error.message);
     res.status(500).send("Server Error");
   }
 }
 
-const cutomerBlocked = async(req,res)=>{
+const customerBlocked = async(req,res)=>{
     try {
         
         let id = req.query.id;
@@ -67,7 +64,7 @@ const cutomerBlocked = async(req,res)=>{
     }
 }
 
-const cutomerUnblocked = async(req,res)=>{
+const customerUnblocked = async(req,res)=>{
     try {
         
         let id = req.query.id;
@@ -83,6 +80,6 @@ const cutomerUnblocked = async(req,res)=>{
 
 module.exports = {
   customerInfo,
-  cutomerBlocked,
-  cutomerUnblocked
+  customerBlocked,
+  customerUnblocked
 }

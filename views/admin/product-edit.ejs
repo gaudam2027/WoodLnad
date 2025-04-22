@@ -1,0 +1,518 @@
+<%- include("../../views/partials/admin/header") %>
+
+<head>
+  <style>
+    .thumbnails-container {
+      display: flex;
+      overflow-x: auto;
+    }
+    .thumbnail {
+      margin-right: 10px;
+    }
+    .input-upload {
+      position: relative;
+    }
+    .error-message {
+      color: red;
+      display: none;
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.css">
+</head>
+
+<section class="content-main py-8 px-4">
+  <div class="w-full max-w-4xl mx-auto">
+    <div class="mb-6">
+      <h2 class="text-2xl font-semibold text-gray-800">Edit Product</h2>
+    </div>
+
+    <div class="bg-white shadow-md rounded p-6">
+      <form method="post" action="/admin/editProduct/<%=product._id%>" enctype="multipart/form-data" onsubmit="return validateForm()">
+        <div class="mb-4">
+          <label for="product_name" class="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+          <input type="text" name="productName" value="<%=product.productName%>" class="form-control border w-full px-3 py-2 rounded" id="product_name">
+          <div id="productName-error" class="error-message"></div>
+        </div>
+
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Full description</label>
+          <input name="descriptionData" value="<%=product.description%>" class="form-control border w-full px-3 py-2 rounded">
+          <div id="description-error" class="error-message"></div>
+        </div>
+
+        <!-- <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Regular price</label>
+            <input placeholder="$" name="regularPrice" type="text" value="<%=product.regularPrice%>" class="form-control border w-full px-3 py-2 rounded">
+            <div id="regularPrice-error" class="error-message"></div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Sale price</label>
+            <input name="salePrice" type="text" value="<%=product.salePrice%>" class="form-control border w-full px-3 py-2 rounded">
+            <div id="salePrice-error" class="error-message"></div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+            <input name="quantity" type="text" value="<%=product.quantity%>" class="form-control border w-full px-3 py-2 rounded">
+            <div id="quantity-error" class="error-message"></div>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Color</label>
+          <input name="color" type="text" value="<%=product.color%>" class="form-control border w-full px-3 py-2 rounded">
+          <div id="color-error" class="error-message"></div>
+        </div> -->
+
+        <div class="mt-6">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+          <select class="form-select border w-full px-3 py-2 rounded" name="category">
+            <% for(let i=0; i<cat.length; i++){ %>
+              <option value="<%=cat[i].name%>"><%=cat[i].name%></option>
+            <% } %>
+          </select>
+          <div id="category-error" class="error-message"></div>
+        </div>
+
+        <div class="mt-6">
+          <h4 class="text-lg font-semibold mb-2">Choose images</h4>
+
+          <% for(let i=0; i<product.images.length; i++){ %>
+          <div class="mb-4">
+            <input type="hidden" value="<%=product.images[i]%>" id="imageDatas">
+            <img class="rounded w-12 h-14" src="/uploads/product-images/<%=product.images[i]%>" alt="">
+            <i onclick="deleteSingleImage('<%=product.images[i]%>', '<%=product._id%>')" class="fa-thin fa-x ml-2 cursor-pointer"></i>
+          </div>
+          <% } %>
+
+          <!-- Image Uploads -->
+          <div class="space-y-6">
+
+            <!-- image - 1 -->
+            <div>
+              <div class="flex flex-col items-center gap-2">
+                <img src="" alt="" id="imgView1">
+                <input class="form-control" type="file" name="images" id="input1" accept="image/png, image/jpeg, image/jpg" onchange="viewImage1(event), viewImage(event, 1)">
+              </div>
+              <div class="image-cropper flex-col items-center hidden w-[300px] h-[200px] mt-2">
+                <img src="" id="croppedImg1" alt="">
+                <button type="button" id="saveButton1" class="ml-2 px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition duration-200">
+                  Save
+                </button>
+              </div>
+            </div>
+            
+            <!-- image - 2 -->
+            <div>
+              <div class="flex flex-col items-center gap-2">
+                <img src="" alt="" id="imgView2">
+                <input class="form-control" type="file" name="images" id="input2" accept="image/png, image/jpeg, image/jpg" onchange="viewImage2(event), viewImage(event, 2)">
+              </div>
+              <div class="image-cropper flex-col items-center hidden w-[300px] h-[200px] mt-2">
+                <img src="" id="croppedImg2" alt="">
+                <button type="button" id="saveButton2" class="ml-2 px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition duration-200">
+                  Save
+                </button>
+              </div>
+            </div>
+            
+            <!-- image - 3 -->
+            <div>
+              <div class="flex flex-col items-center gap-2">
+                <img src="" alt="" id="imgView3">
+                <input class="form-control" type="file" name="images" id="input3" accept="image/png, image/jpeg, image/jpg" onchange="viewImage3(event), viewImage(event, 3)">
+              </div>
+              <div class="image-cropper flex-col items-center hidden w-[300px] h-[200px] mt-2">
+                <img src="" id="croppedImg3" alt="">
+                <button type="button" id="saveButton3" class="ml-2 px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition duration-200">
+                  Save
+                </button>
+              </div>
+            </div>
+
+            <!-- image - 4 -->
+            <div>
+              <div class="flex flex-col items-center gap-2">
+                <img src="" alt="" id="imgView4">
+                <input class="form-control" type="file" name="images" id="input4" accept="image/png, image/jpeg, image/jpg" onchange="viewImage4(event), viewImage(event, 4)">
+              </div>
+              <div class="image-cropper flex-col items-center hidden w-[300px] h-[200px] mt-2">
+                <img src="" id="croppedImg4" alt="">
+                <button type="button" id="saveButton4" class="ml-2 px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition duration-200">
+                  Save
+                </button>
+              </div>
+            </div>
+            <div id="images-error" class="error-message"></div>
+          </div>
+        </div>
+
+        <!-- variants (include color and ) -->
+        <div id="variants-container">
+          <% if (product.variants && product.variants.length > 0) { %>
+  <h3 class="font-medium p-2">Variants for <%= product.productName %></h3>
+  <% for (let i = 0; i < product.variants.length; i++) { %>
+    <div class="variant-block border p-4 rounded mb-4 bg-gray-50 relative">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        
+        <!-- Regular Price -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Regular Price</label>
+          <input 
+            placeholder="$"
+            name="variants[<%= i %>][regularPrice]"
+            type="text"
+            value="<%= product.variants[i].regularPrice %>"
+            class="form-control border w-full px-3 py-2 rounded"
+          >
+          <div id="regularPrice-error-<%= i %>" class="error-message text-red-500 text-xs mt-1"></div>
+        </div>
+
+        <!-- Sale Price -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Sale Price</label>
+          <input 
+            name="variants[<%= i %>][salePrice]"
+            type="text"
+            value="<%= product.variants[i].salePrice %>"
+            class="form-control border w-full px-3 py-2 rounded"
+          >
+          <div id="salePrice-error-<%= i %>" class="error-message text-red-500 text-xs mt-1"></div>
+        </div>
+
+        <!-- Quantity -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+          <input 
+            name="variants[<%= i %>][quantity]"
+            type="text"
+            value="<%= product.variants[i].quantity %>"
+            class="form-control border w-full px-3 py-2 rounded"
+          >
+          <div id="quantity-error-<%= i %>" class="error-message text-red-500 text-xs mt-1"></div>
+        </div>
+
+        <!-- Color -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Color</label>
+          <input 
+            name="variants[<%= i %>][color]"
+            type="text"
+            value="<%= product.variants[i].color %>"
+            class="form-control border w-full px-3 py-2 rounded"
+          >
+          <div id="color-error-<%= i %>" class="error-message text-red-500 text-xs mt-1"></div>
+        </div>
+
+      </div>
+
+      <button type="button" onclick="removeVariantField(this)" class="text-red-500 text-sm mt-4">Remove</button>
+    </div>
+  <% } %>
+<% } %>
+          <button type="button" onclick="addVariantField()" class="bg-blue-600 text-white px-4 py-2 rounded mt-4">
+            Add Variant
+          </button>
+        </div>
+        
+
+        <div class="mt-6">
+          <button class="btn btn-md rounded font-sm bg-blue-600 text-white px-6 py-2 hover:bg-blue-700" id="updatebtn" type="button" onclick="validateAndSubmit()">Update</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+<script>
+
+
+  function validateAndSubmit() {
+  if (validateForm()) {
+     document.forms[0].submit();
+  }
+  }
+  
+  
+  
+  
+  function validateForm() {
+    let isValid = true;
+    let imageDatas = document.getElementById("imageDatas")?.value;
+    clearErrorMessages();
+    console.log("validate form");
+  
+    // Main product fields
+    const name = document.getElementsByName('productName')[0]?.value;
+    const description = document.getElementsByName('descriptionData')[0]?.value;
+    const category = document.getElementsByName('category')[0]?.value;
+    const images = document.getElementById('input1');
+  
+    if (name.trim() === "") {
+      displayErrorMessage('productName-error', 'Please enter a product name.');
+      isValid = false;
+    }
+  
+    if (description.trim() === '') {
+      displayErrorMessage('description-error', 'Please enter a product description.');
+      isValid = false;
+    }
+  
+    if (!imageDatas && images.files.length === 0) {
+      displayErrorMessage("images-error", 'Please select an image.');
+      isValid = false;
+    }
+  
+    // Validate variants by looping through index
+    const variantCount = document.querySelectorAll('[name$="[color]"]').length;
+  
+    for (let i = 0; i < variantCount; i++) {
+      const color = document.getElementsByName(`variants[${i}][color]`)[0]?.value;
+      const salePrice = document.getElementsByName(`variants[${i}][salePrice]`)[0]?.value;
+      const quantity = document.getElementsByName(`variants[${i}][quantity]`)[0]?.value;
+      const regularPrice = document.getElementsByName(`variants[${i}][regularPrice]`)[0]?.value;
+    
+      if (!regularPrice || isNaN(regularPrice) || parseFloat(regularPrice) < 0) {
+        displayErrorMessage(`regularPrice-error-${i}`, `Enter a valid regular price for variant ${i + 1}.`);
+        isValid = false;
+      }
+    
+      if (!salePrice || isNaN(salePrice) || parseFloat(salePrice) < 0) {
+        displayErrorMessage(`salePrice-error-${i}`, `Enter a valid sale price for variant ${i + 1}.`);
+        isValid = false;
+      }
+    
+      if (!quantity || isNaN(quantity) || parseInt(quantity) < 0) {
+        displayErrorMessage(`quantity-error-${i}`, `Enter a valid quantity for variant ${i + 1}.`);
+        isValid = false;
+      }
+    
+      if (!color || color.trim() === "") {
+        displayErrorMessage(`color-error-${i}`, `Color for variant ${i + 1} is required.`);
+        isValid = false;
+      }
+    }
+  
+    return isValid;
+  }
+        
+  function displayErrorMessage(elementId, message) {
+    const errorElement = document.getElementById(elementId);
+    if (errorElement) {
+      errorElement.innerText = message;
+      errorElement.style.display = "block";
+    }
+  }
+  
+  function clearErrorMessages() {
+    const errorElements = document.getElementsByClassName('error-message');
+    Array.from(errorElements).forEach(element => {
+      element.innerText = '';
+      element.style.display = 'none';
+    });
+  }
+  
+  
+  
+        function viewImage1(event) {
+             document.getElementById('imgView1').src = URL.createObjectURL(event.target.files[0])
+         }
+  
+  
+         function viewImage2(event) {
+             document.getElementById('imgView2').src = URL.createObjectURL(event.target.files[0])
+         }
+  
+  
+         function viewImage3(event) {
+             document.getElementById('imgView3').src = URL.createObjectURL(event.target.files[0])
+         }
+  
+  
+         function viewImage4(event) {
+             document.getElementById('imgView4').src = URL.createObjectURL(event.target.files[0])
+         }
+  
+  
+  
+  
+         function viewImage(event, index) {
+            const input = event.target;
+            const file = input.files[0];
+            const reader = new FileReader();
+        
+            reader.onload = function () {
+                const dataURL = reader.result;
+        
+                // Show the crop container
+                const cropperContainer = document.querySelector(`#croppedImg${index}`).parentNode;
+                cropperContainer.classList.remove('hidden'); // Make it visible
+        
+                // Set the image source in cropper image
+                const cropImage = document.getElementById(`croppedImg${index}`);
+                cropImage.src = dataURL;
+        
+                // Destroy existing cropper if already applied
+                if (cropImage.cropper) {
+                    cropImage.cropper.destroy();
+                }
+        
+                // Apply cropper on new image
+                const cropper = new Cropper(cropImage, {
+                    aspectRatio: 1.6,
+                    viewMode: 1,
+                    autoCropArea: 1,
+                    background: false,
+                    zoomable: true
+                });
+        
+                // Store cropper instance for later use
+                cropImage.cropper = cropper;
+        
+                // Save cropped image on button click
+                const saveButton = document.getElementById(`saveButton${index}`);
+                saveButton.onclick = function () {
+                    const canvas = cropper.getCroppedCanvas();
+                    const croppedDataUrl = canvas.toDataURL('image/jpeg', 1.0);
+                    document.getElementById(`imgView${index}`).src = croppedDataUrl;
+        
+                    // Hide cropper after saving
+                    cropperContainer.classList.add('hidden');
+        
+                    // You can optionally store this dataURL in a hidden input or FormData
+                };
+            };
+        
+            if (file) {
+                reader.readAsDataURL(file);
+            }
+        }
+  
+  
+         const selectedImages = [];
+         document.querySelectorAll('input[type="file"]').forEach(inputElement => {
+          inputElement.addEventListener("change", handleFileSelect);
+      });
+  
+  
+         function handleFileSelect(event) {
+             const addedImagesContainer = document.getElementById("addedImagesContainer");
+             addedImagesContainer.innerHTML = "";
+             const files = event.target.files;
+             for (let i = 0; i < files.length; i++) {
+                 const file = files[i];
+                 selectedImages.push(file);
+                 const thumbnail = document.createElement("div");
+                 thumbnail.classList.add("thumbnail");
+                 const img = document.createElement("img");
+                 img.src = URL.createObjectURL(file);
+                 img.alt = "thumbnail";
+                 img.style.width = "50px";
+                 img.style.height = "auto";
+                 const removeIcon = document.createElement("span");
+                 removeIcon.classList.add("remove-icon");
+                 removeIcon.innerHTML = "&times;";
+                 removeIcon.addEventListener("click", function () {
+                     const index = selectedImages.indexOf(file);
+                     if (index !== -1) {
+                         selectedImages.splice(index, 1);
+                     }
+                     thumbnail.remove();
+                 });
+                 thumbnail.appendChild(img);
+                 thumbnail.appendChild(removeIcon);
+                 addedImagesContainer.appendChild(thumbnail);
+             }
+         };
+
+         function deleteSingleImage(imageId,productId){
+          $.ajax({
+            url:"/admin/deleteSingleImage",
+            method:"POST",
+            data:{imageNameToServer:imageId,productIdToServer:productId},
+            success:((response)=>{
+              if(response.status === true){
+                window.location.reload()
+              }
+            })
+          })
+         }
+
+
+
+
+         let variantIndex = document.querySelectorAll('#variants-container .variant-block').length;
+
+         function addVariantField() {
+           const container = document.getElementById('variants-container');
+       
+           const variantHTML = `
+             <div class="border p-4 rounded mb-4 bg-gray-50 relative">
+               <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                 <!-- Regular Price -->
+                 <div>
+                   <label class="block text-sm font-medium text-gray-700 mb-1">Regular Price</label>
+                   <input 
+                     type="text" 
+                     name="variants[${variantIndex}][regularPrice]" 
+                     placeholder="$" 
+                     class="form-control border w-full px-3 py-2 rounded">
+                   <div class="error-message text-red-500 text-xs mt-1"></div>
+                 </div>
+       
+                 <!-- Sale Price -->
+                 <div>
+                   <label class="block text-sm font-medium text-gray-700 mb-1">Sale Price</label>
+                   <input 
+                     type="text" 
+                     name="variants[${variantIndex}][salePrice]" 
+                     class="form-control border w-full px-3 py-2 rounded">
+                   <div class="error-message text-red-500 text-xs mt-1"></div>
+                 </div>
+       
+                 <!-- Quantity -->
+                 <div>
+                   <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                   <input 
+                     type="number" 
+                     name="variants[${variantIndex}][quantity]" 
+                     placeholder="Quantity" 
+                     class="form-control border w-full px-3 py-2 rounded">
+                   <div class="error-message text-red-500 text-xs mt-1"></div>
+                 </div>
+       
+                 <!-- Color -->
+                 <div>
+                   <label class="block text-sm font-medium text-gray-700 mb-1">Color</label>
+                   <input 
+                     type="text" 
+                     name="variants[${variantIndex}][color]" 
+                     placeholder="Color" 
+                     class="form-control border w-full px-3 py-2 rounded">
+                   <div class="error-message text-red-500 text-xs mt-1"></div>
+                 </div>
+               </div>
+       
+               <button type="button" onclick="removeVariantField(this)" class="text-red-500 text-sm mt-4">Remove</button>
+             </div>
+           `;
+       
+           container.insertAdjacentHTML('beforeend', variantHTML);
+           variantIndex++;
+         }
+       
+         function removeVariantField(button) {
+           const variantBlock = button.closest('.border');
+           if (variantBlock) {
+             variantBlock.remove();
+           }
+         }
+         
+     </script>
+  
+
+<%- include("../../views/partials/admin/footer") %>

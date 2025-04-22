@@ -1,0 +1,115 @@
+<%- include('../partials/admin/header', { title: 'Admin Panel - Products' }) %>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.css">
+
+<div class="min-h-screen bg-gray-100 p-6 w-full">
+  <h1 class="text-3xl font-bold mb-4 text-slate-800">Products</h1>
+
+  
+
+  <!-- Top Bar -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
+  <form method="get" action="/admin/products" class="w-full md:max-w-md flex gap-3">
+    <input
+      type="text"
+      name="search"
+      placeholder="Search products..."
+      value="<%= searchQuery %>"
+      class="w-full px-4 py-2 rounded-md border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800" />
+    <button type="submit"
+      class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition font-medium">
+      Search
+    </button>
+    <% if (searchQuery) { %>
+      <a href="/admin/products"
+        class="bg-gray-300 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-400 transition">
+        Clear
+      </a>
+    <% } %>
+  </form>
+
+  <!-- Add Product Button -->
+  <button  class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-500 transition font-medium whitespace-nowrap">
+    <a href="/admin/addProduct"> Add Product</a>
+  </button>
+</div>
+
+
+  
+
+  <!-- Product Table -->
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white rounded-md shadow-sm">
+      <thead class="bg-gray-100 text-gray-800">
+        <tr>
+          <th class="p-3 text-left">Product Name</th>
+          <th class="p-3 text-left">Category</th>
+          <th class="p-3 text-left">Sale Price</th>
+          <th class="p-3 text-left">Offer Price</th>
+          <th class="p-3 text-left">Quantity</th>
+          <th class="p-3 text-center">Offer</th>
+          <th class="p-3 text-center">Status</th>
+          <th class="p-3 text-center">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% products.forEach(product => { %>
+          <tr class="border-t">
+            <td class="p-3"><%= product.productName %></td>
+            <td class="p-3"><%= product.category.name %></td>
+            <td class="p-3">₹<%= product.salePrice %></td>
+            <td class="p-3">₹<%= product.offerPrice || '-' %></td>
+            <td class="p-3"><%= product.quantity %></td>
+            <td class="p-3 text-center">
+              <% if (product.offerPrice) { %>
+                <button onclick="removeOffer('<%= product._id %>')" class="text-red-600 hover:underline">Remove</button>
+              <% } else { %>
+                <button onclick="addOffer('<%= product._id %>')" class="text-green-600 hover:underline">Add</button>
+              <% } %>
+            </td>
+            <td class="p-3 text-center">
+              <% if (product.isBlocked===false) { %>
+                <button class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-400">
+                  <a href="/admin/blockProduct?id=<%=product._id%>">Block</a> 
+                </button>
+              <% } else { %>
+                <button class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-400">
+                  <a href="/admin/unblockProduct?id=<%=product._id%>">Unblock</a> 
+                </button>
+              <% } %>
+            </td>
+            <td class="p-3 text-center">
+              <button class="bg-gray-400 text-white px-3 py-1 rounded-md hover:bg-gray-300">
+               <a href="/admin/editProduct?id=<%=product._id%>">Edit</a> 
+              </button>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <% if (totalPages > 1) { %>
+    <div class="flex justify-center mt-6">
+      <ul class="flex space-x-2">
+        <% for (let i = 1; i <= totalPages; i++) { %>
+          <li>
+            <a href="?page=<%= i %>&search=<%= searchQuery %>"
+              class="px-4 py-2 border rounded-md text-sm
+                <%= i === currentPage 
+                  ? 'bg-gray-700 text-white border-gray-700' 
+                  : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-50' %>">
+              <%= i %>
+            </a>
+          </li>
+        <% } %>
+      </ul>
+    </div>
+  <% } %>
+</div>
+
+<!-- cropperjs -->
+<script src="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.js"></script>
+</div>
+
+<%- include('../partials/admin/footer') %>

@@ -1,88 +1,254 @@
-<%- contentFor('body') %>
+<link rel="stylesheet" href="/css/home.css">
+<%- include('../../views/partials/user/header') %>
 
-<!-- Shop Banner -->
-<div class="bg-gray-800 text-white py-16">
-  <div class="container mx-auto px-6 text-center">
-    <h1 class="text-4xl font-bold mb-4">Shop Our Collection</h1>
-    <p class="mb-8">Browse our wide selection of quality furniture</p>
-  </div>
-</div>
+<div class="container mx-auto px-4 py-8">
+  <div class="flex flex-col md:flex-row gap-8">
 
-<!-- Product Categories -->
-<div class="py-12">
-  <div class="container mx-auto px-6">
-    <h2 class="text-3xl font-bold mb-8">Categories</h2>
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-      <% const categories = [
-        { name: "Living Room", image: "/images/living-room.jpg" },
-        { name: "Bedroom", image: "/images/bedroom.jpg" },
-        { name: "Dining Room", image: "/images/dining-room.jpg" },
-        { name: "Office", image: "/images/office.jpg" }
-      ]; %>
-      
-      <% categories.forEach(category => { %>
-        <a href="/shop/<%= category.name.toLowerCase().replace(' ', '-') %>" class="block">
-          <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
-            <img src="<%= category.image %>" alt="<%= category.name %>" class="w-full h-64 object-cover">
-            <div class="p-4 text-center">
-              <h3 class="text-xl font-semibold"><%= category.name %></h3>
+    <!-- Sidebar: Filters -->
+    <aside class="md:w-1/4 w-full space-y-8">
+
+     
+
+      <!-- Filter Form -->
+      <form id="filterForm" class="space-y-6">
+
+        <!-- Product Type -->
+        <div>
+          <h5 class="text-lg font-semibold mb-2">Product Type</h5>
+          <%for(let i=0;i<category.length;i++){%>
+          <label class="flex items-center gap-2 text-sm text-gray-700">
+            <input type="checkbox" name="category" value="<%=category[i].name%>" class="h-4 w-4 text-blue-600 rounded border-gray-300">
+            <%=category[i].name%>
+          </label>
+          <%}%>
+        </div>
+
+        <!-- Price -->
+        <div>
+          <h5 class="text-lg font-semibold mb-2">Price</h5>
+          <label class="flex items-center gap-2 text-sm text-gray-700">
+            <input type="radio" name="priceRange" value="Under ₹5,000" class="h-4 w-4 text-blue-600 rounded border-gray-300">
+            Under ₹30,000
+          </label>
+          <label class="flex items-center gap-2 text-sm text-gray-700">
+            <input type="radio" name="priceRange" value="Under ₹5,000" class="h-4 w-4 text-blue-600 rounded border-gray-300">
+            Under ₹70,000
+          </label>
+          <label class="flex items-center gap-2 text-sm text-gray-700">
+            <input type="radio" name="priceRange" value="Under ₹5,000" class="h-4 w-4 text-blue-600 rounded border-gray-300">
+            Under ₹50,000
+          </label>
+        </div>
+
+        <!-- Discount -->
+        <div>
+          <h5 class="text-lg font-semibold mb-2">Discount</h5>
+          <label class="flex items-center gap-2 text-sm text-gray-700">
+            <input type="radio" name="discount" value="10% or more" class="h-4 w-4 text-blue-600 rounded border-gray-300">
+            10% or more
+          </label>
+        </div>
+
+        <!-- Variants -->
+        <div>
+          <h5 class="text-lg font-semibold mb-2">Variants</h5>
+
+          <div class="space-y-2">
+
+            <!-- Color -->
+            <div>
+              <p class="text-sm font-medium text-gray-700 mb-1">Color</p>
+              <%for(let i=0;i<variants.length;i++){%>
+              <label class="flex items-center gap-2">
+                <input type="checkbox" name="color" value="<%=variants[i].color%>" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                <%=variants[i].color%>
+              </label>
+              <%}%>
             </div>
-          </div>
-        </a>
-      <% }); %>
-    </div>
-  </div>
-</div>
 
-<!-- All Products -->
-<div class="py-12 bg-gray-50">
-  <div class="container mx-auto px-6">
-    <div class="flex justify-between items-center mb-8">
-      <h2 class="text-3xl font-bold">All Products</h2>
-      <div class="flex items-center">
-        <label for="sort" class="mr-2">Sort by:</label>
-        <select id="sort" class="border rounded-md px-3 py-2">
-          <option>Featured</option>
-          <option>Price: Low to High</option>
-          <option>Price: High to Low</option>
-          <option>Newest</option>
-        </select>
-      </div>
-    </div>
-    
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-      <% const products = [
-        { name: "Modern Sofa", image: "/images/modern-sofa.jpg", price: "$699.99" },
-        { name: "Dining Chair", image: "/images/dining-chair.jpg", price: "$129.99" },
-        { name: "Coffee Table", image: "/images/coffee-table.jpg", price: "$249.99" },
-        { name: "Bed Frame", image: "/images/bed-frame.jpg", price: "$499.99" },
-        { name: "Bookshelf", image: "/images/bookshelf.jpg", price: "$349.99" },
-        { name: "Floor Lamp", image: "/images/floor-lamp.jpg", price: "$89.99" },
-        { name: "Desk", image: "/images/desk.jpg", price: "$299.99" },
-        { name: "Armchair", image: "/images/armchair.jpg", price: "$399.99" }
-      ]; %>
-      
-      <% products.forEach(product => { %>
-        <div class="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-          <img src="<%= product.image %>" alt="<%= product.name %>" class="w-full h-64 object-cover">
-          <div class="p-4">
-            <h3 class="text-lg font-medium"><%= product.name %></h3>
-            <p class="text-gray-600 mt-2"><%= product.price %></p>
-            <button class="mt-4 w-full bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-700">Add to Cart</button>
+
+            <!-- Variant Price -->
+            <!-- <div>
+              <p class="text-sm font-medium text-gray-700 mb-1">Variant Price</p>
+              <div class="flex gap-2">
+                <input type="number" name="minVariantPrice" placeholder="Min"
+                  class="w-1/2 border-gray-300 rounded px-2 py-1">
+                <input type="number" name="maxVariantPrice" placeholder="Max"
+                  class="w-1/2 border-gray-300 rounded px-2 py-1">
+              </div>
+            </div> -->
+
           </div>
         </div>
-      <% }); %>
-    </div>
-    
-    <!-- Pagination -->
-    <div class="flex justify-center mt-12">
-      <nav class="inline-flex">
-        <a href="#" class="px-4 py-2 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">Previous</a>
-        <a href="#" class="px-4 py-2 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">1</a>
-        <a href="#" class="px-4 py-2 border border-gray-300 bg-white text-blue-600 font-medium">2</a>
-        <a href="#" class="px-4 py-2 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">3</a>
-        <a href="#" class="px-4 py-2 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">Next</a>
-      </nav>
-    </div>
+
+        <!-- Apply Filter Button -->
+        <button type="submit"
+          class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded">
+          Apply Filters
+        </button>
+      </form>
+    </aside>
+
+    <!-- Main Content: Products -->
+    <section class="md:w-3/4 w-full">
+
+       <!-- Search Bar -->
+       <div class="mb-6">
+        <form method="GET" action="/shop" class="flex gap-2">
+          <input type="text" name="search" placeholder="Search categories..."
+            value="<%= searchQuery %>"
+            class="w-full px-4 py-2 rounded-md border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800" />
+          <button type="submit"
+            class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition font-medium">
+            Search
+          </button>
+          <% if (searchQuery) { %>
+            <a href="/shop" class="bg-gray-500 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-400 transition">
+              Clear
+            </a>
+          <% } %>
+        </form>
+      </div>
+
+      <!-- Sorting -->
+      <div class="flex justify-between items-center mb-6">
+        <h4 class="text-xl font-bold text-gray-800">Products</h4>
+        <form id="sortForm" method="GET" action="/products">
+          <select name="sortBy"
+            class="border border-gray-300 text-gray-700 py-1 px-2 rounded focus:ring-2 focus:ring-indigo-400"
+            onchange="this.form.submit()">
+            <option value="">Sort By</option>
+            <option value="priceAsc">Price: Low to High</option>
+            <option value="priceDesc">Price: High to Low</option>
+            <option value="az">A to Z</option>
+            <option value="za">Z to A</option>
+          </select>
+        </form>
+      </div>
+
+      <!-- Product Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <% for(let i = 0; i < products.length; i++) { %>
+        <div
+          class="w-full max-w-xs mx-auto bg-white rounded-xl shadow hover:shadow-lg transition-transform hover:scale-105 duration-300" style="width:14rem">
+          <div class="relative group overflow-hidden rounded-t-xl">
+            <a href="/productDetials?id=<%= products[i]._id %>">
+              <img src="/uploads/product-images/<%= products[i].images[0] %>" alt="<%= products[i].productName %>"
+                class="w-full h-44 object-cover group-hover:scale-105 transition duration-300 border-b">
+            </a>
+          </div>
+          <div class="p-4">
+            <h3 class="text-md font-semibold text-gray-800 line-clamp-2 mb-2"><%= products[i].productName %></h3>
+            <p class="text-sm font-bold text-gray-700 mb-3">
+              
+            </p>
+            <p class="text-sm font-bold text-gray-700 mb-3">
+              Price: ₹ <%= products[i].variants[0].salePrice.toLocaleString('en-IN') %>
+              <span class="text-gray-500 ml-2">
+                <strike>₹ <%= products[i].variants[0].regularPrice.toLocaleString('en-IN') %></strike>
+              </span>
+            </p>
+
+            <div class="flex justify-between gap-3">
+              
+              <!-- Add to Cart -->
+              <a href="/addToCart/<%= products[i]._id %>"
+                class="bg-gray-800 text-white text-xs px-4 py-2 rounded hover:bg-gray-600 transition">
+                Add to Cart
+              </a>
+
+              <!-- Wishlist Icon -->
+              <a href="/addToWishlist/<%= products[i]._id %>" class="text-red-500 hover:text-red-600 transition">
+                <% if (products[i].isInWishlist) { %>
+                <!-- Filled Heart -->
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"
+                  class="w-5 h-5">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M21 8.25c0-2.485-2.014-4.5-4.5-4.5a4.478 4.478 0 00-3.643 1.908A4.478 4.478 0 009.214 3.75C6.73 3.75 4.714 5.765 4.714 8.25c0 5.25 7.286 9.75 7.286 9.75s7.286-4.5 7.286-9.75z"/>
+                </svg>
+                <% } else { %>
+                <!-- Outline Heart -->
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor" class="w-5 h-5">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M21 8.25c0-2.485-2.014-4.5-4.5-4.5a4.478 4.478 0 00-3.643 1.908A4.478 4.478 0 009.214 3.75C6.73 3.75 4.714 5.765 4.714 8.25c0 5.25 7.286 9.75 7.286 9.75s7.286-4.5 7.286-9.75z"/>
+                </svg>
+                <% } %>
+              </a>
+            </div>
+          </div>
+        </div>
+        <% } %>
+      </div>
+
+      <!-- Pagination -->
+      <% if (totalPages > 1) { %>
+        <div class="flex justify-center mt-8">
+          <ul class="flex gap-2">
+            <% for (let i = 1; i <= totalPages; i++) { %>
+              <li>
+                <a href="?page=<%= i %>&search=<%= searchQuery %>"
+                  class="px-4 py-2 rounded-md text-sm font-semibold border transition
+                  <%= i === currentPage 
+                    ? 'bg-gray-600 text-white border-gray-600' 
+                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' %>">
+                  <%= i %>
+                </a>
+              </li>
+            <% } %>
+          </ul>
+        </div>
+      <% } %>
+
+    </section>
   </div>
 </div>
+
+<script>
+
+  $('#filterForm').on('submit', function(event) {
+    event.preventDefault();
+  
+    const search = $('#search').val();
+    const price = $('input[name="price"]:checked').val();
+    
+    // Get all selected category values (checkboxes)
+    const selectedCategories = [];
+    $('input[name="category"]:checked').each(function() {
+      selectedCategories.push($(this).val());
+    });
+  
+    // Make AJAX request
+    $.ajax({
+      url: '/filter',
+      method: 'GET',
+      data: {
+        search,
+        price,
+        categories: selectedCategories  // Sending the selected category values
+      },
+      success: function(response) {
+        const productsGrid = $('#productsGrid');
+        productsGrid.empty(); // Clear the existing products
+  
+        // Loop through the products and append them to the grid
+        response.products.forEach(product => {
+          const productHtml = `
+            <div class="product">
+              <img src="/uploads/product-images/${product.images[0]}" alt="${product.productName}">
+              <h3>${product.productName}</h3>
+              <p>₹${product.variants[0].salePrice.toLocaleString('en-IN')}</p>
+            </div>
+          `;
+          productsGrid.append(productHtml);
+        });
+      },
+      error: function(error) {
+        console.log('Error:', error);
+      }
+    });
+  });
+
+</script>
+
+<%- include('../../views/partials/user/footer') %>
