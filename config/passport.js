@@ -39,21 +39,17 @@ async (accessToken,refreshToken,profile,done)=>{
 
 ))
 
-passport.serializeUser((user,done)=>{
+passport.serializeUser((user, done) => {
 
-    done(null,user.id)
-
+    done(null, user.id); 
 });
 
-passport.deserializeUser((id,done)=>{
+passport.deserializeUser((id, done) => {
+
     User.findById(id)
-    .then(user=>{
-        done(null,user)
-    })
-    .catch(err=>{
-        done(err,null)
-    })
-})
+        .then(user => done(null, user))
+        .catch(err => done(err, null));
+});
 
 
 module.exports = passport;

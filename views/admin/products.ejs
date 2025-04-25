@@ -56,9 +56,9 @@
           <tr class="border-t">
             <td class="p-3"><%= product.productName %></td>
             <td class="p-3"><%= product.category.name %></td>
-            <td class="p-3">₹<%= product.salePrice %></td>
+            <td class="p-3">₹<%= product.variants[0].salePrice %></td>
             <td class="p-3">₹<%= product.offerPrice || '-' %></td>
-            <td class="p-3"><%= product.quantity %></td>
+            <td class="p-3"><%= product.variants[0].quantity %></td>
             <td class="p-3 text-center">
               <% if (product.offerPrice) { %>
                 <button onclick="removeOffer('<%= product._id %>')" class="text-red-600 hover:underline">Remove</button>

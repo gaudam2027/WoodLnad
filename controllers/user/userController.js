@@ -25,6 +25,8 @@ const loadHomepage = async (req, res) => {
         const sessionUser = req.session.user;       // Only the user._id from signin
         // const passportUser = req.user;                // data from Google
 
+      
+        
         let user = sessionUser
         const categories = await Category.find({isListed:true});
         let productData = await Product.find(
@@ -264,7 +266,7 @@ const signin= async (req,res)=>{
         console.log('sign in reached');
         
         const findUser = await User.findOne({isAdmin:0,email:email});
-        console.log(findUser)
+        
         if(!findUser){
             return res.json({success: false,message: 'User not found'});
         }
@@ -297,11 +299,13 @@ const signin= async (req,res)=>{
 
 const loadShoppage = async (req, res) => {
     try {
-      const user = req.session.user;
-      const search = req.query.search ? req.query.search.trim() : '';
-  
+        console.log('shop');
+        
+      const user = req.session.userId
+      console.log(user);
       
-      const userData = await User.findOne({ _id:user._id });
+      const searchQuery =  "";
+      const userData = await User.findOne({ _id:user });
       const categories = await Category.find({ isListed: true });
       const categoriesIds = categories.map(category => category._id.toString());
 
@@ -311,20 +315,12 @@ const loadShoppage = async (req, res) => {
       const skip = (page - 1) * limit;
   
       // Search filter
-      const searchFilter = search
-        ? {
-            $or: [
-              { productName: { $regex: search, $options: 'i' } },
-              { description: { $regex: search, $options: 'i' } }
-            ]
-          }
-        : {};
+
   
       const query = {
         isBlocked: false,
         category: { $in: categoriesIds },
         variants: { $elemMatch: { quantity: { $gt: 0 } } },
-        ...searchFilter
       };
   
       const products = await Product.find(query)
@@ -365,7 +361,7 @@ const loadShoppage = async (req, res) => {
         totalProducts,
         currentPage: page,
         totalPages,
-        searchQuery: search // Send this back to show it in input field
+        searchQuery: searchQuery,
       });
     } catch (error) {
       console.log('shop page not found', error);
@@ -375,65 +371,124 @@ const loadShoppage = async (req, res) => {
 
   //filter product
 
-  const filterProduct = async(req,res)=>{
+  const filterProduct = async (req, res) => {
     try {
-
-        const user = req.session.user;
-        const { search, price, categories, page = 1 } = req.query;
-
-        // console.log(categories);
+        console.log('filter');
+        const { category,price,color,sortBy,search,page = 1 } = req.body;
+  
         
-
-        const limit = 9;
+        const limit = 9; // number of products per page
         const skip = (page - 1) * limit;
     
-        // Build the filter object
-        const searchFilter = search
-          ? {
-              $or: [
-                { productName: { $regex: search, $options: 'i' } },
-                { description: { $regex: search, $options: 'i' } }
-              ]
+        
+        let filters = {isBlocked: false,};
+
+
+        //search products
+        if (search && search.trim() !== "") {
+            const searchRegex = new RegExp(search.trim(), "i");
+          
+            filters.$or = [
+              { productName: searchRegex },
+              { "variants.color": searchRegex } // searchin in inside the variants array's color field
+            ];
+          }
+        
+          if (category) {
+            const foundCategory = await Category.findOne({ name: category, isListed: true });
+            if (foundCategory) {
+              filters.category = foundCategory._id;
+            } else {
+              return res.status(404).send('Category not found or not listed');
             }
-          : {};
+          } else {
+            
+            const listedCategories = await Category.find({ isListed: true }).select('_id');
+            const listedCategoryIds = listedCategories.map(cat => cat._id);
+            filters.category = { $in: listedCategoryIds };
+          }
+
+        if (price || color) {
+            const variantFilter = {};
+            // Price filter inside variants array
+            if (price) {
+              const [min, max] = price.split('-').map(Number);
+              variantFilter.salePrice = { $gte: min, $lte: max };
+            }
+            // Color filter inside variants array
+            if (color && Array.isArray(color)) {
+                variantFilter.color = { $in: color };
+              } else if (color) {
+                variantFilter.color = color;
+              }
+
+            // Apply $elemMatch to combine price and color filters
+            if (Object.keys(variantFilter).length > 0) {
+              filters['variants'] = { $elemMatch: variantFilter };
+            }
+          }
+
     
-        // Category Filter
-        const categoryFilter = categories && categories.length > 0
-          ? { category: { $in: categories } } // Match products where the category is in the selected categories
-          : {};
-    
-        // Price Filter
-        const priceFilter = price === 'below-30000'
-          ? { 'variants.salePrice': { $lt: 30000 } }
-          : {};
-    
-        const query = {
-          isBlocked: false,
-          ...searchFilter,
-          ...categoryFilter,
-          ...priceFilter,
-          'variants.quantity': { $gt: 0 } // Ensure the variant quantity is greater than 0
-        };
-    
-        // Fetch the products with the filters
-        const products = await Product.find(query)
-          .sort({ createdAt: -1 })
+          let query = Product.find(filters);
+          
+          let sortOption = {};
+            if (sortBy === "priceAsc") {
+            sortOption["variants.0.salePrice"] = 1;
+            } else if (sortBy === "priceDesc") {
+            sortOption["variants.0.salePrice"] = -1;
+            } else if (sortBy === "az") {
+            sortOption.productName = 1;
+            } else if (sortBy === "za") {
+            sortOption.productName = -1;
+            } else {
+            sortOption.createdAt = -1; // default newest first
+          }
+
+          const totalProducts = await Product.countDocuments(filters);
+          const totalPages = Math.ceil(totalProducts / limit);
+
+          const products = await query
+          .sort(sortOption)
           .skip(skip)
           .limit(limit);
-    
-        const totalProducts = await Product.countDocuments(query);
-        const totalPages = Math.ceil(totalProducts / limit);
-    
-        res.json({
-          products,
-          totalProducts,
-          totalPages
-        });
-      } catch (error) {
-        console.log('Error filtering products:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.json({ success: true, products,totalPages,currentPage: page});
+      } catch (err) {
+        console.error('Error filtering products:', err);
+        res.status(500).json({ success: false, message: 'Server Error' });
       }
+  };
+  
+
+  const shopDetails = async (req, res) => {
+    try {
+        console.log('Reached shop details');
+
+        const sessionUser = req.session.userData;
+        const productId = req.query.id; 
+
+        const product = await Product.findById(productId);
+
+        if (!product) {
+            return res.status(404).send("Product not found");
+        }
+
+        const relatedProducts = await Product.find({
+            _id: { $ne: productId },  
+            category: product.category 
+        }).limit(4); 
+
+        res.render('shop-details', {
+            product,
+            sessionUser,
+            relatedProducts 
+        });
+
+    } catch (error) {
+        console.error('Shop-details page error:', error);
+        res.status(500).send('Server error');
     }
+};
+
   
 
 const loadProfilepage = async (req,res)=>{
@@ -496,6 +551,7 @@ module.exports = {
     signin,
     loadShoppage,
     filterProduct,
+    shopDetails,
     loadProfilepage,
     loadOrderpage,
     logout

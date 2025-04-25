@@ -299,7 +299,7 @@ function validateForm() {
   if (description.trim() === "") {
       displayErrorMessage('description-error', 'Please enter a product description.');
       isValid = false;
-  } else if (!/^[a-zA-Z0-9\s.,'’"!?()\-]+$/.test(description.trim())) {
+  } else if (!/^[\p{L}\p{N}\s.,'’“”"!?()\-–—]+$/u.test(description.trim())) {
   displayErrorMessage('description-error', 'Description contains invalid characters.');
   isValid = false;
 }

@@ -2,7 +2,7 @@ const express =  require('express');
 const router = express.Router();
 const userController = require('../controllers/user/userController');
 const passport = require('passport');
-const {userAuth,adminAuth} = require('../middleware/auth')
+const {userAuth,userIslog,adminAuth} = require('../middleware/auth')
 
 //page not foun(for error)
 router.get('/pageNotFound',userController.pageNotFound);
@@ -14,18 +14,19 @@ router.get('/signupOtp',userController.loadOtp);
 router.post('/signupOtp',userController.otp);
 router.post('/resendOtp',userController.resendOtp);
 router.get('/auth/google',passport.authenticate('google',{scope:['profile','email']}));
-router.get('/auth/google/callback',passport.authenticate('google',{failureRedirect:'/signUp'}),(req,res)=>{
+router.get('/auth/google/callback',passport.authenticate('google',{failureRedirect:'/signUp'}),userAuth,(req,res)=>{
     res.redirect('/')
 });
 
 //login management
-router.get('/signIn',userController.loadSigninpage);
+router.get('/signIn',userIslog,userController.loadSigninpage);
 router.post('/signIn',userController.signin);
 
 //home page & shopping page
 router.get('/',userController.loadHomepage);
-router.get('/shop',userController.loadShoppage);
-router.get('/filter',userAuth,userController.filterProduct);
+router.get('/shop',userAuth,userController.loadShoppage);
+router.post('/filter',userAuth,userController.filterProduct);
+router.get('/shopDetails',userAuth,userController.shopDetails);
 
 router.get('/profile',userController.loadProfilepage);
 router.get('/order',userController.loadOrderpage);

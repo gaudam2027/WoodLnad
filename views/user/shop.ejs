@@ -15,27 +15,27 @@
         <!-- Product Type -->
         <div>
           <h5 class="text-lg font-semibold mb-2">Product Type</h5>
-          <%for(let i=0;i<category.length;i++){%>
-          <label class="flex items-center gap-2 text-sm text-gray-700">
-            <input type="checkbox" name="category" value="<%=category[i].name%>" class="h-4 w-4 text-blue-600 rounded border-gray-300">
-            <%=category[i].name%>
-          </label>
-          <%}%>
+          <% for (let i = 0; i < category.length; i++) { %>
+            <label class="flex items-center gap-2 text-sm text-gray-700">
+              <input type="radio" name="category" value="<%= category[i].name %>" class="h-4 w-4 text-blue-600 rounded border-gray-300">
+              <%= category[i].name %>
+            </label>
+          <% } %>
         </div>
 
         <!-- Price -->
         <div>
           <h5 class="text-lg font-semibold mb-2">Price</h5>
           <label class="flex items-center gap-2 text-sm text-gray-700">
-            <input type="radio" name="priceRange" value="Under ₹5,000" class="h-4 w-4 text-blue-600 rounded border-gray-300">
+            <input type="radio" name="priceRange" value="0-30000" class="h-4 w-4 text-blue-600 rounded border-gray-300">
             Under ₹30,000
           </label>
           <label class="flex items-center gap-2 text-sm text-gray-700">
-            <input type="radio" name="priceRange" value="Under ₹5,000" class="h-4 w-4 text-blue-600 rounded border-gray-300">
+            <input type="radio" name="priceRange" value="0-70000" class="h-4 w-4 text-blue-600 rounded border-gray-300">
             Under ₹70,000
           </label>
           <label class="flex items-center gap-2 text-sm text-gray-700">
-            <input type="radio" name="priceRange" value="Under ₹5,000" class="h-4 w-4 text-blue-600 rounded border-gray-300">
+            <input type="radio" name="priceRange" value="0-50000" class="h-4 w-4 text-blue-600 rounded border-gray-300">
             Under ₹50,000
           </label>
         </div>
@@ -81,11 +81,15 @@
           </div>
         </div>
 
-        <!-- Apply Filter Button -->
-        <button type="submit"
-          class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded">
-          Apply Filters
-        </button>
+        <!-- clear filter -->
+        <div class="flex justify-between space-x-2 mb-4">
+          <!-- Clear Filter Button -->
+          <button type="button" id="clearFiltersBtn" 
+            class="bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold py-2 px-4 rounded w-1/2">
+            Clear Filters
+          </button>
+        
+        </div>
       </form>
     </aside>
 
@@ -94,29 +98,23 @@
 
        <!-- Search Bar -->
        <div class="mb-6">
-        <form method="GET" action="/shop" class="flex gap-2">
-          <input type="text" name="search" placeholder="Search categories..."
-            value="<%= searchQuery %>"
+        <form id="searchForm" class="flex gap-2">
+          <input type="text" id="searchInput" name="search" placeholder="Search categories..."
+            value=""
             class="w-full px-4 py-2 rounded-md border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800" />
-          <button type="submit"
+          <button type="submit" id="searchBtn"
             class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition font-medium">
             Search
           </button>
-          <% if (searchQuery) { %>
-            <a href="/shop" class="bg-gray-500 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-400 transition">
-              Clear
-            </a>
-          <% } %>
         </form>
       </div>
 
       <!-- Sorting -->
       <div class="flex justify-between items-center mb-6">
         <h4 class="text-xl font-bold text-gray-800">Products</h4>
-        <form id="sortForm" method="GET" action="/products">
-          <select name="sortBy"
-            class="border border-gray-300 text-gray-700 py-1 px-2 rounded focus:ring-2 focus:ring-indigo-400"
-            onchange="this.form.submit()">
+        <form id="filterForm" method="POST">
+          <select name="sort" id="sortSelect"
+            class="border border-gray-300 text-gray-700 py-1 px-2 rounded focus:ring-2 focus:ring-indigo-400">
             <option value="">Sort By</option>
             <option value="priceAsc">Price: Low to High</option>
             <option value="priceDesc">Price: High to Low</option>
@@ -127,12 +125,12 @@
       </div>
 
       <!-- Product Grid -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div id="productsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <% for(let i = 0; i < products.length; i++) { %>
         <div
           class="w-full max-w-xs mx-auto bg-white rounded-xl shadow hover:shadow-lg transition-transform hover:scale-105 duration-300" style="width:14rem">
           <div class="relative group overflow-hidden rounded-t-xl">
-            <a href="/productDetials?id=<%= products[i]._id %>">
+            <a href="/shopDetails?id=<%= products[i]._id %>">
               <img src="/uploads/product-images/<%= products[i].images[0] %>" alt="<%= products[i].productName %>"
                 class="w-full h-44 object-cover group-hover:scale-105 transition duration-300 border-b">
             </a>
@@ -182,8 +180,8 @@
       </div>
 
       <!-- Pagination -->
+      <div id="paginationContainer" class="flex justify-center mt-8">
       <% if (totalPages > 1) { %>
-        <div class="flex justify-center mt-8">
           <ul class="flex gap-2">
             <% for (let i = 1; i <= totalPages; i++) { %>
               <li>
@@ -197,58 +195,196 @@
               </li>
             <% } %>
           </ul>
+          <% } %>
         </div>
-      <% } %>
 
     </section>
   </div>
 </div>
 
 <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const filterForm = document.getElementById("filterForm");
+    const productContainer = document.getElementById("productsGrid");
+    const clearFiltersBtn = document.getElementById("clearFiltersBtn");
 
-  $('#filterForm').on('submit', function(event) {
-    event.preventDefault();
   
-    const search = $('#search').val();
-    const price = $('input[name="price"]:checked').val();
     
-    // Get all selected category values (checkboxes)
-    const selectedCategories = [];
-    $('input[name="category"]:checked').each(function() {
-      selectedCategories.push($(this).val());
-    });
   
-    // Make AJAX request
-    $.ajax({
-      url: '/filter',
-      method: 'GET',
-      data: {
-        search,
-        price,
-        categories: selectedCategories  // Sending the selected category values
-      },
-      success: function(response) {
-        const productsGrid = $('#productsGrid');
-        productsGrid.empty(); // Clear the existing products
+    // Reusable function to fetch and update products
+    async function fetchFilteredProducts(page = 1) {
+      const selectedCategory = document.querySelector('input[name="category"]:checked');
+      const categoryValue = selectedCategory ? selectedCategory.value : null;
+      const selectedPrice = document.querySelector('input[name="priceRange"]:checked');
+      const priceValue = selectedPrice ? selectedPrice.value : null;
+      const selectedColors = Array.from(document.querySelectorAll('input[name="color"]:checked')).map(cb => cb.value);
+      const sortValue = document.getElementById("sortSelect").value;
+      const searchInput = document.querySelector('input[name="search"]');
+      const searchValue = searchInput ? searchInput.value.trim() : "";
   
-        // Loop through the products and append them to the grid
-        response.products.forEach(product => {
-          const productHtml = `
-            <div class="product">
-              <img src="/uploads/product-images/${product.images[0]}" alt="${product.productName}">
-              <h3>${product.productName}</h3>
-              <p>₹${product.variants[0].salePrice.toLocaleString('en-IN')}</p>
-            </div>
-          `;
-          productsGrid.append(productHtml);
+      const payload = {page};
+      if (categoryValue) payload.category = categoryValue;
+      if (priceValue) payload.price = priceValue;
+      if(selectedColors.length>0) payload.color = selectedColors
+      if (sortValue) payload.sortBy = sortValue;
+      if (searchValue) payload.search = searchValue;
+  
+      try {
+        const response = await fetch("/filter", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
         });
-      },
-      error: function(error) {
-        console.log('Error:', error);
-      }
-    });
-  });
+  
+        const data = await response.json();
+  
+        if (data.success) {
+          const products = data.products;
+          productContainer.innerHTML = "";
+  
+          if (products.length === 0) {
+            productContainer.innerHTML = `
+              <p class="text-center col-span-full text-gray-500 text-lg">
+                No products found for this category.
+              </p>`;
+            return;
+          }
+  
+          products.forEach((product) => {
+            const productHTML = `
+              <div
+                class="w-full max-w-xs mx-auto bg-white rounded-xl shadow hover:shadow-lg transition-transform hover:scale-105 duration-300"
+                style="width:14rem">
+                <div class="relative group overflow-hidden rounded-t-xl">
+                  <a href="/shopDetails?id=${product._id}">
+                    <img src="/uploads/product-images/${product.images[0]}" alt="${product.productName}"
+                      class="w-full h-44 object-cover group-hover:scale-105 transition duration-300 border-b">
+                  </a>
+                </div>
+                <div class="p-4">
+                  <h3 class="text-md font-semibold text-gray-800 line-clamp-2 mb-2">${product.productName}</h3>
+                  <p class="text-sm font-bold text-gray-700 mb-3">
+                    Price: ₹ ${product.variants[0].salePrice.toLocaleString("en-IN")}
+                    <span class="text-gray-500 ml-2">
+                      <strike>₹ ${product.variants[0].regularPrice.toLocaleString("en-IN")}</strike>
+                    </span>
+                  </p>
+                  <div class="flex justify-between gap-3">
+                    <a href="/addToCart/${product._id}"
+                      class="bg-gray-800 text-white text-xs px-4 py-2 rounded hover:bg-gray-600 transition">
+                      Add to Cart
+                    </a>
+                    <a href="/addToWishlist/${product._id}" class="text-red-500 hover:text-red-600 transition">
+                      ${product.isInWishlist ? `
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"
+                          class="w-5 h-5">
+                          <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M21 8.25c0-2.485-2.014-4.5-4.5-4.5a4.478 4.478 0 00-3.643 1.908A4.478 4.478 0 009.214 3.75C6.73 3.75 4.714 5.765 4.714 8.25c0 5.25 7.286 9.75 7.286 9.75s7.286-4.5 7.286-9.75z"/>
+                        </svg>` : `
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                          stroke="currentColor" class="w-5 h-5">
+                          <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M21 8.25c0-2.485-2.014-4.5-4.5-4.5a4.478 4.478 0 00-3.643 1.908A4.478 4.478 0 009.214 3.75C6.73 3.75 4.714 5.765 4.714 8.25c0 5.25 7.286 9.75 7.286 9.75s7.286-4.5 7.286-9.75z"/>
+                        </svg>`}
+                    </a>
+                  </div>
+                </div>
+              </div>`;
+            productContainer.insertAdjacentHTML("beforeend", productHTML);
+          });
 
+          // pagination calling
+          renderPagination(data.totalPages, data.currentPage, searchValue);
+
+        } else {
+          productContainer.innerHTML = `
+            <p class="text-center col-span-full text-gray-500 text-lg">
+              ${data.message || 'An error occurred. Please try again later.'}
+            </p>`;
+        }
+      } catch (error) {
+        console.error("Fetch error:", error);
+        productContainer.innerHTML = `
+          <p class="text-center col-span-full text-gray-500 text-lg">
+            Unable to fetch products. Please try again later.
+          </p>`;
+      }
+    }
+
+    // for pagination update
+    function renderPagination(totalPages, currentPage, searchQuery = "") {
+      const paginationContainer = document.getElementById("paginationContainer");
+      paginationContainer.innerHTML = "";
+    
+      if (totalPages <= 1) return;
+    
+      const ul = document.createElement("ul");
+      ul.className = "flex gap-2";
+    
+      for (let i = 1; i <= totalPages; i++) {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.textContent = i;
+        a.href = "#";
+        a.className = `
+          px-4 py-2 rounded-md text-sm font-semibold border transition
+          ${i === currentPage
+            ? "bg-gray-600 text-white border-gray-600"
+            : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"}
+        `;
+        a.addEventListener("click", function (e) {
+          e.preventDefault();
+          fetchFilteredProducts(i); // Load selected page
+        });
+        li.appendChild(a);
+        ul.appendChild(li);
+      }
+    
+      paginationContainer.appendChild(ul);
+    }
+    
+
+    // Clear filters logic
+    document.getElementById("clearFiltersBtn").addEventListener("click", function () {
+      filterForm.reset();
+      fetchFilteredProducts();
+    });
+
+    // clear filter logic when click search btn
+    document.querySelector('form[id="searchForm"]').addEventListener("submit", function (e) {
+      e.preventDefault();
+      filterForm.reset();
+      fetchFilteredProducts();
+    });
+  
+    // Submit on Apply Filter button
+    filterForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      fetchFilteredProducts();
+    });
+  
+    // Auto-submit when a filter input changes
+    filterForm.addEventListener("change", function () {
+      fetchFilteredProducts();
+    });
+
+    
+
+    //sortselected call fetchfilter
+    document.getElementById("sortSelect").addEventListener("change", function () {
+      fetchFilteredProducts();
+    });
+
+    
+  
+    // Fetch products on page load (to apply initial sort)
+    fetchFilteredProducts();
+  });
+  
 </script>
+
+
 
 <%- include('../../views/partials/user/footer') %>

@@ -1,0 +1,209 @@
+
+<link rel="stylesheet" href="./css/home.css">
+
+
+<%- include('../../views/partials/user/header') %>
+
+<div class="max-w-7xl mx-auto px-4 py-10 select-none">
+
+  <!-- Top Section -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-20 mb-16">
+    
+    <!-- Left: Image Section -->
+    <div class="w-full">
+      <!-- Main Image -->
+      <div class="border rounded-lg overflow-hidden">
+        <img id="mainImage" src="/uploads/product-images/<%= product.images[0] %>" class="w-full h-[400px] object-cover" alt="Main Product Image">
+      </div>
+
+      <!-- Thumbnails -->
+      <div class="flex gap-3 mt-4 flex-wrap">
+        <% product.images.forEach((image, index) => { %>
+          <img 
+            src="/uploads/product-images/<%= image %>" 
+            class="w-20 h-20 object-cover rounded cursor-pointer border hover:border-blue-500 transition" 
+            onclick="changeMainImage('/uploads/product-images/<%= image %>')"
+            alt="Thumbnail <%= index + 1 %>">
+        <% }) %>
+      </div>
+    </div>
+
+    <!-- Right: Product Details -->
+    <!-- Right: Product Details -->
+<div class="flex flex-col  h-full space-y-6">
+  <div class="space-y-6">
+    <!-- Title & Offer -->
+    <div class="flex justify-between items-center">
+      <h1 class="text-3xl font-bold text-gray-800 tracking-tight"><%= product.productName %></h1>
+      <% if (product.offer) { %>
+        <span class="bg-red-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
+          <%= product.offer %> OFF
+        </span>
+      <% } %>
+    </div>
+
+    <!-- Rating -->
+    <div class="flex items-center text-yellow-400 text-lg">
+      <i class="fas fa-star"></i>
+      <i class="fas fa-star"></i>
+      <i class="fas fa-star"></i>
+      <i class="fas fa-star-half-alt"></i>
+      <i class="far fa-star"></i>
+      <span class="text-gray-600 text-sm ml-2">(132 reviews)</span>
+    </div>
+
+    <!-- Price Section -->
+    <div class="flex items-center gap-4 mt-4">
+      <span id="salePrice" class="text-2xl text-gray-600 font-semibold">
+        Price: ₹ <%= product.variants[0].salePrice.toLocaleString('en-IN') %>
+      </span>
+      <span id="regularPrice" class="text-gray-500 line-through text-base">
+        ₹ <%= product.variants[0].regularPrice.toLocaleString('en-IN') %>
+      </span>
+    </div>
+
+   <!-- Color Selection -->
+   <% 
+   const uniqueVariants = {};
+   product.variants.forEach(v => {
+     if (!uniqueVariants[v.color]) uniqueVariants[v.color] = v;
+   });
+    %>
+    <% if (Object.keys(uniqueVariants).length > 0) { %>
+      <div class="flex items-center gap-3 flex-wrap mt-4">
+        <span class="text-gray-700 font-medium">Color:</span>
+        <% for (let color in uniqueVariants) { 
+            const variant = uniqueVariants[color]; %>
+          <span
+            class="variant-color px-3 py-1 bg-gray-100 text-gray-800 text-sm rounded-full border border-gray-300 shadow-sm hover:bg-gray-200 cursor-pointer transition"
+            data-color="<%= variant.color %>"
+            data-sale-price="<%= variant.salePrice %>"
+            data-regular-price="<%= variant.regularPrice %>"
+          >
+          <input type="hidden" name="selectedColor" id="selectedColor">
+            <%= variant.color.charAt(0).toUpperCase() + variant.color.slice(1) %>
+          </span>
+        <% } %>
+      </div>
+    <% } %>
+
+    <!-- Size Selection -->
+    <% const sizeSet = new Set(); 
+    product.variants.forEach(v => sizeSet.add(v.size));%>
+    <% if (sizeSet.size > 0) { %>
+    <div class="flex items-center gap-3 flex-wrap mt-4">
+      <span class="text-gray-700 font-medium">Size:</span>
+      <% Array.from(sizeSet).forEach(size => { %>
+        <span class="px-3 py-1 border border-gray-300 rounded-md text-sm cursor-pointer hover:bg-gray-200">
+          <%= size %>
+        </span>
+      <% }) %>
+    </div>
+    <% } %>
+
+    <!-- Quantity Control -->
+    <form action="/addToCart/<%= product._id %>" method="POST" class="flex flex-col md:flex-row md:items-center gap-4 mt-6">
+      <div class="flex items-center gap-4">
+        <span class="text-gray-700 font-medium">Quantity:</span>
+        <% if (product.variants[0].quantity) { %>
+          <div class="flex items-center border border-gray-300 rounded-md overflow-hidden">
+            <button type="button" onclick="adjustQty(-1)" class="px-3 py-1 text-xl text-gray-600 hover:bg-gray-200">−</button>
+            <input type="text" id="quantity" name="quantityDisplay" value="1" readonly class="w-12 text-center outline-none border-x border-gray-300">
+            <input type="hidden" name="quantity" id="formQty" value="1">
+            <button type="button" onclick="adjustQty(1)" class="px-3 py-1 text-xl text-gray-600 hover:bg-gray-200">+</button>
+          </div>
+        <% } %>
+      </div>
+    
+      <button type="submit" class="bg-gray-800 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition shadow flex items-center gap-2">
+        <i class="fas fa-shopping-cart"></i> Add to Cart
+      </button>
+    </form>
+    
+    <!-- Wishlist Link -->
+    <a href="/addToWishlist/<%= product._id %>" class="text-red-500 hover:text-red-800 transition-all py-2 rounded-lg flex items-center gap-2 mt-4 md:mt-0">
+      <i class="fas fa-heart"></i> Add To Wishlist
+    </a>
+    
+    
+  </div>
+
+ 
+  
+    <!-- Description -->
+    <p class="text-gray-700 text-base leading-relaxed border-t pt-4">
+      <%= product.description %>
+    </p>
+  
+</div>
+</div>
+</div>
+
+<!-- Bottom Section: Related Products -->
+<div class="max-w-7xl mx-auto mb-5">
+  <h2 class="text-xl font-semibold text-gray-800 mb-6">Related Products</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+    <% relatedProducts.forEach(prod => { %>
+      <div class="bg-white rounded-lg shadow hover:shadow-lg transition">
+        <a href="/productDetials?id=<%= prod._id %>">
+          <img src="/uploads/product-images/<%= prod.images[0] %>" alt="<%= prod.productName %>" class="h-48 w-full object-cover rounded-t-lg">
+        </a>
+        <div class="p-4">
+          <h3 class="font-semibold text-gray-800 text-md line-clamp-2 mb-1"><%= prod.productName %></h3>
+          <p class="text-sm text-gray-700">₹ <%= prod.variants[0].salePrice.toLocaleString("en-IN") %></p>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+</div>
+
+
+
+
+
+
+<script>
+
+  //for sale price according to color
+  const colorButtons = document.querySelectorAll('.variant-color');
+  const salePriceSpan = document.getElementById('salePrice');
+  const regularPriceSpan = document.getElementById('regularPrice');
+
+  colorButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('selectedColor').value = btn.getAttribute('data-color');
+      // Remove active class from others
+      colorButtons.forEach(b => b.classList.remove('bg-gray-300'));
+      btn.classList.add('bg-gray-300');
+
+      const sale = parseInt(btn.getAttribute('data-sale-price'));
+      const regular = parseInt(btn.getAttribute('data-regular-price'));
+
+      salePriceSpan.innerHTML = `Price: ₹ ${sale.toLocaleString('en-IN')}`;
+      regularPriceSpan.innerHTML = `₹ ${regular.toLocaleString('en-IN')}`;
+    });
+  });
+
+  //image thamnail
+    function changeMainImage(src) {
+      const mainImg = document.getElementById('mainImage');
+      mainImg.src = src;
+    }
+
+  //quantity + and -
+  function adjustQty(change) {
+    const displayInput = document.getElementById('quantity');
+    const formInput = document.getElementById('formQty');
+    let current = parseInt(displayInput.value);
+    if (!isNaN(current)) {
+      let newQty = current + change;
+      if (newQty < 1) newQty = 1;
+      displayInput.value = newQty;
+      formInput.value = newQty;
+    }
+  }
+
+  
+</script>
+
+  <%- include('../../views/partials/user/footer') %>

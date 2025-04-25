@@ -1,8 +1,15 @@
 const User = require('../model/userSchema')
 
 const userAuth = (req,res,next)=>{
-    if(req.session.user){
-        User.findById(req.session.user)
+
+  
+  req.session.userId = req.session.passport?.user || req.session?.user._id
+
+  
+  
+  
+    if(req.session.userId){
+        User.findById(req.session.userId)
         .then(data=>{
             if(data && !data.isBlocked){
                 next();
@@ -17,6 +24,17 @@ const userAuth = (req,res,next)=>{
     }else{
         res.redirect('/signIn')
     }
+}
+
+const userIslog = (req,res,next)=>{
+  req.session.userId = req.session.passport?.user || req.session.user?._id
+  if(!req.session.userId){
+    next()
+  }else{
+    res.redirect('/')
+  }
+
+ 
 }
 
 const adminAuth = (req, res, next) => {
@@ -41,5 +59,6 @@ const adminAuth = (req, res, next) => {
 
 module.exports = {
     userAuth,
+    userIslog,
     adminAuth
 }
