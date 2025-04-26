@@ -3,8 +3,10 @@ const User = require('../model/userSchema')
 const userAuth = (req,res,next)=>{
 
   
-  req.session.userId = req.session.passport?.user || req.session?.user._id
+  req.session.userId = req.session.passport?.user || req.session.user?._id
 
+  
+  
   
   
   

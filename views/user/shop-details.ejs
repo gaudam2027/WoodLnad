@@ -3,6 +3,34 @@
 
 
 <%- include('../../views/partials/user/header') %>
+<style>
+
+  #imageZoom {
+    position: relative;
+  }
+  #imageZoom img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 0 0;
+  }
+  #imageZoom::after {
+    display: var(--display);
+    content: '';
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    background-image: var(--url);
+    background-size: 200%;
+    background-position: var(--zoom-x) var(--zoom-y);
+    position: absolute;
+    left: 0;
+    top: 0;
+    border-radius: 0.5rem; /* to match rounded corners */
+  }
+
+</style>
+
 
 <div class="max-w-7xl mx-auto px-4 py-10 select-none">
 
@@ -12,9 +40,14 @@
     <!-- Left: Image Section -->
     <div class="w-full">
       <!-- Main Image -->
-      <div class="border rounded-lg overflow-hidden">
-        <img id="mainImage" src="/uploads/product-images/<%= product.images[0] %>" class="w-full h-[400px] object-cover" alt="Main Product Image">
-      </div>
+      <div id="imageZoom" class="border rounded-lg overflow-hidden" style="
+          --url: url('/uploads/product-images/<%= product.images[0] %>');
+          --zoom-x: 0%; 
+          --zoom-y: 0%;
+          --display: none
+        ">
+          <img id="mainImage" src="/uploads/product-images/<%= product.images[0] %>" class="w-full h-[400px] object-cover" alt="Main Product Image">
+        </div>
 
       <!-- Thumbnails -->
       <div class="flex gap-3 mt-4 flex-wrap">
@@ -28,7 +61,7 @@
       </div>
     </div>
 
-    <!-- Right: Product Details -->
+
     <!-- Right: Product Details -->
 <div class="flex flex-col  h-full space-y-6">
   <div class="space-y-6">
@@ -164,6 +197,28 @@
 
 <script>
 
+  // Main Image Zoom
+  const imageZoom = document.getElementById('imageZoom');
+  imageZoom.addEventListener('mousemove', (event) => {
+    imageZoom.style.setProperty('--display', 'block');
+    let pointer = {
+      x: (event.offsetX * 100) / imageZoom.offsetWidth,
+      y: (event.offsetY * 100) / imageZoom.offsetHeight
+    }
+    imageZoom.style.setProperty('--zoom-x', pointer.x + '%');
+    imageZoom.style.setProperty('--zoom-y', pointer.y + '%');
+  });
+  imageZoom.addEventListener('mouseleave', () => {
+    imageZoom.style.setProperty('--display', 'none');
+  });
+
+  // Update Zoom Background when thumbnail clicked
+  function changeMainImage(src) {
+    const mainImg = document.getElementById('mainImage');
+    mainImg.src = src;
+    imageZoom.style.setProperty('--url', `url(${src})`);
+  }
+
   //for sale price according to color
   const colorButtons = document.querySelectorAll('.variant-color');
   const salePriceSpan = document.getElementById('salePrice');
@@ -185,10 +240,11 @@
   });
 
   //image thamnail
-    function changeMainImage(src) {
-      const mainImg = document.getElementById('mainImage');
-      mainImg.src = src;
-    }
+  function changeMainImage(src) {
+    const mainImg = document.getElementById('mainImage');
+    mainImg.src = src;
+    imageZoom.style.setProperty('--url', `url(${src})`);
+  }
 
   //quantity + and -
   function adjustQty(change) {

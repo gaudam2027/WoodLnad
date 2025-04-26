@@ -21,13 +21,12 @@ const pageNotFound = async (req,res)=>{
 
 const loadHomepage = async (req, res) => {
     try {
-        // const sessionUserData = req.session.userData; // form sign up data (otp time)
-        const sessionUser = req.session.user;       // Only the user._id from signin
-        // const passportUser = req.user;                // data from Google
-
+      
+        const user = req.session?.userId||req.session.user?._id  //passport and normal login and sign up user id session
       
         
-        let user = sessionUser
+        
+        
         const categories = await Category.find({isListed:true});
         let productData = await Product.find(
             {isBlocked:false,
@@ -35,8 +34,6 @@ const loadHomepage = async (req, res) => {
              variants: { $elemMatch: { quantity: { $gt: 0 } } }
             }
         )
-
-        // console.log(productData[0].images[0]);
         
         
 
@@ -46,12 +43,12 @@ const loadHomepage = async (req, res) => {
 
 
         if (user) {
-           const userData = await User.findOne({id:user._id});
+           const userData = await User.findOne({_id:user});
+           console.log(userData);
            return res.render('home',{user:userData,products:productData});
-        }else{
-            return res.render('home',{products:productData})
+           
         }
-
+           return res.render('home',{user,products:productData});
         
         
     } catch (error) {
@@ -301,11 +298,12 @@ const loadShoppage = async (req, res) => {
     try {
         console.log('shop');
         
-      const user = req.session.userId
-      console.log(user);
+      const user = req.session?.userId || req.session.user?._id
+      
       
       const searchQuery =  "";
-      const userData = await User.findOne({ _id:user });
+      const userData = await User.findOne({ _id:user});
+      console.log(userData);
       const categories = await Category.find({ isListed: true });
       const categoriesIds = categories.map(category => category._id.toString());
 
@@ -375,6 +373,10 @@ const loadShoppage = async (req, res) => {
     try {
         console.log('filter');
         const { category,price,color,sortBy,search,page = 1 } = req.body;
+        const user = req.session.userId || req.session.user?._id
+        const userData = await User.findOne({_id:user})
+        console.log(userData);
+        
   
         
         const limit = 9; // number of products per page
@@ -451,7 +453,7 @@ const loadShoppage = async (req, res) => {
           .sort(sortOption)
           .skip(skip)
           .limit(limit);
-        res.json({ success: true, products,totalPages,currentPage: page});
+        res.json({ success: true,user:userData, products,totalPages,currentPage: page});
       } catch (err) {
         console.error('Error filtering products:', err);
         res.status(500).json({ success: false, message: 'Server Error' });
@@ -461,9 +463,11 @@ const loadShoppage = async (req, res) => {
 
   const shopDetails = async (req, res) => {
     try {
+
+        const user = req.session.userId || req.session.user?._id
         console.log('Reached shop details');
 
-        const sessionUser = req.session.userData;
+        const userData = await User.findOne({_id:user})
         const productId = req.query.id; 
 
         const product = await Product.findById(productId);
@@ -478,8 +482,8 @@ const loadShoppage = async (req, res) => {
         }).limit(4); 
 
         res.render('shop-details', {
+            user:userData,
             product,
-            sessionUser,
             relatedProducts 
         });
 
@@ -495,10 +499,9 @@ const loadProfilepage = async (req,res)=>{
     try {
         console.log('reached');
         
-        const sessionUser = req.session.userData;
-        // const passportUser = req.user;
+        
 
-        const user = sessionUser || passportUser;
+        
         
         res.render('profile',{user});
     } catch (error) {
@@ -528,8 +531,8 @@ const logout = async (req,res)=>{
                 console.log('Session destruction error',err.message);
                 return res.redirect('/pageNotFound');
             }
-            return res.redirect('/signIn')
-        })
+            return res.redirect('/')
+        }) 
     } catch (error) {
 
         console.log('Logout error',error);

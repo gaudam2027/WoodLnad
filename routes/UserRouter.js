@@ -24,9 +24,9 @@ router.post('/signIn',userController.signin);
 
 //home page & shopping page
 router.get('/',userController.loadHomepage);
-router.get('/shop',userAuth,userController.loadShoppage);
-router.post('/filter',userAuth,userController.filterProduct);
-router.get('/shopDetails',userAuth,userController.shopDetails);
+router.get('/shop',userController.loadShoppage);
+router.post('/filter',userController.filterProduct);
+router.get('/shopDetails',userController.shopDetails);
 
 router.get('/profile',userController.loadProfilepage);
 router.get('/order',userController.loadOrderpage);
