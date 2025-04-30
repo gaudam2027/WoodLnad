@@ -8,7 +8,7 @@ const bcrypt = require('bcrypt');
 const loadSignin = (req,res)=>{
 
     if(req.session.admin){
-        return res.redirect('/')
+        return res.redirect('/admin')
     }
 
     res.render('adminSignin',{message:null})
@@ -20,6 +20,7 @@ const signin = async (req, res) => {
     try {
         const { email, password } = req.body;
         const admin = await User.findOne({ email, isAdmin: true });
+        console.log('admin signIn')
 
 
         if (admin) {

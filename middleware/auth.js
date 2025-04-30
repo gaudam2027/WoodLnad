@@ -42,11 +42,15 @@ const userIslog = (req,res,next)=>{
 const adminAuth = (req, res, next) => {
   
     if (req.session.admin) {
+      console.log('reached');
+      
       User.findById(req.session.admin)
         .then(admin => {
           if (admin && admin.isAdmin) {
+            
             next();
           } else {
+            
             res.redirect('/admin/signin');
           }
         })

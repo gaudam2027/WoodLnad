@@ -1,7 +1,14 @@
 <%- include('../partials/admin/header', { title: 'Admin Panel - Categories' }) %>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<div class="min-h-screen bg-gray-100 p-6 w-full">
+<style>
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+</style>
+
+<div class="min-h-screen bg-gray-100 p-6 w-full overflow-y-auto max-h-[600px] scrollbar-hide">
   <h1 class="text-3xl font-bold mb-4 text-slate-800">Category Products</h1>
 
   <!-- Search Bar -->
@@ -22,9 +29,9 @@
     </form>
   </div>
 
-  <div class="flex flex-col lg:flex-row gap-8 w-full">
+  <div class="flex flex-row gap-8 w-full ">
     <!-- Add Category Form -->
-    <div class="lg:w-1/4 bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
+    <div class="lg:w-1/4 h-[24rem] bg-white shadow-lg rounded-2xl p-6 border border-slate-200">
       <h2 class="text-xl font-semibold mb-4 text-gray-700">Add Category</h2>
       <form method="POST" action="/admin/addCategory" onsubmit="return handleFormSubmit(event)">
         <div class="mb-4">
