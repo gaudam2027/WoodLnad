@@ -79,7 +79,7 @@ const forgotEmailValid = async(req,res)=>{
         const findUser = await User.findOne({email,isAdmin:false});
 
         if(findUser){
-            const otp = generateOTP()
+            const otp = generateOTP()   // otp created
             console.log(otp)
             const emailSend = await sendVerificationEmail(email,otp);
 
@@ -100,32 +100,6 @@ const forgotEmailValid = async(req,res)=>{
     }
 }
 
-const loadForgotPassOTP = async(req,res)=>{
-    try {
-
-        
-        res.render("forgotPass-OTP")
-    } catch (error) {
-        res.redirect('/pageNotFound')
-    }
-}
-
-const verifyForgotPasssOTP = async(req,res)=>{
-    try {
-        console.log('reached');
-        const enteredOTP =req.body.otp
-
-        if(enteredOTP==req.session.userOTP){
-            res.status(200).json({ success: true, redirect: "/reset-password" });
-        }else{
-            res.status(404).json({ success: false, message: "OTP not matching..." });
-        }
-        
-    } catch (error) {
-        res.status(500).json({ success: false, message: "An error occured.. please try again"});
-        res.redirect('/pageNotFound')
-    }
-}
 
 const resendforgotPasssOTP = async(req,res)=>{
     try {
@@ -148,6 +122,38 @@ const resendforgotPasssOTP = async(req,res)=>{
     }
 }
 
+const loadForgotPassOTP = async(req,res)=>{
+    try {
+        if(req.session.email){
+            res.render("forgotPass-OTP")
+        }else{
+            res.redirect("/signIn")
+        }
+        
+    } catch (error) {
+        res.redirect('/pageNotFound')
+    }
+}
+
+const verifyForgotPasssOTP = async(req,res)=>{
+    try {
+        console.log('reached');
+        const enteredOTP =req.body.otp
+
+        if(enteredOTP==req.session.userOTP){
+            res.status(200).json({ success: true, redirect: "/reset-password" });
+        }else{
+            res.status(404).json({ success: false, message: "OTP not matching..." });
+        }
+        
+    } catch (error) {
+        res.status(500).json({ success: false, message: "An error occured.. please try again"});
+        res.redirect('/pageNotFound')
+    }
+}
+
+
+
 
 
 const loadResetPassword = async(req,res)=>{
@@ -167,21 +173,143 @@ const resetPassword = async(req,res)=>{
         console.log('resetPost');
         const {password} =req.body;
         const email = req.session.email
+        req.session.email = null
         console.log(password);
-        console.log(email);
+        console.log('your email',email);
         
         const PasswordHash = await securePassword(password);
-        await User.updateOne(
-            {email:email},
-            {$set:{password:PasswordHash}}
-        )
-        res.status(200).json({success:true,redirect:"/signin"});
+        if(email){
+            await User.updateOne(
+                {email:email},
+                {$set:{password:PasswordHash}}
+            )
+            res.status(200).json({success:true,redirect:"/signin"});
+        }else{
+            res.status(500).json({success:false,message:"Email is not valid, please try again..."})
+        }
+
+        
         
         
     } catch (error) {
         res.redirect('/pageNotFound')
     }
 }
+
+//loading user profile
+
+const loadProfilepage = async (req,res)=>{
+    try {
+        
+        
+        
+        const user = req.session.userId || req.session.user?._id
+        const userData = await User.findOne({_id:user,isBlocked:false});
+        
+        res.render('profile',{user:userData});
+    } catch (error) {
+        console.log('Profile page not found');
+        res.status(500).send('Server error')
+        
+    }
+}
+
+const editProfile = async (req,res)=>{
+    try {
+        console.log('changing profile...');
+        const user = req.session.userId || req.session.user?._id
+        const formData = req.body
+        console.log('files',req.file);
+        
+        console.log(user);
+        
+        if(req.file){
+            const imagePath = '/uploads/profile/' + req.file.filename;
+            const upUser =  await User.findByIdAndUpdate(user, { profileImage: imagePath });
+            console.log(upUser);
+           return res.json({ success: true, imagePath });
+        }
+
+        if(formData){
+            console.log(formData)
+            console.log(user);
+            
+            const checkEmail = await User.findOne({email:formData.email,_id:{$ne: user}})
+            const checkNum = await User.findOne({phone:formData.phone,_id:{$ne: user}})
+            
+            
+          if (checkEmail && checkNum) {
+            return res.json({ success: false,existBoth:true,emailMsg:"This email already exist",phoneMsg:"This phone number already exist"});
+        
+          }else if(checkEmail){
+            return res.json({ success: false,existFound:true, existFoundField: 'email',message:"This email already exist",});
+          }else if(checkNum){
+            return res.json({ success: false,existFound:true, existFoundField: 'phone',message:"This phone Number already exist",});
+          }
+            
+            await User.findByIdAndUpdate(user,formData);
+           return res.json({ success: true});
+        }
+        
+        res.json({ success: false,message:"Error while updateing profile Plaese try again..."});
+        
+       
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Image upload failed' });
+      }
+}
+
+const changeEmail = async (req,res)=>{
+    try {
+        const {email}  = req.body
+        const existEmail = await User.findOne({email})
+        if(!existEmail ){
+           const otp = generateOTP()   // otp created
+            console.log(otp)
+            const emailSend = await sendVerificationEmail(email,otp);
+
+            if(emailSend){
+                req.session.userOTP = otp;
+                req.session.email = email;
+                res.status(200).json({ success: true});
+            }else{
+                return res.status(500).json({ success: false, message: "Failed to send email. Try again later." });
+            }
+        }else{
+           return res.json({success:false,message:"This email is already in use"})
+        }
+
+    } catch (error) {
+        console.log('Profile page not found');
+        res.status(500).send('Server error')
+        
+    }
+}
+
+const verifyChangeEmail = async (req,res)=>{
+    try {
+        const {oldEmail,email,otp}  = req.body
+        
+        if(otp){
+            if(otp===req.session.userOTP){
+               const uPDate =  await User.updateOne(
+                {email:oldEmail},
+                {$set:{email:email}}
+            )
+            return res.json({success:true})
+            }else{
+                return res.json({success:false,message:"Enter the correct OTP"})
+            }
+        }
+
+    } catch (error) {
+        console.log('Profile page not found');
+        res.status(500).send('Server error')
+        
+    }
+}
+
 
 
 
@@ -192,5 +320,9 @@ module.exports = {
     verifyForgotPasssOTP,
     resendforgotPasssOTP,
     loadResetPassword,
-    resetPassword
+    resetPassword,
+    loadProfilepage,
+    editProfile,
+    changeEmail,
+    verifyChangeEmail,
 }

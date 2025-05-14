@@ -5,6 +5,15 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+
+    .swal2-popup {
+      border-radius: .7rem !important; /* 16px */
+    }
+    .swal2-title {
+      font-size: 20px !important;
+    }
+
   
 </style>
 
@@ -86,21 +95,32 @@
                     <%}%>
                   </div>
                 </td>
-                <td class="px-4 py-3">
-                  <%if(category.isListed) {%>
+                <td class="px-4 py-3 status-cell">
+                  <% if (category.isListed) { %>
                     <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-green-100 text-green-700">Listed</span>
-                  <%}else{%>
+                  <% } else { %>
                     <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-red-100 text-red-700">Unlisted</span>
-                  <%}%>
+                  <% } %>
                 </td>
-                <td class="px-4 py-3 space-x-2">
-                  <button onclick='showEditForm("<%= category._id %>", "<%= category.name %>", "<%= category.description %>")' class="bg-slate-800 text-white text-xs px-3 py-1 rounded hover:bg-slate-900 transition">Edit</button>
-                  <%if(category.isListed) {%>
-                    <a href="/admin/listCategory?id=<%=category._id%>" class="bg-yellow-500 text-white text-xs px-3 py-1 rounded hover:bg-yellow-600 transition inline-block">Unlist</a>
-                  <%}else{%>
-                    <a href="/admin/unlistCategory?id=<%=category._id%>" class="bg-green-500 text-white text-xs px-3 py-1 rounded hover:bg-green-600 transition inline-block">List</a>
-                  <%}%>
+                <td class="px-4 py-3 space-y-2 flex flex-col justify-center">
+                  <button onclick='showEditForm("<%= category._id %>", "<%= category.name %>", "<%= category.description %>")'
+                    class="bg-slate-800 text-white text-xs px-3 py-1 rounded hover:bg-slate-900 transition">
+                    Edit
+                  </button>
+                
+                  <% if (category.isListed) { %>
+                    <button onclick="toggleCategoryStatus('<%= category._id %>', false, this)" 
+                      class="bg-yellow-500 text-white text-xs px-3 py-1 rounded hover:bg-yellow-600 transition status-toggle-btn">
+                      Unlist
+                    </button>
+                  <% } else { %>
+                    <button onclick="toggleCategoryStatus('<%= category._id %>', true, this)" 
+                      class="bg-green-500 text-white text-xs px-3 py-1 rounded hover:bg-green-600 transition status-toggle-btn">
+                      List
+                    </button>
+                  <% } %>
                 </td>
+                
               </tr>
             <% }) %>
           <% } else { %>
@@ -409,7 +429,63 @@
 
   //
 
+  function toggleCategoryStatus(id, shouldList, button) {
+    const actionText = shouldList ? 'list' : 'unlist';
+  
+    Swal.fire({
+      html: `<span style="font-size: 18px; color: #444;">Are you sure you want to <b style="color:'#1f2937'">${actionText}</b> this category?</span>`,
+      showCancelButton: true,
+      confirmButtonColor: shouldList ? '#1f2937' : '#eab308', 
+      cancelButtonColor: '#d33',
+      confirmButtonText: `Yes, ${actionText} it!`
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch('/admin/category-list', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ id, isListed: shouldList })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            Swal.fire({
+              title: `Category ${shouldList ? 'listed' : 'unlisted'} successfully`,
+              confirmButtonColor: '#1f2937', 
+            }).then(() => {
 
+              const row = button.closest("tr");
+              const statusCell = row.querySelector(".status-cell");
+              const toggleBtn = button;
+  
+              if (data.newStatus) {
+                statusCell.innerHTML = `<span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-green-100 text-green-700">Listed</span>`;
+                toggleBtn.textContent = "Unlist";
+                toggleBtn.className = "bg-yellow-500 text-white text-xs px-3 py-1 rounded hover:bg-yellow-600 transition status-toggle-btn";
+                toggleBtn.setAttribute("onclick", `toggleCategoryStatus('${id}', false, this)`);
+              } else {
+                statusCell.innerHTML = `<span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-red-100 text-red-700">Unlisted</span>`;
+                toggleBtn.textContent = "List";
+                toggleBtn.className = "bg-green-500 text-white text-xs px-3 py-1 rounded hover:bg-green-600 transition status-toggle-btn";
+                toggleBtn.setAttribute("onclick", `toggleCategoryStatus('${id}', true, this)`);
+              }
+            });
+          } else {
+            Swal.fire({
+              title: "Error",
+              text: "Failed to update status",
+              confirmButtonColor: '#1f2937',
+            });
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          Swal.fire("Error", "Something went wrong", "error");
+        });
+      }
+    });
+  }
 </script>
 
 <%- include('../partials/admin/footer') %>

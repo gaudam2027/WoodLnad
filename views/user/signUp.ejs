@@ -15,10 +15,12 @@
     
     <!-- Navigation -->
     <nav class="absolute top-0 left-0 w-full bg-white shadow-md  flex justify-center items-center z-20">
+        <a href="/">
         <div class="text-2xl font-bold text-gray-800 flex items-center" style="font-family: 'Raleway', sans-serif;">
-            <img src="./images/logo.png" class="logo bgImg " alt="logo">
-            <div class="pl-2">WOODLAND</div>
-        </div>
+                <img src="./images/logo.png" class="logo bgImg" alt="logo">
+                <div class="pl-2">WOODLAND</div>
+            </div>
+        </a>
     </nav>
     <div class="flex-grow relative flex flex-col items-center">
 
@@ -141,6 +143,7 @@
     function phoneValidateChecking(e){
 
         const phoneval = phoneid.value;
+        const repeatedDigitsPattern = /^(\d)\1{9}$/;
 
         if(phoneval.trim()===""){
             error3.style.display = "block";
@@ -148,7 +151,11 @@
         }else if(phoneval.length!==10){
             error3.style.display = "block";
             error3.innerHTML = "Enter 10-digits phone No.";
-        }else{
+        }else if(repeatedDigitsPattern.test(phoneval)) {
+            error3.style.display = "block";
+            error3.innerHTML = "Phone number cannot have all identical digits.";
+        }
+        else{
             error3.style.display = "none";
             error3.innerHTML = "";
         }

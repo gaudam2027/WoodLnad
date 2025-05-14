@@ -26,11 +26,14 @@
 <body class="flex flex-col min-h-screen bg-gray-900 font-sans">
 
   <!-- Navigation -->
+  
   <nav class="absolute top-0 left-0 w-full bg-white shadow-md flex justify-center items-center z-20 h-16">
-    <div class="text-2xl font-bold text-gray-800 flex items-center" style="font-family: 'Raleway', sans-serif;">
-      <img src="./images/logo.png" class="logo bgImg h-10 w-auto" alt="logo">
-      <div class="pl-3">WOODLAND</div>
-    </div>
+      <a href="/">
+      <div class="text-2xl font-bold text-gray-800 flex items-center" style="font-family: 'Raleway', sans-serif;">
+        <img src="./images/logo.png" class="logo bgImg h-10 w-auto" alt="logo">
+        <div class="pl-3">WOODLAND</div>
+      </div>
+    </a>
   </nav>
 
   <!-- Page Wrapper -->
@@ -68,7 +71,7 @@
 
       <div class="mt-6 text-center">
         <p class="text-sm text-gray-600 mb-1">Didn't receive the code?</p>
-        <button onclick="resendOTP()" class="text-gray-800 hover:underline">Resend OTP</button>
+        <button onclick="resendOTP()" id="resendBtn" class="text-grey-700 hover:underline">Resend OTP</button>
       </div>
     </div>
   </div>
@@ -116,6 +119,9 @@
 
     function updateTimer() {
       if (seconds > 0) {
+        resendBtn.disabled = true;
+        resendBtn.classList.remove('text-gray-700', 'hover:underline');
+        resendBtn.classList.add('text-gray-300', 'cursor-not-allowed');
         const min = String(Math.floor(seconds / 60)).padStart(2, '0');
         const sec = String(seconds % 60).padStart(2, '0');
         countdown.textContent = `${min}:${sec}`;
@@ -125,6 +131,9 @@
         isOTPExpired = true;
         countdown.textContent = 'OTP Expired';
         countdown.classList.add('font-semibold');
+        resendBtn.disabled = false;
+        resendBtn.classList.remove('text-gray-300', 'cursor-not-allowed');
+        resendBtn.classList.add('text-gray-700', 'hover:underline');
       }
     }
 

@@ -19,9 +19,11 @@ const productsPage = async(req,res)=>{
             ]
             
         })
+        .sort({createdAt:-1})
         .limit(limit*1)
         .skip((page - 1) * limit) 
         .populate('category')
+        .lean()
         .exec();
 
         const count = await Product.find({
@@ -228,35 +230,28 @@ const deleteSingleImage = async(req,res)=>{
     }
 }
 
-const blockProduct = async(req,res)=>{
+const productBlock = async(req,res)=>{
     try {
+     
+        
+        const {productId,block} = req.body;
+        const isBlocked = block
 
-        const id = req.query.id;
+        
+        if(productId){
+            await Product.updateOne({_id:productId},{$set:{isBlocked}});
+            return res.json({success:true});
+        }
 
-        await Product.updateOne({_id:id},{$set:{isBlocked:true}})
-        res.redirect('/admin/products')
+        return res.json({success:false});
         
     } catch (error) {
 
-        res.redirect('/pageerror')
+        return res.redirect('/pageerror')
         
     }
 }
 
-const unblockProduct = async(req,res)=>{
-    try {
-
-        const id = req.query.id;
-
-        await Product.updateOne({_id:id},{$set:{isBlocked:false}})
-        res.redirect('/admin/products')
-        
-    } catch (error) {
-
-        res.redirect('/pageerror')
-        
-    }
-}
 
 
 
@@ -267,6 +262,5 @@ module.exports = {
     productEditPage,
     editProduct,
     deleteSingleImage,
-    blockProduct,
-    unblockProduct
+    productBlock
 }

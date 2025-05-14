@@ -7,6 +7,11 @@ const userSchema = new Schema({
         required: true
     },
 
+    profileImage:{
+        type:String,
+        default:null
+    },
+
     email:{
         type: String,
         required: true,
@@ -16,7 +21,7 @@ const userSchema = new Schema({
     phone:{
         type: String,
         required: false,
-        unique: false,
+        unique: true,
         sparse: true,
         default: null
     },

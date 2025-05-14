@@ -1,65 +1,342 @@
 <link rel="stylesheet" href="./css/profile.css">
 <%- include('../../views/partials/user/header') %>
-<div class="container mx-auto px-6 py-12 ">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <!-- Sidebar -->
-      <div class="bg-white p-6 rounded-lg shadow-md profile-card">
-        <ul class="space-y-2">
-          <li><a href="#" class="font-semibold s1 block py-2 px-4 rounded hover:bg-gray-200">Gautham</a></li>
-          <li><a href="#" class="block py-2 px-4 rounded hover:bg-gray-200">My Orders</a></li>
-          <li><a href="#" class="block py-2 px-4 rounded hover:bg-gray-200">Manage Address</a></li>
-          <li><a href="#" class="block py-2 px-4 rounded hover:bg-gray-200">Favorites</a></li>
-          <li><a href="#" class="block py-2 px-4 rounded hover:bg-gray-200">Wallet</a></li>
-          <button class="absolute bottom-0  w-100% bg-gray-800 text-white px-14 py-2 rounded-md hover:bg-gray-700">Logout</button>
-        </ul>
+
+<style>
+  .swal2-popup {
+    border-radius: .7rem !important; /* 16px */
+  }
+  .swal2-title {
+    font-size: 20px !important;
+  }
+</style>
+
+<div class="container mx-auto px-6 py-12">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    
+    <!-- Sidebar -->
+    <div class="bg-white p-6 rounded-lg shadow-md profile-card relative">
+      <ul class="space-y-2">
+        <li><a href="#" class="font-semibold s1 block py-2 px-4 rounded hover:bg-gray-200">Gautham</a></li>
+        <li><a href="#" class="block py-2 px-4 rounded hover:bg-gray-200">My Orders</a></li>
+        <li><a href="#" class="block py-2 px-4 rounded hover:bg-gray-200">Manage Address</a></li>
+        <li><a href="#" class="block py-2 px-4 rounded hover:bg-gray-200">Favorites</a></li>
+        <li><a href="#" class="block py-2 px-4 rounded hover:bg-gray-200">Wallet</a></li>
+      </ul>
+      <button class="absolute bottom-4 left-6 right-6 bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-700">Logout</button>
+    </div>
+    
+    <!-- Profile Info -->
+    <div class="col-span-2 bg-white p-6 rounded-lg shadow-md profile-card">
+      <h2 class="text-xl font-semibold mb-4 s1">Personal Information</h2>
+      <div class="flex flex-row items-center mb-6">
+        <div class="relative">
+          <img src="<%= user.profileImage %>" alt="Profile" class="profile-img" id="profilePreview">
+          <label for="profileUpload" class="absolute bottom-0 right-0 bg-gray-200 p-1 rounded-full cursor-pointer hover:bg-gray-300">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2L7 19H4v-3l11-11z" />
+            </svg>
+          </label>
+          <input type="file" id="profileUpload" name="profileImage" class="hidden" accept="image/*">
+        </div>
+        <h3 class="profile-name"><%= user.name %></h3>
       </div>
-      
-      <!-- Profile Info -->
-      <div class="col-span-2 bg-white p-6 rounded-lg shadow-md profile-card">
-        <h2 class="text-xl font-semibold mb-4 s1">Personal Information</h2>
-        <div class="flex flex-row items-center mb-6">
-            <img src="./images/profile.jpg" alt="Profile" class="profile-img">
-          <h3 class="profile-name">Gautham</h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="text-gray-500 s1" for="name">Full Name</label>
+          <input type="text" id="name" class="border p-2 w-full profile-input" value="<%= user.name %>">
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="text-gray-500 s1" for="fullname">Full Name</label>
-            <input type="text" id="fullname" class="border p-2 w-full profile-input" value="Gautham">
-          </div>
-          <div>
-            <label class="text-gray-500 s1" for="dob">D.O.B</label>
-            <input type="date" id="dob" class="border p-2 w-full profile-input" value="2000-10-17">
-          </div>
-          <div>
-            <label class="text-gray-500 s1" for="email">Email</label>
-            <input type="email" id="email" class="border p-2 w-full profile-input" value="someone@gmail.com">
-          </div>
-          <div>
-            <label class="text-gray-500 s1" for="phone">Phone No.</label>
-            <input type="tel" id="phone" class="border p-2 w-full profile-input" value="+91 8135 67890">
-          </div>
-          <div>
-            <label class="text-gray-500 s1" for="state">State</label>
-            <input type="text" id="state" class="border p-2 w-full profile-input" value="Kerala">
-          </div>
-          <div>
-            <label class="text-gray-500 s1" for="district">District/City/Town</label>
-            <input type="text" id="district" class="border p-2 w-full profile-input" value="Kochi">
-          </div>
-          <div class="col-span-2">
-            <label class="text-gray-500 s1" for="address">Address</label>
-            <input type="text" id="address" class="border p-2 w-full profile-input" value="Vytilla, near Hyundai store">
-          </div>
-          <div class="col-span-2">
-            <label class="text-gray-500 s1" for="password">Password</label>
-            <input type="password" id="password" class="border p-2 w-full profile-input" value="**********">
-          </div>
+        <div>
+          <label class="text-gray-500 s1" for="dob">D.O.B</label>
+          <input type="date" id="dob" class="border p-2 w-full profile-input" value="<%= user.DOB %>">
         </div>
-        <div class="mt-6 flex space-x-4">
-          <button class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-400 w-full">Edit</button>
-          <button class="bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-400 w-full">Change Password</button>
+        <div class="relative">
+          <label class="text-gray-500 s1" for="email">Email</label>
+          <input type="email" id="email" class="border p-2 w-full profile-input pr-32" value="<%= user.email %>" readonly>
+          <button id="openEmailModal" type="button" class="absolute right-2 top-8 bg-gray-700 text-white px-3 py-1 text-sm rounded hover:bg-gray-600">Change Email</button>
         </div>
+
+        <div>
+          <label class="text-gray-500 s1" for="phone">Phone No.</label>
+          <input type="tel" id="phone" class="border p-2 w-full profile-input" value="<%= user.phone %>" >
+        </div>
+        <div>
+          <label class="text-gray-500 s1" for="state">State</label>
+          <input type="text" id="state" class="border p-2 w-full profile-input" value="Kerala">
+        </div>
+        <div>
+          <label class="text-gray-500 s1" for="district">District/City/Town</label>
+          <input type="text" id="district" class="border p-2 w-full profile-input" value="Kochi">
+        </div>
+        <div class="col-span-2">
+          <label class="text-gray-500 s1" for="address">Address</label>
+          <input type="text" id="address" class="border p-2 w-full profile-input" value="Vytilla near Hyundai store">
+        </div>
+      </div>
+
+      <div class="mt-6 flex space-x-4">
+        <button id="saveChanges" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-400 w-full">Save Changes</button>
+        <button class="bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-400 w-full">Change Password</button>
       </div>
     </div>
   </div>
-  <%- include('../../views/partials/user/footer') %>
+</div>
+
+
+<!-- change email modal -->
+<div id="emailModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+  <div class="bg-white rounded-lg p-6 w-96 shadow-lg">
+    <h2 class="text-xl font-semibold mb-4 text-gray-800">Change Email</h2>
+    <label for="newEmail" class="block text-sm text-gray-600 mb-1">Enter New Email</label>
+    <input type="email" id="newEmail" class="border w-full p-2 rounded mb-3" placeholder="example@email.com">
+    <div id="emailError" class="text-red-500 text-sm mb-2 hidden">Please enter a valid email.</div>
+    <div class="flex justify-end gap-2">
+      <button id="cancelEmailBtn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
+      <button id="verifyEmailBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Verify Email</button>
+    </div>
+  </div>
+</div>
+
+<!-- OTP Modal -->
+<div id="otpModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+  <div class="bg-white rounded-lg p-6 w-96 shadow-lg">
+    <h2 class="text-xl font-semibold mb-4 text-gray-800">Verify OTP</h2>
+    <label for="otpInput" class="block text-sm text-gray-600 mb-1">Enter the OTP sent to your email</label>
+    <input type="text" id="otpInput" class="border w-full p-2 rounded mb-3" placeholder="Enter OTP">
+    <div id="otpError" class="text-red-500 text-sm mb-2 hidden">Invalid OTP.</div>
+    <div class="flex justify-end gap-2">
+      <button id="cancelOtpBtn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
+      <button id="submitOtpBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Submit OTP</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+
+const emailModal = document.getElementById('emailModal');
+const openEmailModal = document.getElementById('openEmailModal');
+const cancelEmailBtn = document.getElementById('cancelEmailBtn');
+const verifyEmailBtn = document.getElementById('verifyEmailBtn');
+const emailInput = document.getElementById('newEmail');
+const emailError = document.getElementById('emailError');
+
+const otpModal = document.getElementById('otpModal');
+const otpInput = document.getElementById('otpInput');
+const otpError = document.getElementById('otpError');
+const cancelOtpBtn = document.getElementById('cancelOtpBtn');
+const submitOtpBtn = document.getElementById('submitOtpBtn');
+
+let latestEmail = ''; // Store new email to validate OTP later
+
+// Show modal
+openEmailModal.addEventListener('click', () => {
+  emailModal.classList.remove('hidden');
+  emailInput.value = '';
+  emailError.classList.add('hidden');
+});
+
+// Close modal
+cancelEmailBtn.addEventListener('click', () => {
+  emailModal.classList.add('hidden');
+});
+
+// Close OTP modal
+cancelOtpBtn.addEventListener('click', () => {
+  otpModal.classList.add('hidden');
+});
+
+// Verify button logic
+verifyEmailBtn.addEventListener('click', async () => {
+  const newEmail = emailInput.value.trim();
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!emailRegex.test(newEmail)) {
+    emailError.classList.remove('hidden');
+    emailError.textContent = 'Please enter a valid email address.';
+    return;
+  }
+
+  emailError.classList.add('hidden');
+
+  try {
+    const res = await fetch('/changeEmail', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: newEmail })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      latestEmail = newEmail;
+      emailModal.classList.add('hidden');
+      otpModal.classList.remove('hidden');
+    } else {
+      emailError.classList.remove('hidden');
+      emailError.textContent = data.message || 'Failed to send OTP.';
+    }
+  } catch (error) {
+    emailError.classList.remove('hidden');
+    emailError.textContent = 'Something went wrong. Try again.';
+  }
+});
+
+// Submit OTP logic
+submitOtpBtn.addEventListener('click', async () => {
+  const otp = otpInput.value.trim();
+  const oldEmail = document.getElementById('email').value.trim();
+  if (!otp) {
+    otpError.classList.remove('hidden');
+    otpError.textContent = 'OTP is required.';
+    return;
+  }
+
+  try {
+    const res = await fetch('/verifyEmail-OTP', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: latestEmail, otp ,oldEmail})
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      otpModal.classList.add('hidden');
+      Swal.fire({
+              title: 'Email Changed Successfully',
+              text: '',
+              confirmButtonColor: '#1f2937' 
+            })
+      // update email in UI
+      const emailInputField = document.getElementById('email');
+      emailInputField.removeAttribute('readonly');
+      emailInputField.value = latestEmail;         
+      emailInputField.setAttribute('readonly', true); 
+    } else {
+      otpError.classList.remove('hidden');
+      otpError.textContent = data.message || 'Invalid OTP.';
+    }
+  } catch (err) {
+    otpError.classList.remove('hidden');
+    otpError.textContent = 'Error verifying OTP.';
+  }
+});
+
+
+
+
+
+
+  // Auto-preview and upload profile image
+  document.getElementById('profileUpload').addEventListener('change', async function (event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      document.getElementById('profilePreview').src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+
+    const formData = new FormData();
+    formData.append('profileImage', file);
+
+    try {
+      const res = await fetch('/editProfile', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        console.log('Image uploaded successfully');
+      } else {
+        console.error('Upload failed', data.message);
+      }
+    } catch (err) {
+      console.error('Error uploading image', err);
+    }
+  });
+
+
+  // Save changes
+  document.getElementById('saveChanges').addEventListener('click', async function () {
+    const name = document.getElementById('name').value;
+    const dob = document.getElementById('dob').value;
+    const phone = document.getElementById('phone').value;
+    const state = document.getElementById('state').value;
+    const district = document.getElementById('district').value;
+    const address = document.getElementById('address').value;
+
+    let isValid = true;
+
+    document.querySelectorAll('.error-message').forEach(el => el.remove());
+
+    const validateField = (value, id, message, regex) => {
+      if (!value || (regex && !regex.test(value))) {
+        const errorMessage = document.createElement('p');
+        errorMessage.classList.add('text-red-500', 'text-sm', 'error-message');
+        errorMessage.textContent = message;
+        document.getElementById(id).insertAdjacentElement('afterend', errorMessage);
+        isValid = false;
+      }
+    };
+
+    const nameRegex = /^[A-Za-z\s]+$/;
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    const phoneRegex = /^[0-9]{10}$/;
+
+
+    validateField(name, 'name', 'Full Name should be characters only', nameRegex);
+    validateField(address, 'address', 'Address is required', nameRegex);
+    validateField(state, 'state', 'State is required', nameRegex);
+    validateField(district, 'district', 'District is required', nameRegex);
+    validateField(dob, 'dob', 'Date of Birth is required', dateRegex);
+    
+    
+
+    validateField(phone, 'phone', 'Phone number must be 10 digits', phoneRegex);
+
+    if (!isValid) return;
+
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('dob', dob);
+    formData.append('phone', phone);
+    formData.append('state', state);
+    formData.append('district', district);
+    formData.append('address', address);
+
+    try {
+      const res = await fetch('/editProfile', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        console.log('Profile updated successfully');
+      } else if (data.existBoth) {
+        showFieldError('email', data.emailMsg);
+        showFieldError('phone', data.phoneMsg);
+      } else if (data.existFound) {
+        showFieldError(data.existFoundField, data.message);
+      } else {
+        console.error('Update failed', data.message);
+      }
+    } catch (err) {
+      console.error('Error updating profile', err);
+    }
+  });
+
+  function showFieldError(id, message) {
+    const error = document.createElement('p');
+    error.classList.add('text-red-500', 'text-sm', 'error-message');
+    error.textContent = message;
+    document.getElementById(id).insertAdjacentElement('afterend', error);
+  }
+</script>
+
+<%- include('../../views/partials/user/footer') %>

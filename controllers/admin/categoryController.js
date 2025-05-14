@@ -51,7 +51,9 @@ const  addCategory = async(req,res)=>{
     const {name,description} = req.body
     try {
         
-        const existingCategory = await Category.findOne({name});
+        const existingCategory = await Category.findOne({
+            name: { $regex: `^${name}$`, $options: 'i' }
+        });
         if(existingCategory){
             return res.status(400).json({error:'Category already exists'});
         }
@@ -142,36 +144,32 @@ const  removeCategoryOffer = async(req,res)=>{
 
 }
 
-const  listCategory = async(req,res)=>{
+const categoryList = async (req, res) => {
     try {
-        console.log('reched list');
-        
-        let id = req.query.id
-        await Category.updateOne({_id:id},{$set:{isListed:false}});
-        res.redirect('/admin/category')
-       
+      const { id, isListed } = req.body;
+  
+      const newStatus = Boolean(isListed);
+  
+      const updated = await Category.findByIdAndUpdate(
+        id,
+        { isListed: newStatus },
+        { new: true }
+      );
+  
+      if (updated) {
+        res.json({ success: true, newStatus: updated.isListed });
+      } else {
+        res.json({ success: false });
+      }
     } catch (error) {
-        
-        console.log(error);
-        res.redirect("/pageerror");
+      console.error(error);
+      res.status(500).json({ success: false });
     }
+  };
+  
 
-}
+  
 
-const  unlistCategory = async(req,res)=>{
-    try {
-        
-        let id = req.query.id
-        await Category.updateOne({_id:id},{$set:{isListed:true}});
-        res.redirect('/admin/category')
-       
-    } catch (error) {
-        
-        console.log(error);
-        res.redirect("/pageerror");
-    }
-
-}
 
 const updateCategory = async(req,res)=>{
     console.log("hey u");
@@ -212,7 +210,6 @@ module.exports = {
     addCategory,
     addCategoryOffer,
     removeCategoryOffer,
-    listCategory,
-    unlistCategory,
+    categoryList,
     updateCategory
 }

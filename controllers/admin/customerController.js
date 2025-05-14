@@ -50,36 +50,30 @@ const customerInfo = async (req, res) => {
   }
 }
 
-const customerBlocked = async(req,res)=>{
+const customerBlock = async(req,res)=>{
     try {
+        console.log('CB1');
         
-        let id = req.query.id;
+        let {userId,block} = req.body
+        const isBlocked = block
+   
 
-        await User.updateOne({_id:id},{$set:{isBlocked:true}});
-        res.redirect('/admin/users')
+        if(userId){
+          await User.updateOne({_id:userId},{$set:{isBlocked}});
+          return  res.json({success:true});
+        }
+
+        return  res.json({success:false});
 
     } catch (error) {
         
-        res.render('pageerror');
+        return  res.render('pageerror');
     }
 }
 
-const customerUnblocked = async(req,res)=>{
-    try {
-        
-        let id = req.query.id;
 
-        await User.updateOne({_id:id},{$set:{isBlocked:false}});
-        res.redirect('/admin/users')
-
-    } catch (error) {
-        
-        res.render('pageerror');
-    }
-}
 
 module.exports = {
   customerInfo,
-  customerBlocked,
-  customerUnblocked
+  customerBlock
 }

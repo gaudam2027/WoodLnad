@@ -1,14 +1,8 @@
 const User = require('../model/userSchema')
 
 const userAuth = (req,res,next)=>{
-
   
   req.session.userId = req.session.passport?.user || req.session.user?._id
-
-  
-  
-  
-  
   
     if(req.session.userId){
         User.findById(req.session.userId)
@@ -28,9 +22,11 @@ const userAuth = (req,res,next)=>{
     }
 }
 
-const userIslog = (req,res,next)=>{
+const userIslog = async(req,res,next)=>{
   req.session.userId = req.session.passport?.user || req.session.user?._id
-  if(!req.session.userId){
+  console.log(req.session.userId)
+  const userData = await User.findOne({_id:req.session.userId,isBlocked:false});
+  if(!userData){
     next()
   }else{
     res.redirect('/')
@@ -39,10 +35,31 @@ const userIslog = (req,res,next)=>{
  
 }
 
+const isBlock = async (req, res, next) => { // is blocked problem here 
+  try {
+    req.session.userId = req.session.passport?.user || req.session.user?._id;
+    console.log( req.session.userId )
+    if (!req.session.userId) {
+      return next(); 
+    }
+
+    const user = await User.findOne({ _id: req.session.userId, isBlocked: false });
+
+    if (user) {
+      next();
+    } else {
+      req.session.destroy();
+      next(); // Continue, but user is effectively treated as unauthenticated
+    }
+  } catch (err) {
+    console.error('Error in isBlock middleware:', err);
+    next(err);
+  }
+};
+
 const adminAuth = (req, res, next) => {
   
     if (req.session.admin) {
-      console.log('reached');
       
       User.findById(req.session.admin)
         .then(admin => {
@@ -66,5 +83,6 @@ const adminAuth = (req, res, next) => {
 module.exports = {
     userAuth,
     userIslog,
-    adminAuth
+    adminAuth,
+    isBlock
 }

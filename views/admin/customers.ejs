@@ -1,5 +1,14 @@
 <%- include('../partials/admin/header', { title: 'Admin Panel - Customers' }) %>
 
+<style>
+  .swal2-popup {
+    border-radius: .7rem !important; /* 16px */
+  }
+  .swal2-title {
+    font-size: 20px !important;
+  }
+</style>
+
 <div class="flex flex-1 min-h-screen bg-gray-50">
   <!-- Main content -->
   <main class="flex-1 flex flex-col p-8">
@@ -48,9 +57,9 @@
                 <td class="px-6 py-4"><%= user.phone || 'N/A' %></td>
                 <td class="px-6 py-4 text-center">
                   <% if (!user.isBlocked) { %>
-                    <a href="/admin/blockCustomer?id=<%= user._id %>" class="inline-block px-4 py-2 text-sm font-semibold rounded-md bg-red-500 hover:bg-red-600 text-white">Block</a>
+                   <button onclick="toggleUserBlock('<%= user._id %>', true, this)" class="inline-block px-4 py-2 text-sm font-semibold rounded-md bg-red-500 hover:bg-red-600 text-white">Block</button>
                   <% } else { %>
-                    <a href="/admin/unblockCustomer?id=<%= user._id %>" class="inline-block px-4 py-2 text-sm font-semibold rounded-md bg-green-500 hover:bg-green-600 text-white">Unblock</a>
+                    <button onclick="toggleUserBlock('<%= user._id %>', false, this)" class="inline-block px-4 py-2 text-sm font-semibold rounded-md bg-green-500 hover:bg-green-600 text-white">Unblock</button>
                   <% } %>
                 </td>
               </tr>
@@ -81,4 +90,58 @@
   </main>
 </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+
+  function toggleUserBlock(userId,block,button){
+    const action = block ? "block" : "unblock";
+
+    Swal.fire({
+      title:`Are you sure you want to ${action} this user?`,
+      showCancelButton:true,
+      confirmButtonColor: '#1f2937', 
+      cancelButtonColor: '#d1d5db',
+      confirmButtonText: `Yes, ${action}`,
+      customClass: {
+        popup: 'text-center',
+      }
+    }).then((result)=>{
+      if(result.isConfirmed){
+        fetch('/admin/users-block',{
+          method:'POST',
+          headers:{
+            "Content-Type":"application/json"
+          },
+          body:JSON.stringify({userId,block})
+        })
+        .then(res=> res.json())
+        .then(data=>{
+          if(data.success){
+            Swal.fire({
+              title: `User ${block ? 'blocked' : 'unblocked'} successfully`,
+              text: '',
+              confirmButtonColor: '#1f2937' 
+            }).then(()=>{
+              button.textContent = block ? 'Unblock' : 'Block';
+              button.className = block
+              ? 'inline-block px-4 py-2 text-sm font-semibold rounded-md bg-green-500 hover:bg-green-600 text-white'
+              : 'inline-block px-4 py-2 text-sm font-semibold rounded-md bg-red-500 hover:bg-red-600 text-white';
+            button.setAttribute("onclick", `toggleUserBlock('${userId}', ${!block}, this)`);
+            })
+          }else{
+            Swal.fire("Error", "Failed to update user status", "error");
+          }
+        })
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      Swal.fire("Error", "Something went wrong", "error");
+    });
+  }
+
+</script>
+
 <%- include('../partials/admin/footer') %>

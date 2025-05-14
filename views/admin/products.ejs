@@ -1,6 +1,15 @@
 <%- include('../partials/admin/header', { title: 'Admin Panel - Products' }) %>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.css">
 
+<style>
+  .swal2-popup {
+    border-radius: .7rem !important; /* 16px */
+  }
+  .swal2-title {
+    font-size: 20px !important;
+  }
+</style>
+
 <div class="min-h-screen bg-gray-100 p-6 w-full">
   <h1 class="text-3xl font-bold mb-4 text-slate-800">Products</h1>
 
@@ -28,7 +37,7 @@
   </form>
 
   <!-- Add Product Button -->
-  <button  class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-500 transition font-medium whitespace-nowrap">
+  <button  class="bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-500 transition font-medium whitespace-nowrap">
     <a href="/admin/addProduct"> Add Product</a>
   </button>
 </div>
@@ -67,13 +76,13 @@
               <% } %>
             </td>
             <td class="p-3 text-center">
-              <% if (product.isBlocked===false) { %>
-                <button class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-400">
-                  <a href="/admin/blockProduct?id=<%=product._id%>">Block</a> 
+              <% if (!product.isBlocked) { %>
+                <button onclick="toggleProductBlock('<%=product._id%>',true,this)" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-400">
+                  Block
                 </button>
               <% } else { %>
-                <button class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-400">
-                  <a href="/admin/unblockProduct?id=<%=product._id%>">Unblock</a> 
+                <button onclick="toggleProductBlock('<%=product._id%>',false,this)" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-400">
+                  Unblock 
                 </button>
               <% } %>
             </td>
@@ -108,8 +117,62 @@
   <% } %>
 </div>
 
-<!-- cropperjs -->
-<script src="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.js"></script>
 </div>
 
+<!-- SweatAlert2 -->
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+
+
+function toggleProductBlock(productId,block,button){
+  const action = block ? "block" : "unblock";
+
+  Swal.fire({
+    title:`Are you sure you want to ${action} this Product?`,
+    showCancelButton:true,
+    confirmButtonColor: '#1f2937', 
+    cancelButtonColor: '#d1d5db',
+    confirmButtonText: `Yes, ${action}`,
+    customClass: {
+      popup: 'text-center',
+    }
+  }).then((result)=>{
+    if(result.isConfirmed){
+      fetch('/admin/product-block',{
+        method:'POST',
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({productId,block})
+      })
+      .then(res=> res.json())
+      .then(data=>{
+        if(data.success){
+          Swal.fire({
+            title: `Product ${block ? 'blocked' : 'unblocked'} successfully`,
+            text: '',
+            confirmButtonColor: '#1f2937' 
+          }).then(()=>{
+            button.textContent = block ? 'Unblock' : 'Block';
+            button.className = block
+            ? 'bg-green-500 text-white px-3 py-1 rounded hover:bg-green-400'
+            : 'bg-red-500 text-white px-3 py-1 rounded hover:bg-red-400';
+          button.setAttribute("onclick", `toggleProductBlock('${productId}', ${!block}, this)`);
+          })
+        }else{
+          Swal.fire("Error", "Failed to update product status", "error");
+        }
+      })
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    Swal.fire("Error", "Something went wrong", "error");
+  });
+}
+
+
+</script>
 <%- include('../partials/admin/footer') %>

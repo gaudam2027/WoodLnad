@@ -24,7 +24,7 @@ const loadHomepage = async (req, res) => {
       
         const user = req.session?.userId||req.session.user?._id  //passport and normal login and sign up user id session
       
-        
+        console.log('load user',user)
         
         
         const categories = await Category.find({isListed:true});
@@ -43,8 +43,8 @@ const loadHomepage = async (req, res) => {
 
 
         if (user) {
-           const userData = await User.findOne({_id:user});
-           console.log(userData);
+           const userData = await User.findOne({_id:user,isBlocked:false});
+          
            return res.render('home',{user:userData,products:productData});
            
         }
@@ -108,19 +108,32 @@ async function sendVerificationEmail(email,otp){
 }
 
 const signup = async (req, res) => {
-    console.log('reached');
+ 
     
     try {
         const { name, phone, email, password } = req.body;
 
-        const findUser = await User.findOne({ email });
+        const findUser = await User.findOne({
+            $or: [{ email }, { phone }]
+        });
 
         if (findUser) {
+            let message = '';
+            if (findUser.email === email && findUser.phone === phone) {
+              message = 'User already exists with this email and phone number';
+            } else if (findUser.email === email) {
+              message = 'User already exists with this email';
+            } else if (findUser.phone === phone) {
+              message = 'User already exists with this phone number';
+            }
+      
             return res.json({
-                success: false,
-                message: 'User already exists with this email',
+              success: false,
+              message,
             });
-        }
+          }
+
+
 
         const otp = generateOtp();
 
@@ -134,7 +147,7 @@ const signup = async (req, res) => {
         }
 
         req.session.userOtp = otp;
-        
+        req.session.userData = { name, phone, email, password }; 
 
         
         console.log("OTP sent", otp);
@@ -173,7 +186,6 @@ const otp = async (req,res)=>{
         
         const {otp} = req.body
         console.log(otp);
-        console.log(req.session.userData);
         console.log('end');
         
         
@@ -205,7 +217,7 @@ const otp = async (req,res)=>{
 }
 
 const resendOtp = async (req,res)=>{
-    console.log("reached");
+   
     try {
         
         const {email} = req.session.userData;
@@ -217,7 +229,7 @@ const resendOtp = async (req,res)=>{
         req.session.userOtp = otp;
         
 
-        // console.log(req.session.otp)
+       
         const emailSend = await sendVerificationEmail(email,otp);
 
         if(emailSend){
@@ -236,8 +248,11 @@ const resendOtp = async (req,res)=>{
 
 const loadOtp = async (req,res)=>{
     try {
-        
-        return res.render('otp');
+        if(req.session.userOtp){
+            return res.render('otp');
+        }else{
+            res.redirect("/signIn")
+        }
     } catch (error) {
         console.log('otp-verification page not found');
         res.status(500).send('Server error')
@@ -302,7 +317,7 @@ const loadShoppage = async (req, res) => {
       
       
       const searchQuery =  "";
-      const userData = await User.findOne({ _id:user});
+      const userData = await User.findOne({_id:user,isBlocked:false});
       console.log(userData);
       const categories = await Category.find({ isListed: true });
       const categoriesIds = categories.map(category => category._id.toString());
@@ -337,17 +352,16 @@ const loadShoppage = async (req, res) => {
       
       // unique variants type
       let allVariants = [];
-      
+
         products.forEach(product => {
         product.variants.forEach(variant => {
+            if (!allVariants.some(v =>
+            v.color === variant.color && v.size === variant.size
+            )) {
             allVariants.push(variant);
+            }
         });
-    });
-
-        // Use JSON.stringify to compare full object uniqueness
-        const uniqueVariants = Array.from(
-            new Map(allVariants.map(obj => [JSON.stringify(obj), obj])).values()
-        );
+        });
         
 
   
@@ -355,7 +369,7 @@ const loadShoppage = async (req, res) => {
         user: userData,
         products,
         category: categoriesWithIds,
-        variants: uniqueVariants,
+        variants: allVariants,
         totalProducts,
         currentPage: page,
         totalPages,
@@ -371,11 +385,11 @@ const loadShoppage = async (req, res) => {
 
   const filterProduct = async (req, res) => {
     try {
-        console.log('filter');
+        
         const { category,price,color,sortBy,search,page = 1 } = req.body;
         const user = req.session.userId || req.session.user?._id
-        const userData = await User.findOne({_id:user})
-        console.log(userData);
+        const userData = await User.findOne({_id:user,isBlocked:false});
+        
         
   
         
@@ -414,8 +428,13 @@ const loadShoppage = async (req, res) => {
             const variantFilter = {};
             // Price filter inside variants array
             if (price) {
-              const [min, max] = price.split('-').map(Number);
-              variantFilter.salePrice = { $gte: min, $lte: max };
+                if (price.includes('above')) {
+                  const min = Number(price.split('-')[1]);
+                  variantFilter.salePrice = { $gt: min };
+                } else {
+                  const [min, max] = price.split('-').map(Number);
+                  variantFilter.salePrice = { $gte: min, $lte: max };
+                }
             }
             // Color filter inside variants array
             if (color && Array.isArray(color)) {
@@ -465,9 +484,9 @@ const loadShoppage = async (req, res) => {
     try {
 
         const user = req.session.userId || req.session.user?._id
-        console.log('Reached shop details');
+     
 
-        const userData = await User.findOne({_id:user})
+        const userData = await User.findOne({_id:user,isBlocked:false});
         const productId = req.query.id; 
 
         const product = await Product.findById(productId);
@@ -495,21 +514,9 @@ const loadShoppage = async (req, res) => {
 
   
 
-const loadProfilepage = async (req,res)=>{
-    try {
-        console.log('reached');
-        
-        
 
-        
-        
-        res.render('profile',{user});
-    } catch (error) {
-        console.log('Profile page not found');
-        res.status(500).send('Server error')
-        
-    }
-}
+
+
 
 const loadOrderpage = async (req,res)=>{
     try {
@@ -555,7 +562,6 @@ module.exports = {
     loadShoppage,
     filterProduct,
     shopDetails,
-    loadProfilepage,
     loadOrderpage,
     logout
 }
