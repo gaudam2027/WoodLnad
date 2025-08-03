@@ -1,0 +1,33 @@
+<%- include('../../views/partials/user/header') %>
+
+<div class="bg-gray-50 min-h-screen px-4 py-12 flex flex-col items-center">
+
+  <!-- Main success card -->
+  <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-3xl w-full text-center">
+    
+    <!-- Top SVG and Image -->
+    <div class="flex flex-col items-center mb-6">
+      <img src="/images/order-success.jpg" alt="Order Success Illustration" class="w-48 mb-6" />
+    </div>
+
+    <!-- Message -->
+    <h1 class="text-3xl font-extrabold mb-2 text-gray-900">Thank You for Your Order!</h1>
+    <p class="text-gray-600 max-w-xl mx-auto mb-8">
+      Your order has been placed successfully. We're getting your items ready to be shipped.
+      Meanwhile, check out some of our handpicked recommendations just for you!
+    </p>
+
+    <!-- Buttons -->
+    <div class="flex flex-col sm:flex-row justify-center gap-6 mb-12">
+      <a href="/order" class="bg-gray-700 hover:bg-gray-800 transition text-white px-8 py-3 rounded-lg font-semibold">
+        View Order
+      </a>
+      <a href="/shop" class="bg-gray-200 hover:bg-gray-300 transition text-gray-800 px-8 py-3 rounded-lg font-semibold">
+        Continue Shopping
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<%- include('../../views/partials/user/footer') %>

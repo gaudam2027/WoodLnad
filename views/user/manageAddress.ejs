@@ -1,0 +1,433 @@
+<link rel="stylesheet" href="./css/profile.css">
+<%- include('../../views/partials/user/header') %>
+
+<div class="container mx-auto px-6 py-12">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+    <!-- Sidebar -->
+<div class="bg-white p-6 rounded-lg shadow-md profile-card relative min-h-[500px] !min-h-[500px]" style="min-height: 500px">
+  <ul class="space-y-2">
+    <li><a href="/profile" class="block py-2 px-4 rounded hover:bg-gray-200">Profile</a></li>
+    <li><a href="/order" class="block py-2 px-4 rounded hover:bg-gray-200">My Orders</a></li>
+    <li><a href="/address" class="block py-2 px-4 rounded bg-gray-100 text-gray-900 font-semibold">Manage Address</a></li>
+    <li><a href="/wishlist" class="block py-2 px-4 rounded hover:bg-gray-200">WishList</a></li>
+    <li><a href="/wallet" class="block py-2 px-4 rounded hover:bg-gray-200">Wallet</a></li>
+  </ul>
+  <button class="absolute bottom-4 left-6 right-6 bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-700">Logout</button>
+</div>
+
+<!-- Address Management Section -->
+<div class="col-span-2 bg-white p-6 rounded-lg shadow-md profile-card !min-h-[500px] max-h-[534px] overflow-y-auto scrollbar-hide" style="max-height: 534px;">
+
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-xl font-semibold s1">Manage Addresses</h2>
+    <button onclick="openModal()" class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600">Add Address</button>
+  </div>
+
+      <!-- Address Cards -->
+      <div class="grid gap-4">
+          <% if (addresses.length > 0) { %>
+        <% addresses.forEach(address => { %>
+    <!-- Address Card - Enhanced Version -->
+<div class="border rounded-xl p-5 relative bg-white shadow-md hover:shadow-lg transition-all duration-300">
+  <!-- Three-dot Action Menu (unchanged) -->
+  <div class="absolute top-3 right-3">
+    <div class="relative inline-block text-left">
+      <button class="three-dot-btn focus:outline-none">
+        <svg class="w-5 h-5 text-gray-500 hover:text-gray-700" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M6 10a2 2 0 114.001-.001A2 2 0 016 10zm4 0a2 2 0 114.001-.001A2 2 0 0110 10zm4 0a2 2 0 114.001-.001A2 2 0 0114 10z" />
+        </svg>
+      </button>
+      <div class="dropdown-menu absolute right-0 mt-2 w-28 bg-white border rounded-md shadow-lg hidden z-10">
+        <a class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 edit-address"
+       
+        data-id="<%= address._id %>"
+        data-title="<%= address.title %>"
+        data-addressType="<%= address.addressType %>"
+        data-city="<%= address.city %>"
+        data-state="<%= address.state %>"
+        data-address="<%= address.address %>"
+        data-landmark="<%= address.landmark %>"
+        data-pincode="<%= address.pincode %>"
+        data-phone="<%= address.phone %>"
+        data-altphone="<%= address.altPhone %>"
+        data-email="<%= address.email %>">
+        Edit</a>
+        <a href="#" onclick="deleteAddress('<%= address._id %>')" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Delete</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Title and Type with Icon -->
+  <div class="mb-4 flex items-center">
+    <h3 class="text-lg font-bold text-gray-800"><%= address.title %></h3>
+    <span class="ml-3 inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold
+                  <% if (address.addressType === 'home') { %>
+                    bg-blue-100 text-blue-700
+                  <% } else if (address.addressType === 'work') { %>
+                    bg-red-100 text-red-700
+                  <% } else { %>
+                    bg-yellow-100 text-yellow-700
+                  <% } %>">
+
+  <!-- Icon based on address type -->
+  <% if (address.addressType === 'home') { %>
+    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+    </svg>
+  <% } else if (address.addressType === 'work') { %>
+    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+    </svg>
+  <% } else { %>
+    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+    </svg>
+  <% } %>
+
+  <%= address.addressType %>
+</span>
+  </div>
+
+  <!-- Contact Info Section with Icons -->
+  <div class="mb-4 space-y-2 bg-gray-50 p-3 rounded-lg">
+    <div class="flex items-start gap-3">
+      <span class="text-gray-500 mt-0.5">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+        </svg>
+      </span>
+      <div>
+        <p class="text-sm text-gray-600"><span class="font-medium">Phone:</span> <%= address.phone %></p>
+        <% if (address.altPhone) { %>
+        <p class="text-sm text-gray-600"><span class="font-medium">Alt:</span> <%= address.altPhone %></p>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="flex items-start gap-3">
+      <span class="text-gray-500 mt-0.5">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+        </svg>
+      </span>
+      <p class="text-sm text-gray-600"><span class="font-medium">Email:</span> <%= address.email %></p>
+    </div>
+  </div>
+
+  <!-- Address Info Section with Icon -->
+  <div class="border-l-4 border-gray-200 pl-4 space-y-1 text-sm text-gray-700">
+    <div class="flex items-start gap-2">
+      <svg class="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+      </svg>
+      <div>
+        <p><%= address.address %></p>
+        <% if (address.landmark) { %>
+        <p class="mt-1"><span class="font-medium">Landmark:</span> <%= address.landmark %></p>
+        <% } %>
+        <p class="mt-1"><%= address.city %>, <%= address.state %> - <%= address.pincode %></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <% }) %> <% } else { %>
+    <div class="text-center text-gray-600 bg-gray-100 p-6 rounded-lg shadow-sm col-span-full">
+      <p class="text-lg font-semibold mb-2">No addresses found</p>
+      <p class="text-sm">Please add your address to proceed with orders.</p>
+    </div>
+  <% } %>
+   
+      </div>
+      <!-- pagination -->
+       <div class="flex justify-center space-x-2 mt-4">
+      <% 
+        const start = Math.max(currentPage - 2, 1);
+        let end = Math.min(start + 4, totalPages);
+        const adjustedStart = Math.max(end - 4, 1);
+      %>
+      <% if(addresses.length>0){ %>
+
+        <% if (totalPages > 5 && currentPage > 1) { %>
+        <a href="?page=<%= currentPage - 1 %>" class="px-3 py-1 rounded-md border bg-gray-500 text-gray-100 hover:bg-gray-500">Previous</a>
+      <% } %>
+
+      <% for (let i = adjustedStart; i <= end; i++) { %>
+        <a 
+          href="?page=<%= i %>" 
+          class="px-3 py-1 rounded-md border 
+            <%= i === currentPage ? 'bg-gray-500 text-white' : 'bg-gray-400 text-gray-700 hover:bg-gray-200' %>">
+          <%= i %>
+        </a>
+      <% } %>
+
+      <% if (totalPages > 5 && currentPage < totalPages) { %>
+        <a href="?page=<%= currentPage + 1 %>" class="px-3 py-1 rounded-md border bg-gray-500 text-gray-100 hover:bg-gray-500">Next</a>
+      <% } %>
+      <% } %>
+      
+</div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Address Modal -->
+
+<div id="addressModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+  <div class="bg-white w-full max-w-xl p-6 rounded-lg shadow-lg relative flex flex-col max-h-[90vh]">
+    
+    <!-- Close Button -->
+    <button onclick="closeModal()" class="absolute top-2 right-2 text-gray-600 hover:text-red-500 text-xl">&times;</button>
+    
+    <!-- Scrollable Content -->
+    <div class="overflow-y-auto pr-2" style="max-height: calc(90vh - 80px);">
+      <h2 class="text-xl font-bold mb-4">Add New Address</h2>
+
+      <!-- Address Fields -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input type="hidden" id="editingAddressId" name="editingAddressId">
+
+        <div>
+          <label class="block text-sm font-medium">Title</label>
+          <input id="addressTitle" type="text" class="w-full border rounded px-3 py-2" placeholder="e.g. My Home">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium">Address Type</label>
+          <div class="flex gap-4 mt-2">
+            <label><input type="radio" name="type" value="home" id="typeHome" class="mr-1"> Home</label>
+            <label><input type="radio" name="type" value="work" id="typeWork" class="mr-1"> Work</label>
+            <label><input type="radio" name="type" value="other" id="typeOther" class="mr-1"> Other</label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium">District/City/Town</label>
+          <input id="district" type="text" name="city" class="w-full border rounded px-3 py-2" placeholder="District">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium">State</label>
+          <input id="state" type="text" name="state" class="w-full border rounded px-3 py-2" placeholder="State">
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium">Full Address</label>
+          <textarea id="fullAddress" class="w-full border rounded px-3 py-2" name="address" rows="3" placeholder="Address"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium">Landmark</label>
+          <input id="landmark" type="text" class="w-full border rounded px-3 py-2" name="landmark" placeholder="Nearby landmark">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium">Pincode</label>
+          <input id="pincode" type="text" class="w-full border rounded px-3 py-2" name="pincode" placeholder="Pincode">
+        </div>
+      </div>
+
+      <!-- Contact Info -->
+      <h3 class="text-lg font-semibold mt-6 mb-2">Contact Information</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium">Phone Number</label>
+          <input id="phone" type="text" class="w-full border rounded px-3 py-2" name="Phone" placeholder="Phone number">
+        </div>
+        <div>
+          <label class="block text-sm font-medium">Alternate Number</label>
+          <input id="altPhone" type="text" class="w-full border rounded px-3 py-2" name="altphone" placeholder="Alternate phone">
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium">Email</label>
+          <input id="email" type="email" class="w-full border rounded px-3 py-2" name="email" placeholder="Email">
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit Buttons (sticky position at bottom) -->
+    <div class="mt-4 pt-2 flex justify-end border-t">
+      <button onclick="closeModal()" class="bg-gray-500 text-white px-4 py-2 rounded mr-2 hover:bg-gray-600">Cancel</button>
+      <button id="saveAddressBtn" class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-900">Save Address</button>
+    </div>
+  </div>
+</div>
+
+
+
+<script>
+
+  //For opening and closing add address modal
+  function openModal() {
+    document.getElementById('addressModal').classList.remove('hidden');
+  }
+  function closeModal() {
+    document.getElementById('addressModal').classList.add('hidden');
+  }
+
+  document.querySelectorAll('.three-dot-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const dropdown = btn.nextElementSibling;
+      document.querySelectorAll('.dropdown-menu').forEach(menu => {
+        if (menu !== dropdown) menu.classList.add('hidden');
+      });
+      dropdown.classList.toggle('hidden');
+    });
+  });
+
+  window.addEventListener('click', (e) => {
+    if (!e.target.closest('.three-dot-btn')) {
+      document.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.add('hidden'));
+    }
+  });
+
+  //for edit modal
+  document.querySelectorAll(".edit-address").forEach(editBtn => {
+  editBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+
+    // Set values in modal fields
+    document.getElementById("editingAddressId").value = editBtn.dataset.id;
+    document.getElementById("addressTitle").value = editBtn.dataset.title;
+    document.getElementById("district").value = editBtn.dataset.city;
+    document.getElementById("state").value = editBtn.dataset.state;
+    document.getElementById("fullAddress").value = editBtn.dataset.address;
+    document.getElementById("landmark").value = editBtn.dataset.landmark;
+    document.getElementById("pincode").value = editBtn.dataset.pincode;
+    document.getElementById("phone").value = editBtn.dataset.phone;
+    document.getElementById("altPhone").value = editBtn.dataset.altphone;
+    document.getElementById("email").value = editBtn.dataset.email;
+
+    // Set the radio button
+    document.getElementById("typeHome").checked = editBtn.dataset.addresstype === 'home';
+    document.getElementById("typeWork").checked = editBtn.dataset.addresstype === 'work';
+    document.getElementById("typeOther").checked = editBtn.dataset.addresstype === 'other';
+
+    // Open modal
+    openModal();
+  });
+});
+
+  //fetch address data to backend
+
+document.getElementById("saveAddressBtn").addEventListener("click", async () => {
+    const editingAddressId = document.getElementById("editingAddressId").value;
+    const title = document.getElementById("addressTitle").value;
+    const addressType = document.querySelector("input[name='type']:checked")?.value;
+    const city = document.getElementById("district").value;
+    const state = document.getElementById("state").value;
+    const address = document.getElementById("fullAddress").value;
+    const landmark = document.getElementById("landmark").value;
+    const pincode = document.getElementById("pincode").value;
+    const phone = document.getElementById("phone").value;
+    const altPhone = document.getElementById("altPhone").value;
+    const email = document.getElementById("email").value;
+
+    const addressData = {
+      id: editingAddressId,
+      title,
+      addressType,
+      city,
+      state,
+      address,
+      landmark,
+      pincode,
+      phone,
+      altPhone,
+      email
+    };
+
+    // Clear previous errors
+    document.querySelectorAll(".error-msg").forEach(el => el.remove());
+
+    try {
+      const method = editingAddressId && editingAddressId.trim() !== "" ? "PUT" : "POST";
+      const res = await fetch("/address", {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(addressData)
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        alert(editingAddressId ? "Address updated successfully!" : "Address saved successfully!");
+        closeModal();
+        window.location.reload();
+      } else {
+        if (data.errors) {
+          displayValidationErrors(data.errors);
+        } else {
+          alert("Failed to " + (method === "PUT" ? "update" : "save") + " address: " + (data.message || "Unknown error"));
+        }
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      alert("Something went wrong!");
+    }
+  });
+
+  function displayValidationErrors(errors) {
+    for (let field in errors) {
+      const element = document.getElementById(getFieldId(field));
+      if (element) {
+        const error = document.createElement("div");
+        error.className = "error-msg text-sm text-red-500 mt-1";
+        error.innerText = errors[field];
+        element.parentNode.appendChild(error);
+      }
+    }
+  }
+
+  function getFieldId(fieldName) {
+    const map = {
+      title: "addressTitle",
+      addressType: "typeHome", // fallback for radio group
+      city: "district",
+      state: "state",
+      address: "fullAddress",
+      landmark: "landmark",
+      pincode: "pincode",
+      phone: "phone",
+      altPhone: "altPhone",
+      email: "email"
+    };
+    return map[fieldName] || fieldName;
+  }
+
+  function closeModal() {
+    document.getElementById("addressModal").classList.add("hidden");
+  }
+  
+  //for deleting address using fetch
+
+  async function deleteAddress(addressId) {
+  if (!confirm("Are you sure you want to delete this address?")) return;
+
+  try {
+    const res = await fetch(`/address/${addressId}`, {
+      method: 'DELETE',
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      alert("Address deleted successfully!");
+      window.location.reload();
+    } else {
+      alert("Failed to delete address: " + data.message);
+    }
+  } catch (err) {
+    console.error("Error:", err);
+    alert("Something went wrong!");
+  }
+}
+
+
+</script>
+
+
+<%- include('../../views/partials/user/footer') %>

@@ -1,0 +1,450 @@
+<%- include('../../views/partials/user/header') %>
+
+<style>
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    .invoice-container, .invoice-container * {
+      visibility: visible;
+    }
+    .invoice-container {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+    }
+    .no-print {
+      display: none !important;
+    }
+    .page-break {
+      page-break-before: always;
+    }
+  }
+  
+  .invoice-container {
+    background: white;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+  }
+  
+  .invoice-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+  
+  .invoice-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+  }
+  
+  .invoice-table td, .invoice-table th {
+    padding: 12px;
+    border-bottom: 1px solid #e9ecef;
+  }
+  
+  .total-section {
+    background-color: #f8f9fa;
+    border-left: 4px solid #667eea;
+  }
+</style>
+
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="container mx-auto px-4 max-w-4xl">
+    
+    <!-- Action Buttons -->
+    <div class="mb-6 no-print flex justify-between items-center">
+      <a href="/order/<%= order._id %>" class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition duration-200">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        Back to Order
+      </a>
+      
+      <div class="flex space-x-3">
+        <button onclick="window.print()" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H3a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+          </svg>
+          Print Invoice
+        </button>
+        
+        <button onclick="downloadPDF()" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          Download PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- Invoice Container -->
+    <div class="invoice-container bg-white rounded-lg overflow-hidden">
+      
+      <!-- Invoice Header -->
+      <div class="invoice-header p-8" style="background: linear-gradient(135deg, #242833 0%, #a4a3a5 100%);">
+        <div class="flex justify-between items-start">
+          <div>
+            <h1 class="text-3xl font-bold mb-2">INVOICE</h1>
+            <p class="text-white-100">Professional Invoice Document</p>
+          </div>
+          <div class="text-right">
+            <!-- Company Logo Placeholder -->
+            <div class="w-24 h-24 bg-white bg-opacity-20 rounded-lg flex items-center justify-center mb-4">
+             <img src="/images/logo.png"  alt="logo" />
+            </div>
+            <h2 class="text-xl font-semibold">WoodLand</h2>
+            <p class="text-blue-100 text-sm">www.woodland.com</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Invoice Details -->
+      <div class="p-8">
+        <div class="grid md:grid-cols-2 gap-8 mb-8">
+          
+          <!-- Invoice Info -->
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Invoice Details</h3>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <span class="text-gray-600">Invoice Number:</span>
+                <span class="font-medium">
+                  <% if (invoiceType === 'item' && item) { %>
+                    INV-<%= order.orderId %>-<%= item._id.toString().slice(-6).toUpperCase() %>
+                  <% } else { %>
+                    INV-<%= order.orderId %>
+                  <% } %>
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Invoice Date:</span>
+                <span class="font-medium"><%= new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }) %></span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Order ID:</span>
+                <span class="font-medium">#<%= order.orderId %></span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Order Date:</span>
+                <span class="font-medium"><%= new Date(order.createdOn).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }) %></span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Payment Method:</span>
+                <span class="font-medium">
+                  <%= order.paymentMethod === 'COD' ? 'Cash on Delivery' : 
+                      order.paymentMethod === 'UPI' ? 'UPI Payment' : 
+                      order.paymentMethod === 'CARD' ? 'Credit/Debit Card' : 
+                      order.paymentMethod %>
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Payment Status:</span>
+                <span class="font-medium capitalize 
+                  <%= order.paymentStatus === 'paid' ? 'text-green-600' : 
+                      order.paymentStatus === 'pending' ? 'text-yellow-600' : 
+                      'text-red-600' %>">
+                  <%= order.paymentStatus %>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Company Info -->
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">From</h3>
+            <div class="text-sm text-gray-600 space-y-1">
+              <p class="font-medium text-gray-800">WoodLand</p>
+              <p></p>
+              <p>Ernakulam</p>
+              <p>Kochi, State 673101</p>
+              <p>India</p>
+              <p class="mt-2">
+                <span class="font-medium">Email:</span> agwoodland2027@gmail.com<br>
+                <span class="font-medium">Phone:</span> +91 9567826814<br>
+                <span class="font-medium">GST:</span> 12ABCDE3456F7GH
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Customer Information -->
+        <div class="grid md:grid-cols-2 gap-8 mb-8">
+          
+          <!-- Bill To -->
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Bill To</h3>
+            <div class="text-sm text-gray-600 space-y-1">
+              <p class="font-medium text-gray-800"><%= user.name %></p>
+              <p><%= user.email %></p>
+              <% if (user.phone) { %>
+                <p><%= user.phone %></p>
+              <% } %>
+            </div>
+          </div>
+
+          <!-- Ship To -->
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Ship To</h3>
+            <div class="text-sm text-gray-600 space-y-1">
+              <p class="font-medium text-gray-800"><%= order.shippingAddress.title %></p>
+              <p><%= order.shippingAddress.address %></p>
+              <% if (order.shippingAddress.addressLine2) { %>
+                <p><%= order.shippingAddress.addressLine2 %></p>
+              <% } %>
+              <p><%= order.shippingAddress.city %>, <%= order.shippingAddress.state %> <%= order.shippingAddress.pincode %></p>
+              <p><%= order.shippingAddress.country || 'India' %></p>
+              <% if (order.shippingAddress.phone) { %>
+                <p class="mt-2"><span class="font-medium">Phone:</span> <%= order.shippingAddress.phone %></p>
+              <% } %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Items Table -->
+        <div class="mb-8">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">
+            <% if (invoiceType === 'item') { %>
+              Item Details
+            <% } else { %>
+              Order Items
+            <% } %>
+          </h3>
+          
+          <div class="overflow-x-auto">
+            <table class="invoice-table w-full border-collapse">
+              <thead>
+                <tr>
+                  <th class="text-left">Item</th>
+                  <th class="text-left">SKU</th>
+                  <th class="text-center">Qty</th>
+                  <th class="text-right">Unit Price</th>
+                  <th class="text-right">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (invoiceType === 'item' && item) { %>
+                  <!-- Single Item Invoice -->
+                  <tr>
+                    <td>
+                      <div class="flex items-center space-x-3">
+                        <% 
+                          const imgSrc = item.product.images && item.product.images.length > 0 
+                            ? `/uploads/product-images/${item.product.images[0]}` 
+                            : '/images/default.jpg';
+                        %>
+                        <img src="<%= imgSrc %>" alt="<%= item.product.productName %>" class="w-12 h-12 object-cover rounded">
+                        <div>
+                          <p class="font-medium text-gray-800"><%= item.product.productName %></p>
+                          <p class="text-sm text-gray-600"><%= item.product.category.name %></p>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="text-gray-600"><%= item.product.sku || 'N/A' %></td>
+                    <td class="text-center"><%= item.quantity %></td>
+                    <td class="text-right">₹<%= item.price.toLocaleString('en-IN') %></td>
+                    <td class="text-right font-medium">₹<%= (item.quantity * item.price).toLocaleString('en-IN') %></td>
+                  </tr>
+                <% } else { %>
+                  <!-- Complete Order Invoice -->
+                  <% order.orderitems.forEach((orderItem) => { %>
+                    <tr>
+                      <td>
+                        <div class="flex items-center space-x-3">
+                          <% 
+                            const imgSrc = orderItem.product.images && orderItem.product.images.length > 0 
+                              ? `/uploads/product-images/${orderItem.product.images[0]}` 
+                              : '/images/default.jpg';
+                          %>
+                          <img src="<%= imgSrc %>" alt="<%= orderItem.product.productName %>" class="w-12 h-12 object-cover rounded">
+                          <div>
+                            <p class="font-medium text-gray-800"><%= orderItem.product.productName %></p>
+                            <p class="text-sm text-gray-600"><%= orderItem.product.category.name %></p>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="text-gray-600"><%= orderItem.product.sku || 'N/A' %></td>
+                      <td class="text-center"><%= orderItem.quantity %></td>
+                      <td class="text-right">₹<%= orderItem.price.toLocaleString('en-IN') %></td>
+                      <td class="text-right font-medium">₹<%= (orderItem.quantity * orderItem.price).toLocaleString('en-IN') %></td>
+                    </tr>
+                  <% }); %>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Totals Section -->
+        <div class="flex justify-end mb-8">
+          <div class="w-full max-w-sm">
+            <div class="total-section p-6 rounded-lg" style="border-left:4px solid #8896a2">
+              <div class="space-y-3">
+                <div class="flex justify-between text-sm">
+                  <span class="text-gray-600">Subtotal:</span>
+                  <span class="font-medium">
+                    <% if (invoiceType === 'item' && item) { %>
+                      ₹<%= (item.quantity * item.price).toLocaleString('en-IN') %>
+                    <% } else { %>
+                      ₹<%= order.totalPrice.toLocaleString('en-IN') %>
+                    <% } %>
+                  </span>
+                </div>
+                
+                <% if (invoiceType !== 'item') { %>
+                  <% if (order.discountAmount && order.discountAmount > 0) { %>
+                    <div class="flex justify-between text-sm text-green-600">
+                      <span>Discount:</span>
+                      <span>-₹<%= order.discountAmount.toLocaleString('en-IN') %></span>
+                    </div>
+                  <% } %>
+                  
+                  <% if (order.shippingCost && order.shippingCost > 0) { %>
+                    <div class="flex justify-between text-sm">
+                      <span class="text-gray-600">Shipping:</span>
+                      <span class="font-medium">₹<%= order.shippingCost.toLocaleString('en-IN') %></span>
+                    </div>
+                  <% } else { %>
+                    <div class="flex justify-between text-sm">
+                      <span class="text-gray-600">Shipping:</span>
+                      <span class="font-medium text-green-600">Free</span>
+                    </div>
+                  <% } %>
+                  
+                  <% if (order.taxAmount && order.taxAmount > 0) { %>
+                    <div class="flex justify-between text-sm">
+                      <span class="text-gray-600">Tax:</span>
+                      <span class="font-medium">₹<%= order.taxAmount.toLocaleString('en-IN') %></span>
+                    </div>
+                  <% } %>
+                <% } %>
+                
+                <div class="border-t pt-3">
+                  <div class="flex justify-between text-lg font-bold">
+                    <span class="text-gray-800">Total Amount:</span>
+                    <span class="text-gray-800">
+                      <% if (invoiceType === 'item' && item) { %>
+                        ₹<%= (item.quantity * item.price).toLocaleString('en-IN') %>
+                      <% } else { %>
+                        ₹<%= order.finalAmount.toLocaleString('en-IN') %>
+                      <% } %>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Terms and Conditions -->
+        <div class="border-t pt-8">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">Terms & Conditions</h3>
+          <div class="text-sm text-gray-600 space-y-2">
+            <p>1. Payment is due within 30 days of invoice date.</p>
+            <p>2. Returns are accepted within 7 days of delivery for eligible items.</p>
+            <p>3. Items must be in original condition with tags attached for returns.</p>
+            <p>4. Shipping charges are non-refundable unless the return is due to our error.</p>
+            <p>5. For any queries, please contact our customer support team.</p>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="border-t mt-8 pt-6 text-center">
+          <div class="text-sm text-gray-600">
+            <p class="mb-2">Thank you for your business!</p>
+            <p>This is a computer-generated invoice and does not require a signature.</p>
+            <p class="mt-4 text-xs">
+              Generated on <%= new Date().toLocaleDateString('en-IN', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              }) %>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Include SweetAlert2 for notifications -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  // Download PDF functionality
+  function downloadPDF() {
+    // Show loading
+    Swal.fire({
+      title: 'Generating PDF...',
+      text: 'Please wait while we prepare your invoice.',
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      willOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    // Create a form to submit PDF generation request
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/invoice/download';
+    form.style.display = 'none';
+
+    // Add order ID
+    const orderIdInput = document.createElement('input');
+    orderIdInput.type = 'hidden';
+    orderIdInput.name = 'orderId';
+    orderIdInput.value = '<%= order._id %>';
+    form.appendChild(orderIdInput);
+
+    // Add invoice type
+    const typeInput = document.createElement('input');
+    typeInput.type = 'hidden';
+    typeInput.name = 'invoiceType';
+    typeInput.value = '<%= invoiceType || "order" %>';
+    form.appendChild(typeInput);
+
+    <% if (invoiceType === 'item' && item) { %>
+      // Add item ID for item invoice
+      const itemIdInput = document.createElement('input');
+      itemIdInput.type = 'hidden';
+      itemIdInput.name = 'itemId';
+      itemIdInput.value = '<%= item._id %>';
+      form.appendChild(itemIdInput);
+    <% } %>
+
+    document.body.appendChild(form);
+    
+    // Submit form
+    form.submit();
+    
+    // Remove form
+    document.body.removeChild(form);
+    
+    // Close loading after a short delay
+    setTimeout(() => {
+      Swal.close();
+      Swal.fire({
+        icon: 'success',
+        title: 'PDF Generated!',
+        text: 'Your invoice PDF has been downloaded.',
+        timer: 2000,
+        showConfirmButton: false
+      });
+    }, 2000);
+  }
+
+  // Print functionality
+  function printInvoice() {
+    window.print();
+  }
+
+  // Auto-focus for better UX
+  document.addEventListener('DOMContentLoaded', function() {
+    // Add any initialization code here
+    console.log('Invoice page loaded successfully');
+  });
+</script>
+
+<%- include('../../views/partials/user/footer') %>

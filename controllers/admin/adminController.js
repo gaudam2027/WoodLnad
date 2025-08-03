@@ -57,6 +57,13 @@ const loadDashboard = async (req,res)=>{
 
 }
 
+const loadForgotPassword = async (req,res)=>{
+    const { email } = req.body;
+    // Check if admin exists, generate and send OTP, then respond
+    res.json({ success: true });
+}
+
+
 const logout = async (req,res)=>{
     try {
         
@@ -82,5 +89,6 @@ module.exports = {
     loadSignin,
     signin,
     loadDashboard,
+    loadForgotPassword,
     logout
 }

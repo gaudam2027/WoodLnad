@@ -1,0 +1,733 @@
+<%- include('../../views/partials/user/header') %>
+
+<style>
+  .swal2-popup {
+    border-radius: .7rem !important;
+  }
+  .swal2-title {
+    font-size: 20px !important;
+  }
+  .input {
+    @apply border border-gray-300 rounded-lg px-3 py-2 w-full text-sm focus:ring-2 focus:ring-gray-500 focus:border-transparent;
+  }
+  .btn-primary {
+    @apply bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors duration-200;
+  }
+  .btn-secondary {
+    @apply bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors duration-200;
+  }
+  .btn-success {
+    @apply bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200;
+  }
+  .card {
+    @apply bg-white p-6 rounded-lg shadow-md;
+  }
+</style>
+
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="container mx-auto px-4">
+    <!-- Page Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-800 mb-2">Checkout</h1>
+      <p class="text-gray-600">Complete your order by providing your shipping details and payment method.</p>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-8">
+      <!-- Left: Shipping & Payment -->
+      <div class="lg:col-span-2 space-y-6">
+        <!-- Shipping Address -->
+        <div class="card">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-semibold text-gray-800">Shipping Address</h2>
+            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </div>
+
+          <% if (userAddress?.address.length > 0) {
+                const defaultAddr = userAddress.address[0]; %>
+            <!-- Address Available -->
+            <div id="selectedAddressBox" class="border border-gray-200 p-4 rounded-lg bg-gray-50">
+              <div class="flex justify-between items-start">
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                      <%= defaultAddr.addressType || 'Home' %>
+                    </span>
+                    <h3 class="font-semibold text-gray-800"><%= defaultAddr.title %></h3>
+                  </div>
+                  <p class="text-gray-700 mb-2"><%= defaultAddr.address %>, <%= defaultAddr.city %>, <%= defaultAddr.state %>, <%= defaultAddr.pincode %></p>
+                  <div class="flex flex-col sm:flex-row sm:gap-4 text-sm text-gray-600">
+                    <p class="flex items-center gap-1">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                      </svg>
+                      <%= defaultAddr.phone %>
+                    </p>
+                    <p class="flex items-center gap-1">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                      </svg>
+                      <%= defaultAddr.email %>
+                    </p>
+                  </div>
+                </div>
+                <button class="editAddressBtn btn-secondary text-sm" data-index="0">
+                  <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                  </svg>
+                  Edit
+                </button>
+              </div>
+              <input type="hidden" name="selectedAddress" id="selectedAddressInput" value="0">
+            </div>
+
+            <!-- Address Actions -->
+            <div class="flex flex-wrap gap-3 mt-4">
+              <% if (userAddress?.address.length > 1) { %>
+                <button type="button" onclick="showAllAddresses()" class="flex items-center gap-2 text-gray-700 hover:text-gray-900 text-sm font-medium">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                  </svg>
+                  Choose Different Address (<%= userAddress.address.length %> available)
+                </button>
+              <% } %>
+              <button type="button" onclick="openModal()" class="flex items-center gap-2 text-gray-700 hover:text-gray-900 text-sm font-medium">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                Add New Address
+              </button>
+            </div>
+          <% } else { %>
+            <!-- No Address Available -->
+            <div class="text-center py-12">
+              <div class="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+              </div>
+              <h3 class="text-lg font-semibold text-gray-800 mb-2">No Shipping Address Found</h3>
+              <p class="text-gray-600 mb-6">Please add a shipping address to continue with your order.</p>
+              <button type="button" onclick="openModal()" class="btn-primary inline-flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                Add Address
+              </button>
+            </div>
+          <% } %>
+        </div>
+
+        <!-- Payment Method -->
+        <div class="card">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-semibold text-gray-800">Payment Method</h2>
+            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+            </svg>
+          </div>
+          
+          <div class="space-y-3">
+            <label class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+              <input type="radio" name="paymentMethod" value="COD" checked class="text-gray-600 focus:ring-gray-500">
+              <div class="ml-3 flex items-center gap-3">
+                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                  <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                  </svg>
+                </div>
+                <div>
+                  <p class="font-medium text-gray-800">Cash on Delivery</p>
+                  <p class="text-sm text-gray-600">Pay when you receive your order</p>
+                </div>
+              </div>
+            </label>
+            <label class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+              <input type="radio" name="paymentMethod" value="UPI" class="text-gray-600 focus:ring-gray-500">
+              <div class="ml-3 flex items-center gap-3">
+                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                  </svg>
+                </div>
+                <div>
+                  <p class="font-medium text-gray-800">UPI / Net Banking</p>
+                  <p class="text-sm text-gray-600">Pay securely using UPI or internet banking</p>
+                </div>
+              </div>
+            </label>
+            <label class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+              <input type="radio" name="paymentMethod" value="Card" class="text-gray-600 focus:ring-gray-500">
+              <div class="ml-3 flex items-center gap-3">
+                <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                  <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                  </svg>
+                </div>
+                <div>
+                  <p class="font-medium text-gray-800">Credit/Debit Card</p>
+                  <p class="text-sm text-gray-600">Pay using your credit or debit card</p>
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Order Summary -->
+      <div class="card h-fit sticky top-4">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-xl font-semibold text-gray-800">Order Summary</h2>
+          <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+          </svg>
+        </div>
+
+        <!-- Cart Items -->
+        <div class="space-y-4 mb-6 max-h-64 overflow-y-auto">
+          <% cartItems.forEach(item => { %>
+            <% const variant = item.variant; %>
+            <div class="flex justify-between items-start p-3 bg-gray-50 rounded-lg">
+              <div class="flex-1">
+                <h4 class="font-medium text-gray-800 text-sm"><%= item.productid.productName %></h4>
+                <%if(variant.color){%>
+                <p class="text-xs text-gray-600 mt-1">
+                  Color: <%= variant.color %>
+                </p>
+                <%} %>
+                <p class="text-xs text-gray-600 mt-1">
+                  Qty: <%= item.quantity %> × ₹<%= item.salePrice %>
+                </p>
+              </div>
+              <p class="font-semibold text-gray-800">₹<%= item.totalPrice %></p>
+            </div>
+          <% }) %>
+        </div>
+
+        <!-- Price Breakdown -->
+        <div class="border-t border-gray-200 pt-4 space-y-3">
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-600">Subtotal:</span>
+            <span class="text-gray-800">₹<%= totalPrice %></span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-600">Delivery:</span>
+            <span class="text-gray-800"><%= deliveryCharge === 0 ? "Free" : "₹" + deliveryCharge %></span>
+          </div>
+          <div class="flex justify-between text-sm text-green-600">
+            <span>Discount:</span>
+            <span>- ₹<%= discount %></span>
+          </div>
+          <div class="border-t border-gray-200 pt-3">
+            <div class="flex justify-between text-lg font-semibold">
+              <span class="text-gray-800">Total:</span>
+              <span class="text-gray-800">₹<%= finalAmount %></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coupon -->
+        <form id="applyCouponForm" method="POST" action="/checkout/apply-coupon" class="mt-6">
+          <div class="flex gap-2">
+            <input type="text" name="couponCode" placeholder="Enter Coupon Code" class="input flex-1 text-sm">
+            <button type="submit" class="btn-primary text-sm whitespace-nowrap">
+              Apply
+            </button>
+          </div>
+        </form>
+
+        <!-- Place Order Button -->
+        <button id="placeOrderBtn" type="submit" form="checkout-form"
+        class="w-full mt-6 py-3 px-4 text-base font-semibold rounded-lg shadow-sm transition 
+              bg-purple-100 text-blue-900 hover:bg-purple-200 
+              <%= userAddress?.address.length > 0 ? '' : 'opacity-50 cursor-not-allowed' %>"
+        <%= userAddress?.address.length > 0 ? '' : 'disabled' %>>
+        
+        <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Place Order
+      </button>
+
+        
+        <% if (userAddress?.address.length === 0) { %>
+          <p class="text-center text-sm text-gray-500 mt-2">Please add an address to place your order</p>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- All Addresses Popup -->
+<div id="allAddressesPopup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+  <div class="bg-white w-full max-w-2xl p-6 rounded-lg shadow-lg relative max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-xl font-bold text-gray-800">Choose an Address</h2>
+      <button onclick="hideAllAddresses()" class="text-gray-400 hover:text-gray-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="space-y-3">
+      <% if (userAddress?.address) { %>
+        <% userAddress.address.forEach((addr, index) => { %>
+          <div onclick="selectAddress(<%= index %>)" class="cursor-pointer border border-gray-200 p-4 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-colors">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                <%= addr.addressType || 'Home' %>
+              </span>
+              <h3 class="font-semibold text-gray-800"><%= addr.title %></h3>
+            </div>
+            <p class="text-gray-700 mb-2"><%= addr.address %>, <%= addr.city %>, <%= addr.state %>, <%= addr.pincode %></p>
+            <div class="flex flex-col sm:flex-row sm:gap-4 text-sm text-gray-600">
+              <p>Phone: <%= addr.phone %></p>
+              <p>Email: <%= addr.email %></p>
+            </div>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Address Modal -->
+<div id="addressModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+  <div class="bg-white w-full max-w-2xl max-h-[90vh] rounded-lg shadow-lg relative flex flex-col">
+
+    <!-- Close Button -->
+    <button onclick="closeModal()" class="absolute top-2 right-2 text-gray-600 hover:text-red-500 text-xl">&times;</button>
+
+    <!-- Modal Header -->
+    <div class="pt-10 px-6">
+      <h2 id="modalTitle" class="text-xl font-bold mb-4">Add New Address</h2>
+    </div>
+
+    <!-- Scrollable Content -->
+    <div class="overflow-y-auto px-6" style="max-height: 60vh;">
+      <form id="addressForm">
+        <!-- Address Fields -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input type="hidden" id="editingAddressId" name="editingAddressId" value="">
+          <input type="hidden" id="isEditing" name="isEditing" value="false">
+
+          <div>
+            <label class="block text-sm font-medium">Title</label>
+            <input id="title" type="text" name="title" class="w-full border rounded px-3 py-2" placeholder="e.g. My Home">
+          </div>
+          <div>
+            <label class="block text-sm font-medium">Address Type</label>
+            <div class="flex gap-4 mt-2">
+              <label><input type="radio" name="addressType" value="home" class="mr-1" required> Home</label>
+              <label><input type="radio" name="addressType" value="work" class="mr-1"> Work</label>
+              <label><input type="radio" name="addressType" value="other" class="mr-1"> Other</label>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium">District/City/Town</label>
+            <input id="city" type="text" name="city" class="w-full border rounded px-3 py-2" placeholder="District">
+          </div>
+          <div>
+            <label class="block text-sm font-medium">State</label>
+            <input id="state" type="text" name="state" class="w-full border rounded px-3 py-2" placeholder="State">
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium">Full Address</label>
+            <textarea id="address" class="w-full border rounded px-3 py-2" name="address" rows="3" placeholder="Address"></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium">Landmark</label>
+            <input id="landmark" type="text" class="w-full border rounded px-3 py-2" name="landmark" placeholder="Nearby landmark">
+          </div>
+          <div>
+            <label class="block text-sm font-medium">Pincode</label>
+            <input id="pincode" type="text" class="w-full border rounded px-3 py-2" name="pincode" placeholder="Pincode">
+          </div>
+        </div>
+
+        <!-- Contact Info -->
+        <h3 class="text-lg font-semibold mt-6 mb-2">Contact Information</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium">Phone Number</label>
+            <input id="phone" type="tel" class="w-full border rounded px-3 py-2" name="phone" placeholder="Phone number">
+          </div>
+          <div>
+            <label class="block text-sm font-medium">Alternate Number</label>
+            <input id="altPhone" type="tel" class="w-full border rounded px-3 py-2" name="altPhone" placeholder="Alternate phone">
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium">Email</label>
+            <input id="email" type="email" class="w-full border rounded px-3 py-2" name="email" placeholder="Email">
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Sticky Footer Buttons -->
+    <div class="border-t mt-4 px-6 py-4 bg-white sticky bottom-0 flex justify-end rounded-b-lg">
+      <button type="button" onclick="closeModal()" class="bg-gray-500 text-white px-4 py-2 rounded mr-2 hover:bg-gray-600">Cancel</button>
+      <button type="submit" form="addressForm" id="submitBtn" class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-900">Save Address</button>
+    </div>
+
+  </div>
+</div>
+
+
+
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+  let isEditMode = false;
+  let editingAddressIndex = null;
+  
+  
+
+
+  function openModal(editMode = false) {
+    isEditMode = editMode;
+    document.getElementById('addressModal').classList.remove('hidden');
+    document.getElementById('modalTitle').textContent = editMode ? 'Edit Address' : 'Add New Address';
+    document.getElementById('submitBtn').textContent = editMode ? 'Update Address' : 'Save Address';
+    document.getElementById('isEditing').value = editMode.toString();
+  }
+
+  function closeModal() {
+    document.getElementById('addressModal').classList.add('hidden');
+    document.getElementById('addressForm').reset();
+    isEditMode = false;
+    editingAddressIndex = null;
+  }
+
+  const addresses = <%- JSON.stringify(userAddress?.address || []) %>;
+  
+
+  function showAllAddresses() {
+    document.getElementById('allAddressesPopup').classList.remove('hidden');
+  }
+
+  function hideAllAddresses() {
+    document.getElementById('allAddressesPopup').classList.add('hidden');
+  }
+
+  function selectAddress(index) {
+    const addr = addresses[index];
+    if (!addr) return;
+
+    const selectedBox = document.getElementById('selectedAddressBox');
+    selectedBox.innerHTML = `
+      <div class="flex justify-between items-start">
+        <div class="flex-1">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+              ${addr.addressType || 'Home'}
+            </span>
+            <h3 class="font-semibold text-gray-800">${addr.title}</h3>
+          </div>
+          <p class="text-gray-700 mb-2">${addr.address}, ${addr.city}, ${addr.state}, ${addr.pincode}</p>
+          <div class="flex flex-col sm:flex-row sm:gap-4 text-sm text-gray-600">
+            <p class="flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+              </svg>
+              ${addr.phone}
+            </p>
+            <p class="flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              </svg>
+              ${addr.email}
+            </p>
+          </div>
+        </div>
+        <button class="editAddressBtn btn-secondary text-sm" data-index="${index}">
+          <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+          </svg>
+          Edit
+        </button>
+      </div>
+      <input type="hidden" name="selectedAddress" id="selectedAddressInput" value="${index}">
+    `;
+
+    hideAllAddresses();
+    attachEditListeners();
+  }
+
+  function attachEditListeners() {
+    document.querySelectorAll('.editAddressBtn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const index = parseInt(this.dataset.index);
+        const addr = addresses[index];
+        if (!addr) return;
+
+        editingAddressIndex = index;
+        
+        // Populate form with existing data
+        document.getElementById('editingAddressId').value = addr._id ;
+        document.getElementById('title').value = addr.title;
+        document.getElementById('city').value = addr.city;
+        document.getElementById('state').value = addr.state;
+        document.getElementById('address').value = addr.address;
+        document.getElementById('landmark').value = addr.landmark;
+        document.getElementById('pincode').value = addr.pincode;
+        document.getElementById('phone').value = addr.phone;
+        document.getElementById('altPhone').value = addr.altPhone || '';
+        document.getElementById('email').value = addr.email;
+
+        // Set address type radio button
+        const addressTypeInputs = document.querySelectorAll('input[name="addressType"]');
+        addressTypeInputs.forEach(input => {
+          input.checked = input.value === addr.addressType;
+        });
+
+        openModal(true);
+      });
+    });
+  }
+
+  // Place Order
+  document.getElementById('placeOrderBtn').addEventListener('click', () => {
+    if (addresses.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'No Address Found',
+        text: 'Please add a shipping address to continue.',
+        confirmButtonColor: '#374151'
+      });
+      return;
+    }
+
+    const selectedAddressIndex = document.getElementById('selectedAddressInput').value;
+    const selectedAddressId = addresses[selectedAddressIndex]?._id;
+    if (!selectedAddressId) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Address',
+        text: 'Please select a valid address.',
+        confirmButtonColor: '#374151'
+      });
+      return;
+    }
+
+    const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value;
+    const online = ['UPI','Card']
+    if (!paymentMethod) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Payment Method Required',
+        text: 'Please select a payment method.',
+        confirmButtonColor: '#374151'
+      });
+      return;
+    }
+
+    const payload = {
+      addressId: selectedAddressId,
+      paymentMethod
+    };
+
+    fetch('/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (!data.success) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Checkout Failed',
+          text: data.message,
+          confirmButtonColor: '#374151'
+        });
+        return;
+      }
+      console.log('data')
+
+      if (paymentMethod === 'COD') {
+        // COD order placed successfully
+        Swal.fire({
+          icon: 'success',
+          title: 'Order Placed!',
+          text: 'Your order has been successfully placed.',
+          confirmButtonColor: '#374151'
+        }).then(() => {
+          window.location.href = `/order-success?orderId=${data.orderId}`;
+        });
+
+      } else if (online.includes(paymentMethod)) {
+        // Razorpay flow
+        const options = {
+          key: data.razorpayKey,
+          amount: data.amount,
+          currency: data.currency,
+          name: 'WoodLand',
+          image: '/images/logo.png',
+          description: 'Order Payment',
+          order_id: data.orderId,
+          handler: function (response) {
+            // After payment success, verify
+            fetch('/verify-payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                ...response,
+                paymentMethod,
+                addressId: selectedAddressId,
+                finalAmount: data.finalAmount
+              })
+            })
+            .then(res => res.json())
+            .then(verifyData => {
+              if (verifyData.success) {
+                  window.location.href = `/order-success?orderId=${verifyData.orderId}`;
+              } else {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Verification Failed',
+                  text: verifyData.message || 'Payment could not be verified.',
+                  confirmButtonColor: '#374151'
+                });
+              }
+            });
+          },
+          prefill: {
+            name: "<%= user.name %>",
+            email: "<%= user.email %>",
+            contact: "<%= user.phone %>"
+          },
+          theme: {
+            color: "#1F2937"
+          },
+          external: {
+            wallets: ['paytm', 'phonepe']
+          }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+      }
+    })
+    .catch(err => {
+      console.error("Order error:", err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Something went wrong',
+        text: 'Please try again later.',
+        confirmButtonColor: '#374151'
+      });
+    });
+  }); 
+
+  // Address Form Submission Handling
+  document.getElementById('addressForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+
+    // Clear previous errors
+    document.querySelectorAll('.error-message').forEach(el => el.remove());
+    document.querySelectorAll('input, textarea').forEach(el => el.classList.remove('border-red-500'));
+
+    try {
+      let response;
+
+      if (isEditMode) {
+        // PUT request for editing address
+        response = await fetch('/address', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            ...data,
+            addressId: data.editingAddressId
+          })
+        });
+      } else {
+        // POST request for new address
+        response = await fetch('/address', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+      }
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        Swal.fire({
+          icon: 'success',
+          title: isEditMode ? 'Address Updated!' : 'Address Added!',
+          text: isEditMode ? 'Your address has been updated successfully.' : 'Your new address has been added successfully.',
+          confirmButtonColor: '#374151'
+        }).then(() => {
+          location.reload();
+        });
+        form.reset();
+        closeModal();
+      } else {
+        // Show validation errors
+        if (result.errors) {
+          Object.entries(result.errors).forEach(([field, message]) => {
+            const input = document.getElementById(field);
+            if (input) {
+              input.classList.add('border-red-500');
+
+              const parentDiv = input.closest('.form-group') || input.parentElement;
+              let errorSpan = parentDiv.querySelector('.error-message');
+
+              if (errorSpan) {
+                errorSpan.textContent = message;
+              } else {
+                errorSpan = document.createElement('span');
+                errorSpan.className = 'error-message text-sm text-red-600 mt-1 block';
+                errorSpan.textContent = message;
+                parentDiv.appendChild(errorSpan);
+              }
+            }
+          });
+
+          const firstError = document.querySelector('.border-red-500');
+          if (firstError) {
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: result.message || 'Something went wrong. Try again.',
+            confirmButtonColor: '#374151'
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Address operation error:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Something went wrong!',
+        text: 'Please try again later.',
+        confirmButtonColor: '#374151'
+      });
+    }
+  });
+
+  // Initialize
+  document.addEventListener('DOMContentLoaded', () => {
+    attachEditListeners();
+  });
+</script>
+
+<%- include('../../views/partials/user/footer') %>

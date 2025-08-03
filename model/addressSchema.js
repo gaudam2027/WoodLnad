@@ -9,11 +9,15 @@ const addressSchema = new mongoose.Schema({
     },
 
     address:[{
+        default: {
+            type: Boolean,
+            default: false
+        },
         addressType:{
             type: String,
             required: true
         },
-        fullName:{
+        title:{
             type: String,
             required: true
         },
@@ -33,18 +37,22 @@ const addressSchema = new mongoose.Schema({
             type: String,
             required: true
         },
-        landMark:{
+        landmark:{
             type: String,
             required: true
         },
-        Phone:{
+        phone:{
             type: String,
             required: true
         },
-        altphone:{
+        altPhone:{
             type: String,
             required: true
         },
+        email:{
+            type: String,
+            required:true
+        }
         
     }]
     

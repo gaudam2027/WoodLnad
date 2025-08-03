@@ -1,4 +1,5 @@
 const User = require('../../model/userSchema');
+const { getIO } = require('../../config/socket'); //for getting socket IO
 
 const customerInfo = async (req, res) => {
   try {
@@ -13,6 +14,8 @@ const customerInfo = async (req, res) => {
 
     const limit = 3;
 
+    //All userdata for (total cutomers,active customers,bloacked,etc)
+    const allUserData = await User.find({})
     // Fetch user data
     const userData = await User.find({
       isAdmin: false,
@@ -20,7 +23,7 @@ const customerInfo = async (req, res) => {
         { name: { $regex: ".*" + search + ".*",$options: "i" } },
         { email: { $regex: ".*" + search + ".*",$options: "i" } }
       ]
-    })
+    }).sort({createdOn:-1})
       .limit(limit)
       .skip((page - 1) * limit)
       .exec();
@@ -39,8 +42,9 @@ const customerInfo = async (req, res) => {
 
     // Pass data to the EJS view
     res.render("customers", {
+      allUserData,
       users: userData,          
-      searchQuery: search,      
+      searchQuery: search,
       totalPages: totalPages,   
       currentPage: page,        
     });
@@ -50,26 +54,32 @@ const customerInfo = async (req, res) => {
   }
 }
 
-const customerBlock = async(req,res)=>{
-    try {
-        console.log('CB1');
-        
-        let {userId,block} = req.body
-        const isBlocked = block
-   
+const customerBlock = async (req, res) => {
+  try {
+    console.log('CB1');
 
-        if(userId){
-          await User.updateOne({_id:userId},{$set:{isBlocked}});
-          return  res.json({success:true});
-        }
+    const { userId, block } = req.body;
+    const isBlocked = block;
 
-        return  res.json({success:false});
-
-    } catch (error) {
-        
-        return  res.render('pageerror');
+    if (!userId) {
+      return res.json({ success: false, message: 'User ID missing' });
     }
-}
+
+    // Update user block status
+    await User.updateOne({ _id: userId }, { $set: { isBlocked } });
+
+    const io = getIO();
+
+    // Emit socket event to the specific user
+    io.to(`user_${userId}`).emit('user-block-status', { isBlocked: block });
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Error blocking/unblocking user:', error);
+    return res.status(500).render('pageerror');
+  }
+};
+
 
 
 

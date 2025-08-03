@@ -1,53 +1,67 @@
 const express = require('express');
 const app = express();
-const path = require('path')
-const env = require('dotenv').config();
-const session = require('express-session')
-const db = require('./config/db')
-const userRouter = require('./routes/UserRouter.js')
-const adminRouter = require('./routes/AdminRouter.js')
-const passport = require('./config/passport.js')
-const noCache = require('./middleware/noCache.js');
+const path = require('path');
+require('dotenv').config();
+const http = require('http');
+const session = require('express-session');
+const db = require('./config/db');
+const userRouter = require('./routes/UserRouter');
+const adminRouter = require('./routes/AdminRouter');
+const passport = require('./config/passport');
+const noCache = require('./middleware/noCache');
+const socket = require('./config/socket'); // socket.js module
+const { registerSocketEvents } = require('./sockets/index');
+
+// Create HTTP server
+const server = http.createServer(app);
+
+// Initialize Socket.IO with your socket.js init method
+const io = socket.init(server);
+
+// Initialize your socket event listeners
+registerSocketEvents(io);
 
 
-// db connect
-db()
 
-//no cache
+
+// Connect to DB
+db();
+
+// Middleware
 app.use(noCache);
-
 app.use(express.json());
-app.use(express.urlencoded({extended:true}));
+app.use(express.urlencoded({ extended: true }));
 
-//session
+// Session config
 app.use(session({
-    secret:process.env.SESSION_SECRET,
-    resave:false,
-    saveUninitialized:false,
-    cookie:{
-        secure:false,
-        httpOnly:true,
-        maxAge:72*60*60*1000
-    }
-}))
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    secure: false,
+    httpOnly: true,
+    maxAge: 72 * 60 * 60 * 1000,
+  }
+}));
 
-//passport
+// Passport
 app.use(passport.initialize());
 app.use(passport.session());
 
-
-// Set EJS as the view engine
+// View engine & static files
 app.set('view engine', 'ejs');
-app.set('views',[path.join(__dirname,'views/user'),path.join(__dirname,'views/admin')]);
-// Serve static files (CSS, images, etc.)
-app.use(express.static(path.join(__dirname, 'public')));  // Serve static files from the 'public' folder
+app.set('views', [
+  path.join(__dirname, 'views/user'),
+  path.join(__dirname, 'views/admin'),
+]);
 
+app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/',userRouter);
-app.use('/admin',adminRouter);
+// Routes
+app.use('/', userRouter);
+app.use('/admin', adminRouter);
 
-
-
-
-// Start Server
-app.listen(process.env.PORT, () => console.log(`Server running on http://localhost:${process.env.PORT}`));
+// Start server
+server.listen(process.env.PORT, () => {
+  console.log(`Server running on http://localhost:${process.env.PORT}`);
+});

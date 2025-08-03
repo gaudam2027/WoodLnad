@@ -1,0 +1,503 @@
+<%- include('../../views/partials/user/header') %>
+
+<!-- Swal-style -->
+<style>
+  .swal2-popup {
+    border-radius: .7rem !important;
+  }
+  .swal2-title {
+    font-size: 20px !important;
+  }
+  .out-of-stock {
+    opacity: 0.6;
+    position: relative;
+  }
+  .variant-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #e5e7eb;
+    display: inline-block;
+    margin-right: 8px;
+  }
+  .stock-warning {
+    color: #ef4444;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .stock-info {
+    font-size: 12px;
+    margin-top: 4px;
+  }
+</style>
+
+<div class="container mx-auto px-4 py-8 flex flex-col lg:flex-row gap-10 items-start">
+  <!-- LEFT: Cart Items -->
+  <div class="lg:w-2/3 w-full bg-white shadow-lg rounded-lg p-6">
+    <h2 class="text-2xl text-center font-semibold mb-6">My Cart</h2>
+    
+    <% if (cartItems.length > 0) { %>
+      <% cartItems.forEach(item => { %>
+        <%
+          // Use the variant from the processed cart item (which is already found by variantId)
+          const variant = item.variant;
+          const isOutOfStock = item.isOutOfStock || (variant && variant.quantity === 0);
+          const stockLeft = item.stockLeft || (variant ? variant.quantity - item.quantity : 0);
+          const isLowStock = stockLeft > 0 && stockLeft <= 5;
+          const remainingStock = variant ? variant.quantity : 0;
+          const canIncreaseQuantity = item.quantity < remainingStock && !isOutOfStock;
+        %>
+        
+        <!-- Cart Item -->
+        <div id="cartItem-<%= item._id %>" class="flex items-center justify-between <% if (cartItems.length - 1 !== cartItems.indexOf(item)) { %>border-b<% } %> py-4 <%= isOutOfStock ? 'out-of-stock' : '' %>">
+          <div class="flex items-center gap-4">
+            <div class="flex flex-col items-center">
+              <!-- Product Image -->
+              <div class="relative">
+                <img src="/uploads/product-images/<%= item.productid.images[0] %>"
+                     alt="Product Image"
+                     class="w-20 h-20 object-cover rounded-md border <%= isOutOfStock ? 'opacity-50' : '' %>">
+                <% if (isOutOfStock) { %>
+                  <div class="absolute inset-0 flex items-center justify-center bg-red-500 bg-opacity-75 rounded-md">
+                    <span class="text-white text-xs font-bold">OUT OF STOCK</span>
+                  </div>
+                <% } %>
+              </div>
+              
+              <!-- Quantity selector below image -->
+              <div class="w-20 flex justify-center items-center mt-2">
+                <button onclick="updateQuantity('<%= item._id %>', -1)"
+                   class="w-6 h-6 flex items-center justify-center bg-gray-200 text-gray-800 rounded-full hover:bg-gray-300 text-xs <%= (isOutOfStock || item.quantity <= 1) ? 'opacity-50 cursor-not-allowed' : '' %>"
+                  <%= (isOutOfStock || item.quantity <= 1) ? 'disabled' : '' %>>−</button>
+                
+                <input type="text" id="qty-<%= item._id %>"
+                   value="<%= item.quantity %>"
+                   class="w-8 h-6 mx-1 text-center text-xs border rounded <%= isOutOfStock ? 'bg-gray-100' : '' %>" readonly>
+                
+                <button onclick="updateQuantity('<%= item._id %>', 1)"
+                   id="plus-btn-<%= item._id %>"
+                  data-remaining-stock="<%= remainingStock %>"
+                  data-current-qty="<%= item.quantity %>"
+                  data-variant-id="<%= item.variantId %>"
+                  class="w-6 h-6 flex items-center justify-center bg-gray-200 text-gray-800 rounded-full hover:bg-gray-300 text-xs <%= !canIncreaseQuantity ? 'opacity-50 cursor-not-allowed' : '' %>"
+                  <%= !canIncreaseQuantity ? 'disabled' : '' %>>+</button>
+              </div>
+            </div>
+            
+            <div>
+              <h3 class="text-lg font-semibold <%= isOutOfStock ? 'text-gray-500' : '' %>">
+                <%= item.productid.productName %>
+              </h3>
+              
+              <!-- Variant Color Display -->
+              <% if (variant && (variant.color || variant.colorName)) { %>
+              <div class="flex items-center mt-1">
+                <span class="text-sm text-gray-600 mr-2">Color:</span>
+                <span class="text-sm text-gray-600 capitalize">
+                  <%= variant.color || variant.colorName || 'Default' %>
+                </span>
+                <!-- Optional: Show color swatch if you have color codes -->
+                <% if (variant.colorCode) { %>
+                  <div class="variant-color ml-2" style="background-color: <%= variant.colorCode %>"></div>
+                <% } %>
+              </div>
+              <% } %>
+              
+
+              
+              <p class="text-sm text-gray-500">Price: ₹<%= item.variant?.salePrice || 'N/A' %></p>
+              
+              <!-- Stock Information -->
+              <div class="stock-info" id="stock-info-<%= item._id %>">
+                <% if (isOutOfStock) { %>
+                  <p class="stock-warning">❌ Currently Out of Stock</p>
+                <% } else if (stockLeft >= 1 && stockLeft <= 5) { %>
+                  <p class="stock-warning">⚠️ Only <%= stockLeft %> left in stock</p>
+                <% } else if (stockLeft === 0) { %>
+                  <p class="text-red-600">🚫 Reached maximum limit</p>
+                <% } else if (stockLeft > 0) { %>
+                  <p class="text-green-600 text-xs">✅ In Stock (<%= stockLeft %> available)</p>
+                <% } else { %>
+                  <p class="text-red-600 text-xs">⚠️ Your cart quantity exceeds available stock</p>
+                <% } %>
+              </div>
+              
+              <p class="text-sm font-medium mt-1" id="total-<%= item._id %>">
+                Total: ₹<%= isOutOfStock ? 0 : (item.variant?.salePrice * item.quantity) %>
+              </p>
+            </div>
+          </div>
+          
+          <button onclick="deleteCartItem('<%= item._id %>')" 
+                  class="text-red-500 hover:text-red-700 hover:underline transition-colors px-2 py-1 rounded">
+            <i class="fas fa-trash-alt mr-1"></i>Remove
+          </button>
+        </div>
+      <% }) %>
+    <% } else { %>
+      <div class="flex flex-col items-center justify-center text-center py-10 text-gray-600">
+        <img src="/images/empty-cart.webp" class="w-40 mb-6" alt="Empty Cart Icon">
+        <h3 class="text-xl font-semibold">Your cart is empty!</h3>
+        <p class="text-sm mb-4">Looks like you haven't added anything to your cart yet.</p>
+        <a href="/shop" class="inline-flex items-center px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+          </svg>
+          Back to Shop
+        </a>
+      </div>
+    <% } %>
+  </div>
+
+  <!-- RIGHT: Order Summary -->
+  <% if (cartItems.length > 0) { %>
+    <div class="bg-white p-6 rounded shadow h-fit" style="min-width: 370px;">
+      <h2 class="text-xl font-semibold mb-4">Order Summary</h2>
+      
+      <% if (inStockItems.length > 0) { %>
+        <div class="space-y-4 text-sm mb-6">
+          <% inStockItems.forEach(item => { %>
+            <% const variant = item.variant; %>
+            <div class="flex justify-between items-center border-b pb-2">
+              <div>
+                <p class="font-medium"><%= item.productid.productName %></p>
+                <% if (variant && (variant.color || variant.colorName)) { %>
+                <div class="flex items-center mt-1">
+                  <span class="text-xs text-gray-500 capitalize">
+                    <%= variant.color || variant.colorName %>
+                  </span>
+                  <% if (variant.colorCode) { %>
+                    <div class="variant-color ml-2" style="background-color: <%= variant.colorCode %>"></div>
+                  <% } %>
+                </div>
+                <% } %>
+                <p class="text-xs text-gray-500" id="totalQuantity-<%= item._id %>">
+                  Qty: <%= item.quantity %> × ₹<%= item.variant?.salePrice %>
+                </p>
+              </div>
+              <p id="totalprice-<%= item._id %>">₹<%= item.variant?.salePrice * item.quantity %></p>
+            </div>
+          <% }) %>
+          
+          <div class="border-t pt-4 space-y-2">
+            <div class="flex justify-between">
+              <span>Subtotal:</span>
+              <span id="subTotal">₹<%= inStockSubtotal %></span>
+            </div>
+            <div class="flex justify-between">
+              <span>Delivery:</span>
+              <span class="<%= inStockDeliveryCharge === 0 ? 'text-green-600' : '' %>">
+                <%= inStockDeliveryCharge === 0 ? "Free" : "₹" + inStockDeliveryCharge %>
+              </span>
+            </div>
+            <div class="flex justify-between text-green-600">
+              <span>Discount:</span>
+              <span>- ₹<%= inStockDiscount %></span>
+            </div>
+            <hr class="my-2">
+            <div class="flex justify-between font-semibold text-lg">
+              <span>Total:</span>
+              <span id="finalAmount">₹<%= inStockFinalAmount %></span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Place Order Button -->
+        <a href="/checkout">
+          <button type="submit" class="w-full bg-gray-800 text-white py-3 rounded hover:bg-gray-700 transition font-medium">
+            Proceed to Checkout (<%= inStockItems.length %> items)
+          </button>
+        </a>
+        
+        <!-- Free delivery notice -->
+        <% if (inStockSubtotal < 5000) { %>
+          <p class="text-xs text-gray-500 mt-2 text-center">
+            Add ₹<%= 5000 - inStockSubtotal %> more for free delivery!
+          </p>
+        <% } %>
+        
+      <% } else { %>
+        <div class="text-center py-4">
+          <div class="mb-4">
+            <i class="fas fa-exclamation-triangle text-yellow-500 text-3xl mb-2"></i>
+          </div>
+          <p class="text-gray-500 font-medium">No items available for checkout</p>
+          <p class="text-sm text-gray-400 mt-2">All items in your cart are currently out of stock</p>
+          <a href="/shop" class="inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition text-sm">
+            Continue Shopping
+          </a>
+        </div>
+      <% } %>
+    </div>
+  <% } %>
+</div>
+
+<!-- Swal Alert 2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+function deleteCartItem(itemId) {
+  Swal.fire({
+    title: 'Remove Item',
+    text: 'Are you sure you want to remove this item from your cart?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#1f2937',
+    cancelButtonColor: '#d1d5db',
+    confirmButtonText: 'Yes, Remove',
+    cancelButtonText: 'Cancel',
+    customClass: {
+      popup: 'text-center',
+    }
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Show loading
+      Swal.fire({
+        title: 'Removing...',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      fetch(`/cart/${itemId}`, {
+        method: 'DELETE'
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          Swal.fire({
+            title: 'Removed!',
+            text: 'Item removed successfully',
+            icon: 'success',
+            showConfirmButton: false,
+            timer: 1500
+          }).then(() => {
+            location.reload();
+          });
+        } else {
+          Swal.fire({
+            title: 'Error!',
+            text: data.message || 'Failed to remove item',
+            icon: 'error'
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+          title: 'Error!',
+          text: 'Something went wrong. Please try again.',
+          icon: 'error'
+        });
+      });
+    }
+  });
+}
+
+// Update the updateQuantity function to handle variant ID
+function updateQuantity(itemId, change) {
+  const qtyInput = document.getElementById(`qty-${itemId}`);
+  const plusBtn = document.getElementById(`plus-btn-${itemId}`);
+  const minusBtn = plusBtn.previousElementSibling.previousElementSibling; // Get minus button
+  
+  let currentQty = parseInt(qtyInput.value);
+  const newQty = currentQty + change;
+  const remainingStock = parseInt(plusBtn.getAttribute('data-remaining-stock'));
+  const variantId = plusBtn.getAttribute('data-variant-id');
+  
+  // Validate quantity limits
+  if (newQty < 1) {
+    Swal.fire({
+      title: 'Invalid Quantity',
+      text: 'Quantity cannot be less than 1',
+      icon: 'error',
+      timer: 2000,
+      showConfirmButton: false
+    });
+    return;
+  }
+  
+  if (newQty > remainingStock && change!= -1) {
+    Swal.fire({
+      title: 'Stock Limit Exceeded',
+      text: `Only ${remainingStock} items available in stock`,
+      icon: 'warning',
+      timer: 2000,
+      showConfirmButton: false
+    });
+    return;
+  }
+
+  // Show loading for quantity update
+  const originalText = qtyInput.value;
+  qtyInput.value = '...';
+  
+  fetch(`/cart/${itemId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ 
+      quantity: newQty,
+      variantId: variantId // Include variant ID in the request
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      // Update quantity
+      qtyInput.value = newQty;
+      plusBtn.setAttribute('data-current-qty', newQty);
+      
+      // Update total price for this item
+      const totalElem = document.getElementById(`total-${itemId}`);
+      if (totalElem) {
+        totalElem.textContent = `Total: ₹${data.updatedTotal}`;
+      }
+      
+      // Update order summary
+      const totalPriceElem = document.getElementById(`totalprice-${itemId}`);
+      if (totalPriceElem) {
+        totalPriceElem.textContent = `₹${data.updatedTotal}`;
+      }
+      
+      const totalQuantityElem = document.getElementById(`totalQuantity-${itemId}`);
+      if (totalQuantityElem) {
+        totalQuantityElem.textContent = `Qty: ${newQty} × ₹${data.salePrice}`;
+      }
+      
+      // Check if item is now out of stock
+      const stockLeft = remainingStock - newQty;
+      const isNowOutOfStock = stockLeft === 0;
+      
+      // If the item is now out of stock, we may need to refresh the page
+      // to update the order summary correctly
+      if (isNowOutOfStock && data.inStockOnly) {
+        setTimeout(() => location.reload(), 500);
+        return;
+      }
+      
+      // Update cart totals
+      const subTotal = document.getElementById('subTotal');
+      if (subTotal) {
+        subTotal.textContent = `₹${data.updatedCartTotal}`;
+      }
+      
+      const finalAmountElem = document.getElementById('finalAmount');
+      if (finalAmountElem) {
+        finalAmountElem.textContent = `₹${data.finalAmount}`;
+      }
+      
+      // Update stock information
+      const stockInfoElem = document.getElementById(`stock-info-${itemId}`);
+      if (stockInfoElem) {
+        if (stockLeft === 0) {
+          stockInfoElem.innerHTML = '<p class="text-red-600 text-xs">🚫 Reached maximum limit</p>';
+        } else if (stockLeft >= 1 && stockLeft <= 5) {
+          stockInfoElem.innerHTML = `<p class="stock-warning">⚠️ Only ${stockLeft} left in stock</p>`;
+        } else if (stockLeft > 0) {
+          stockInfoElem.innerHTML = `<p class="text-green-600 text-xs">✅ In Stock (${stockLeft} available)</p>`;
+        }
+      }
+      
+      // Update button states
+      // Plus button
+      if (newQty >= remainingStock) {
+        plusBtn.disabled = true;
+        plusBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      } else {
+        plusBtn.disabled = false;
+        plusBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+      
+      // Minus button
+      if (newQty <= 1) {
+        minusBtn.disabled = true;
+        minusBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      } else {
+        minusBtn.disabled = false;
+        minusBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+      
+      // Show success feedback
+      if (change > 0) {
+        showToast('Quantity increased', 'success');
+      } else {
+        showToast('Quantity decreased', 'success');
+      }
+      
+    } else {
+      // Restore original quantity on error
+      qtyInput.value = originalText;
+      Swal.fire({
+        title: 'Update Failed',
+        text: data.message || 'Failed to update quantity',
+        icon: 'error',
+        timer: 2000,
+        showConfirmButton: false
+      });
+    }
+  })
+  .catch(err => {
+    // Restore original quantity on error
+    qtyInput.value = originalText;
+    console.error('Error updating quantity:', err);
+    Swal.fire({
+      title: 'Network Error',
+      text: 'Server error occurred. Please try again.',
+      icon: 'error',
+      timer: 2000,
+      showConfirmButton: false
+    });
+  });
+}
+
+// Toast notification function
+function showToast(message, type = 'info') {
+  const toast = document.createElement('div');
+  toast.className = `fixed top-4 right-4 z-50 px-4 py-2 rounded shadow-lg text-white text-sm transition-all duration-300 transform translate-x-full`;
+  
+  // Set background color based on type
+  switch(type) {
+    case 'success':
+      toast.classList.add('bg-green-500');
+      break;
+    case 'error':
+      toast.classList.add('bg-red-500');
+      break;
+    case 'warning':
+      toast.classList.add('bg-yellow-500');
+      break;
+    default:
+      toast.classList.add('bg-blue-500');
+  }
+  
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  
+  // Animate in
+  setTimeout(() => {
+    toast.classList.remove('translate-x-full');
+  }, 100);
+  
+  // Animate out and remove
+  setTimeout(() => {
+    toast.classList.add('translate-x-full');
+    setTimeout(() => {
+      document.body.removeChild(toast);
+    }, 300);
+  }, 2000);
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('Cart page loaded with variant ID system');
+  
+  // Add any additional initialization here
+  const cartItems = document.querySelectorAll('[id^="cartItem-"]');
+  console.log(`Found ${cartItems.length} cart items`);
+});
+</script>
+
+<%- include('../../views/partials/user/footer') %>

@@ -15,9 +15,14 @@ const couponSchema = new mongoose.Schema({
       required: true
     },
 
+    startOn: {
+     type: Date,
+     required: true
+  },
+
     expireOn:{
       type: Date,
-      require: true
+      required: true
     },
 
     offerPrice:{
@@ -30,9 +35,9 @@ const couponSchema = new mongoose.Schema({
       required: true
     },
 
-    islist:{
+    isList:{
       type: Boolean,
-      defualt: true
+      default: true
     },
 
     userId:{

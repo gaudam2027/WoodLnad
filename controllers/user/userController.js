@@ -1,9 +1,13 @@
 const User = require('../../model/userSchema');
 const Category = require('../../model/categorySchema');
 const Product = require('../../model/productSchema');
+const Cart = require('../../model/cartSchema');
+const Review = require('../../model/reviewschema');
+const Wishlist = require('../../model/wishlistSchema');
 const nodemailer =  require('nodemailer')
 const env = require('dotenv').config();
 const bcrypt = require("bcrypt");
+const { getIO } = require('../../config/socket'); //for getting socket IO
 
 
 //loading error page
@@ -20,42 +24,32 @@ const pageNotFound = async (req,res)=>{
 
 
 const loadHomepage = async (req, res) => {
-    try {
-      
-        const user = req.session?.userId||req.session.user?._id  //passport and normal login and sign up user id session
-      
-        console.log('load user',user)
-        
-        
-        const categories = await Category.find({isListed:true});
-        let productData = await Product.find(
-            {isBlocked:false,
-             category:{$in:categories.map(category=>category._id)},
-             variants: { $elemMatch: { quantity: { $gt: 0 } } }
-            }
-        )
-        
-        
+  try {
+    const user = req.userData || null;  // populated by middleware if available
+    console.log('load user', user?._id || null);
 
-        productData.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-        productData = productData.slice(0,4)
+    const categories = await Category.find({ isListed: true });
+    let productData = await Product.find({
+      isBlocked: false,
+      category: { $in: categories.map(cat => cat._id) },
+      variants: { $elemMatch: { quantity: { $gt: 0 } } },
+    });
 
+    // Show latest 4 products
+    productData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    productData = productData.slice(0, 4);
 
+    return res.render('home', {
+      user,
+      products: productData,
+    });
 
-        if (user) {
-           const userData = await User.findOne({_id:user,isBlocked:false});
-          
-           return res.render('home',{user:userData,products:productData});
-           
-        }
-           return res.render('home',{user,products:productData});
-        
-        
-    } catch (error) {
-        console.log('Home page not found', error);
-        res.status(500).send('Server error');
-    }
+  } catch (error) {
+    console.log('Home page not found', error);
+    res.status(500).send('Server error');
+  }
 };
+
 
 
 const loadSignuppage = async (req,res)=>{
@@ -180,6 +174,21 @@ const securePassword = async (password)=>{
     }    
 }
 
+const loadOtp = async (req,res)=>{
+    try {
+        if(req.session.userOtp){
+            return res.render('otp');
+        }else{
+            res.redirect("/signIn")
+        }
+    } catch (error) {
+        console.log('otp-verification page not found');
+        res.status(500).send('Server error')
+        
+    }
+}
+
+
 // OTP validating
 const otp = async (req,res)=>{
     try {
@@ -204,6 +213,18 @@ const otp = async (req,res)=>{
             // saving user in user collection
             await saveUserData.save();
             req.session.user = saveUserData;
+
+            const io = getIO();
+            
+            io.to('admins').emit('new-user', {
+            message: `${saveUserData.name} has signed up.`,
+            id: saveUserData._id,
+            name: saveUserData.name,
+            email: saveUserData.email,
+            phone: saveUserData.phone || 'N/A',
+            });
+
+
             res.json({success:true,redirectUrl:"/"})
         }else{
             res.status(400).json({success:false,message:"Inavaild OTP please try again"})
@@ -246,19 +267,6 @@ const resendOtp = async (req,res)=>{
 }
 
 
-const loadOtp = async (req,res)=>{
-    try {
-        if(req.session.userOtp){
-            return res.render('otp');
-        }else{
-            res.redirect("/signIn")
-        }
-    } catch (error) {
-        console.log('otp-verification page not found');
-        res.status(500).send('Server error')
-        
-    }
-}
 
 const loadSigninpage = async (req,res)=>{
     try {
@@ -310,76 +318,68 @@ const signin= async (req,res)=>{
 //------------------------------------------------------------------------shop-page-------------------------------------------------------------
 
 const loadShoppage = async (req, res) => {
-    try {
-        console.log('shop');
-        
-      const user = req.session?.userId || req.session.user?._id
-      
-      
-      const searchQuery =  "";
-      const userData = await User.findOne({_id:user,isBlocked:false});
-      console.log(userData);
-      const categories = await Category.find({ isListed: true });
-      const categoriesIds = categories.map(category => category._id.toString());
+  try {
+    console.log('shop');
 
-  
-      const page = parseInt(req.query.page || 1);
-      const limit = 9;
-      const skip = (page - 1) * limit;
-  
-      // Search filter
+    const user = req.userData || null; // populated from middleware
 
-  
-      const query = {
-        isBlocked: false,
-        category: { $in: categoriesIds },
-        variants: { $elemMatch: { quantity: { $gt: 0 } } },
-      };
-  
-      const products = await Product.find(query)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit);
-  
-      const totalProducts = await Product.countDocuments(query);
-      const totalPages = Math.ceil(totalProducts / limit);
-  
-      const categoriesWithIds = categories.map(category => ({
-        _id: category._id,
-        name: category.name
-      }));
+    const categories = await Category.find({ isListed: true });
+    const categoryIds = categories.map(category => category._id.toString());
 
-      
-      // unique variants type
-      let allVariants = [];
+    const page = parseInt(req.query.page || 1);
+    const limit = 8;
+    const skip = (page - 1) * limit;
 
-        products.forEach(product => {
-        product.variants.forEach(variant => {
-            if (!allVariants.some(v =>
-            v.color === variant.color && v.size === variant.size
-            )) {
-            allVariants.push(variant);
-            }
-        });
-        });
-        
+    const query = {
+      isBlocked: false,
+      category: { $in: categoryIds },
+      variants: { $elemMatch: { quantity: { $gt: 0 } } },
+    };
 
-  
-      res.render('shop', {
-        user: userData,
-        products,
-        category: categoriesWithIds,
-        variants: allVariants,
-        totalProducts,
-        currentPage: page,
-        totalPages,
-        searchQuery: searchQuery,
+    const products = await Product.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const totalProducts = await Product.countDocuments(query);
+    const totalPages = Math.ceil(totalProducts / limit);
+
+    const categoriesWithIds = categories.map(category => ({
+      _id: category._id,
+      name: category.name,
+    }));
+
+    // Collect unique variants
+    let allVariants = [];
+    products.forEach(product => {
+      product.variants.forEach(variant => {
+        if (!allVariants.some(v => v.color === variant.color && v.size === variant.size)) {
+          allVariants.push(variant);
+        }
       });
-    } catch (error) {
-      console.log('shop page not found', error);
-      res.status(500).send('Server error');
-    }
-  };
+    });
+    
+
+    const wishlistItems = await Wishlist.findOne({ user: user?._id }).lean();
+    const wishlistProductIds = wishlistItems ? wishlistItems.products.map(p => p.toString()) : [];
+
+    res.render('shop', {
+      user,
+      products,
+      category: categoriesWithIds,
+      variants: allVariants,
+      totalProducts,
+      currentPage: page,
+      totalPages,
+      wishlistProductIds,
+      searchQuery: "", // Can be used for search implementation later
+    });
+  } catch (error) {
+    console.log('shop page not found', error);
+    res.status(500).send('Server error');
+  }
+};
+
 
   //filter product
 
@@ -393,7 +393,7 @@ const loadShoppage = async (req, res) => {
         
   
         
-        const limit = 9; // number of products per page
+        const limit = 8; // number of products per page
         const skip = (page - 1) * limit;
     
         
@@ -468,11 +468,14 @@ const loadShoppage = async (req, res) => {
           const totalProducts = await Product.countDocuments(filters);
           const totalPages = Math.ceil(totalProducts / limit);
 
+
           const products = await query
           .sort(sortOption)
           .skip(skip)
           .limit(limit);
-        res.json({ success: true,user:userData, products,totalPages,currentPage: page});
+          const wishlistItems = await Wishlist.findOne({ user: user?._id }).lean();
+          const wishlistProductIds = wishlistItems ? wishlistItems.products.map(p => p.toString()) : [];
+        res.json({ success: true,user:userData, products,wishlistProductIds,totalPages,currentPage: page});
       } catch (err) {
         console.error('Error filtering products:', err);
         res.status(500).json({ success: false, message: 'Server Error' });
@@ -480,54 +483,153 @@ const loadShoppage = async (req, res) => {
   };
   
 
-  const shopDetails = async (req, res) => {
-    try {
+const shopDetails = async (req, res) => {
+  try {
+    console.log('Shop details request received');
+    const user = req.userData || null;
+    const userId = user?._id;
 
-        const user = req.session.userId || req.session.user?._id
-     
+    const productId = req.query.id;
+    const variantId = req.query.variantId;
 
-        const userData = await User.findOne({_id:user,isBlocked:false});
-        const productId = req.query.id; 
+    // Fetch product and populate category
+    const product = await Product.findOne({_id:productId,isBlocked:false}).populate('category');
+    if (!product) {
+      return res.status(404).send("Product not found");
+    }
 
-        const product = await Product.findById(productId);
+    // Get selected variant
+    let selectedVariant = product.variants.find(v => v._id.toString() === variantId);
+    if (!selectedVariant) {
+      selectedVariant = product.variants[0]; // fallback
+    }
 
-        if (!product) {
-            return res.status(404).send("Product not found");
+
+    // Calculate remaining stock for all variants (considering cart items)
+    let variantsWithRemainingStock = [];
+    let cart = null;
+
+    if (userId) {
+      cart = await Cart.findOne({ userId });
+      if (!cart) {
+        cart = new Cart({ userId, items: [] });
+      }
+    }
+
+    // Process each variant to calculate remaining stock
+    product.variants.forEach((variant, index) => {
+      let remainingStock = variant.quantity;
+
+      if (cart) {
+        const existingItemIndex = cart.items.findIndex(
+          item => item.productid.toString() === productId &&
+                  item.variantId?.toString() === variant._id.toString()
+        );
+
+        if (existingItemIndex !== -1) {
+          const existingQty = cart.items[existingItemIndex].quantity;
+          remainingStock = Math.max(remainingStock - existingQty, 0);
         }
+      }
 
-        const relatedProducts = await Product.find({
-            _id: { $ne: productId },  
-            category: product.category 
-        }).limit(4); 
+      variantsWithRemainingStock.push({
+        ...variant.toObject(),
+        remainingStock: remainingStock,
+        originalQuantity: variant.quantity
+      });
+    });
 
-        res.render('shop-details', {
-            user:userData,
-            product,
-            relatedProducts 
+    // get remaining stock for selected variant
+    const selectedVariantRemainingStockObj = variantsWithRemainingStock.find(v => v._id.toString() === selectedVariant._id.toString());
+    const selectedVariantRemainingStock = selectedVariantRemainingStockObj?.remainingStock || 0;
+
+
+    console.log('Selected variant remaining stock:', selectedVariantRemainingStock);
+
+    // review pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = 5; 
+    const skip = (page - 1) * limit;
+
+
+
+    // review for a specific product from database
+    const reviews = await Review.find({ product: productId })
+    .populate('user', 'name profileImage')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+      
+
+    // review - average rating
+    const totalReviews = reviews.length;
+    const averageRating = totalReviews === 0
+      ? 0 : reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews;
+
+      // review -star count
+      const reviewStats = {
+          oneStar: 0,
+          twoStar: 0,
+          threeStar: 0,
+          fourStar: 0,
+          fiveStar: 0
+        };
+
+
+        reviews.forEach(review => {
+          switch (review.rating) {
+            case 1: reviewStats.oneStar++; break;
+            case 2: reviewStats.twoStar++; break;
+            case 3: reviewStats.threeStar++; break;
+            case 4: reviewStats.fourStar++; break;
+            case 5: reviewStats.fiveStar++; break;
+          }
         });
 
-    } catch (error) {
-        console.error('Shop-details page error:', error);
-        res.status(500).send('Server error');
-    }
+    // related product
+    const relatedProducts = await Product.find({
+      _id: { $ne: productId },
+      category: product.category
+    }).limit(4);
+
+    res.render('shop-details', {
+      user,
+      product,
+      selectedVariant,
+      variantId,
+      remainingStock: selectedVariantRemainingStock,
+      variantsWithRemainingStock,
+      relatedProducts,
+      reviews,
+      averageRating: averageRating.toFixed(1),
+      totalReviews,
+      reviewStats 
+    });
+
+  } catch (error) {
+    console.error('Shop-details page error:', error);
+    res.status(500).send('Server error');
+  }
 };
 
-  
+const submitReview = async(req,res)=>{
+  try {
+    const { productId,rating,comment } = req.body;
+    console.log('pID',rating)
+    const review = new Review({ user: req.userData._id, product: productId, rating, comment });
+    const savedReview = await review.save();
 
-
-
-
-
-const loadOrderpage = async (req,res)=>{
-    try {
-        
-        res.render('myOrders');
-    } catch (error) {
-        console.log('Order page not found');
-        res.status(500).send('Server error')
-        
+    if(savedReview){
+      res.json({ success: true });
     }
+  } catch (err) {
+    console.log('error',err)
+    res.json({ success: false });
+  }
 }
+
+
 
 
 const logout = async (req,res)=>{
@@ -562,6 +664,7 @@ module.exports = {
     loadShoppage,
     filterProduct,
     shopDetails,
-    loadOrderpage,
+    submitReview,
     logout
 }
+

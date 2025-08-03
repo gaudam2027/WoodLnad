@@ -1,5 +1,6 @@
 const User = require('../../model/userSchema');
 const nodemailer =  require('nodemailer');
+const { validateDOB } = require('../../helpers/validators/validateDOB');
 const env = require('dotenv').config();
 const bcrypt = require("bcrypt");
 
@@ -219,7 +220,8 @@ const editProfile = async (req,res)=>{
         console.log('changing profile...');
         const user = req.session.userId || req.session.user?._id
         const formData = req.body
-        console.log('files',req.file);
+        const {dob} = formData
+        console.log('files',dob);
         
         console.log(user);
         
@@ -233,19 +235,22 @@ const editProfile = async (req,res)=>{
         if(formData){
             console.log(formData)
             console.log(user);
+
+            if (formData.dob) {
+                const { valid, date, message } = validateDOB(formData.dob);
+                if (!valid) {
+                    return res.json({ success: false,existFound:true,existFoundField:'dob', message });
+                }
+             formData.dob = date;
+            }
             
-            const checkEmail = await User.findOne({email:formData.email,_id:{$ne: user}})
             const checkNum = await User.findOne({phone:formData.phone,_id:{$ne: user}})
             
             
-          if (checkEmail && checkNum) {
-            return res.json({ success: false,existBoth:true,emailMsg:"This email already exist",phoneMsg:"This phone number already exist"});
-        
-          }else if(checkEmail){
-            return res.json({ success: false,existFound:true, existFoundField: 'email',message:"This email already exist",});
-          }else if(checkNum){
+          if (checkNum) {
             return res.json({ success: false,existFound:true, existFoundField: 'phone',message:"This phone Number already exist",});
           }
+
             
             await User.findByIdAndUpdate(user,formData);
            return res.json({ success: true});
@@ -312,6 +317,122 @@ const verifyChangeEmail = async (req,res)=>{
 
 
 
+const changePassword = async (req, res) => {
+  try {
+    const userId = req.session.userId || req.session.user?._id;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ success: false, message: "Both fields are required." });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found." });
+    }
+
+    const isPasswordCorrect = await bcrypt.compare(currentPassword, user.password);
+    console.log(isPasswordCorrect)
+    if (!isPasswordCorrect) {
+      return res.status(401).json({ success: false, message: "Current password is incorrect." });
+    }
+
+    function isValidPassword(password) {
+    const regex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+    return regex.test(password);
+    }
+
+    
+    if (!isValidPassword(newPassword)) {
+     return res.status(400).json({ success: false, message: "Password must be at least 8 characters long and contain both letters and numbers.." });
+    }
+
+
+    const isSamePassword = await bcrypt.compare(newPassword, user.password);
+    if (isSamePassword) {
+      return res.status(400).json({ success: false, message: "New password must be different from the current password." });
+    }
+
+    const otp = generateOTP();
+    const emailSent = await sendVerificationEmail(user.email, otp);
+
+    console.log(otp)
+    if (emailSent) {
+      req.session.userOTP = otp;
+      req.session.pendingPassword = newPassword;
+      return res.status(200).json({ success: true, message: "OTP sent to your email." });
+    } else {
+      return res.status(500).json({ success: false, message: "Failed to send OTP. Try again later." });
+    }
+
+  } catch (error) {
+    console.error("Error in changePassword controller:", error);
+    return res.status(500).json({ success: false, message: "Internal server error." });
+  }
+};
+
+const resendOtp = async (req, res) => {
+  try {
+    const userId = req.session.userId || req.session.user?._id;
+    const pendingPassword = req.session.pendingPassword;
+
+    if (!userId || !pendingPassword) {
+      return res.status(400).json({ success: false, message: "No pending password change request found." });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found." });
+    }
+
+    const otp = generateOTP();
+    const emailSent = await sendVerificationEmail(user.email, otp);
+    console.log(`Resend OTP: ${otp}`)
+
+    if (emailSent) {
+      req.session.userOTP = otp;
+      return res.status(200).json({ success: true, message: "OTP resent to your email." });
+    } else {
+      return res.status(500).json({ success: false, message: "Failed to resend OTP." });
+    }
+
+  } catch (error) {
+    console.error("Error in resendOtp controller:", error);
+    return res.status(500).json({ success: false, message: "Internal server error." });
+  }
+};
+
+
+const verifyPasswordOtp = async (req, res) => {
+  try {
+    const { otp } = req.body;
+    const userId = req.session.userId;
+    const storedOtp = req.session.userOTP;
+    const newPassword = req.session.pendingPassword;
+
+    if (!otp || !storedOtp || !newPassword) {
+      return res.status(400).json({ success: false, message: "Missing data. Please try again." });
+    }
+
+    if (otp !== storedOtp) {
+      return res.status(401).json({ success: false, message: "Invalid OTP." });
+    }
+
+    const hashedPassword = await securePassword(newPassword);
+    await User.findByIdAndUpdate(userId, { password: hashedPassword });
+
+    req.session.userOTP = null;
+    req.session.pendingPassword = null;
+
+    return res.status(200).json({ success: true, message: "Password updated successfully." });
+
+  } catch (error) {
+    console.error("Error in verifyPasswordOtp:", error);
+    return res.status(500).json({ success: false, message: "Something went wrong." });
+  }
+};
+
+
 
 module.exports = {
     loadForgotPassword,
@@ -325,4 +446,7 @@ module.exports = {
     editProfile,
     changeEmail,
     verifyChangeEmail,
+    changePassword,
+    resendOtp,
+    verifyPasswordOtp
 }

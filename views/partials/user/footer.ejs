@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="./css/footer.css">
+<link rel="stylesheet" href="/css/footer.css">
 <footer class="footer py-12">
     <div class="container mx-auto px-6">
       <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -48,5 +48,33 @@
       </div>
     </div>
   </footer>
+
+  <% if (user && user._id) { %>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="/socket.io/socket.io.js"></script>
+
+<script>
+ const socket = io();
+
+    // Join the specific room for this user
+    socket.emit('join-user-room', "<%= user._id %>");
+    
+    socket.on('user-block-status', (data) => {
+      if (data.isBlocked) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'You have been blocked by admin',
+          text: 'You will be logged out now.',
+          confirmButtonColor: '#d33',
+          confirmButtonText: 'OK'
+        }).then(() => {
+          window.location = '/' // This will trigger your middleware to clear the session
+        });
+      }
+    });
+</script>
+
+<% } %>
+
 </body>
 </html>

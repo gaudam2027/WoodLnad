@@ -8,21 +8,48 @@
   .swal2-title {
     font-size: 20px !important;
   }
+
+  #toaster {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 9999;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.3s ease;
+    color: white;
+  }
+
+  #toaster.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  #toaster.success {
+    background-color: #38a169; /* green-600 */
+  }
+
+  #toaster.error {
+    background-color: #e53e3e; /* red-600 */
+  }
 </style>
 
 <div class="container mx-auto px-6 py-12">
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
     
     <!-- Sidebar -->
-    <div class="bg-white p-6 rounded-lg shadow-md profile-card relative">
+   <div class="bg-white p-6 rounded-lg shadow-md min-h-[500px] flex flex-col">
       <ul class="space-y-2">
-        <li><a href="#" class="font-semibold s1 block py-2 px-4 rounded hover:bg-gray-200">Gautham</a></li>
-        <li><a href="#" class="block py-2 px-4 rounded hover:bg-gray-200">My Orders</a></li>
-        <li><a href="#" class="block py-2 px-4 rounded hover:bg-gray-200">Manage Address</a></li>
-        <li><a href="#" class="block py-2 px-4 rounded hover:bg-gray-200">Favorites</a></li>
-        <li><a href="#" class="block py-2 px-4 rounded hover:bg-gray-200">Wallet</a></li>
+        <li><a href="/profile" class="block py-2 px-4 rounded bg-gray-100 font-semibold">Profile</a></li>
+        <li><a href="/order" class="block py-2 px-4 rounded hover:bg-gray-200">My Orders</a></li>
+        <li><a href="/address" class="block py-2 px-4 rounded hover:bg-gray-200">Manage Address</a></li>
+        <li><a href="/wishlist" class="block py-2 px-4 rounded hover:bg-gray-200">WishList</a></li>
+        <li><a href="/wallet" class="block py-2 px-4 rounded hover:bg-gray-200">Wallet</a></li>
       </ul>
-      <button class="absolute bottom-4 left-6 right-6 bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-700">Logout</button>
+      <button class="mt-auto w-full bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700">Logout</button>
     </div>
     
     <!-- Profile Info -->
@@ -44,11 +71,11 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="text-gray-500 s1" for="name">Full Name</label>
-          <input type="text" id="name" class="border p-2 w-full profile-input" value="<%= user.name %>">
+          <input type="text" id="name" class="border p-2 w-full profile-input" value="<%= user.name %>" oninput="clearFieldError('name')">
         </div>
         <div>
           <label class="text-gray-500 s1" for="dob">D.O.B</label>
-          <input type="date" id="dob" class="border p-2 w-full profile-input" value="<%= user.DOB %>">
+          <input type="date" id="dob" class="border p-2 w-full profile-input" value="<%= user.dob ? user.dob.toISOString().slice(0, 10) : '' %>"  oninput="clearFieldError('dob')">
         </div>
         <div class="relative">
           <label class="text-gray-500 s1" for="email">Email</label>
@@ -58,25 +85,27 @@
 
         <div>
           <label class="text-gray-500 s1" for="phone">Phone No.</label>
-          <input type="tel" id="phone" class="border p-2 w-full profile-input" value="<%= user.phone %>" >
+          <input type="tel" id="phone" class="border p-2 w-full profile-input" value="<%= user.phone %>" oninput="clearFieldError('phone')">
         </div>
         <div>
           <label class="text-gray-500 s1" for="state">State</label>
-          <input type="text" id="state" class="border p-2 w-full profile-input" value="Kerala">
+          <input type="text" id="state" class="border p-2 w-full profile-input" value="<%= user.state %>" oninput="clearFieldError('state')">
         </div>
         <div>
           <label class="text-gray-500 s1" for="district">District/City/Town</label>
-          <input type="text" id="district" class="border p-2 w-full profile-input" value="Kochi">
+          <input type="text" id="district" class="border p-2 w-full profile-input" value="<%= user.district %>" oninput="clearFieldError('district')">
         </div>
         <div class="col-span-2">
           <label class="text-gray-500 s1" for="address">Address</label>
-          <input type="text" id="address" class="border p-2 w-full profile-input" value="Vytilla near Hyundai store">
+          <input type="text" id="address" class="border p-2 w-full profile-input" value="<%= user.address %>" oninput="clearFieldError('district')">
         </div>
       </div>
 
       <div class="mt-6 flex space-x-4">
         <button id="saveChanges" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-400 w-full">Save Changes</button>
-        <button class="bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-400 w-full">Change Password</button>
+        <%if(user.password){%>
+        <button id="openPasswordModal" class="bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-400 w-full">Change Password</button>
+        <%}%>
       </div>
     </div>
   </div>
@@ -92,7 +121,7 @@
     <div id="emailError" class="text-red-500 text-sm mb-2 hidden">Please enter a valid email.</div>
     <div class="flex justify-end gap-2">
       <button id="cancelEmailBtn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
-      <button id="verifyEmailBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Verify Email</button>
+      <button id="verifyEmailBtn" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700">Verify Email</button>
     </div>
   </div>
 </div>
@@ -110,6 +139,64 @@
     </div>
   </div>
 </div>
+
+
+<!-- Change Password Modal -->
+<div id="passwordModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+  <div class="bg-white rounded-lg p-6 w-96 shadow-lg">
+    <h2 class="text-xl font-semibold mb-4 text-gray-800">Change Password</h2>
+    
+    <label for="currentPassword" class="block text-sm text-gray-600 mb-1">Current Password</label>
+    <input type="password" id="currentPassword" class="border w-full p-2 rounded mb-3" placeholder="Enter current password">
+    
+    <label for="newPassword" class="block text-sm text-gray-600 mb-1">New Password</label>
+    <input type="password" id="newPassword" class="border w-full p-2 rounded mb-3" placeholder="Enter new password">
+    
+    <label for="confirmPassword" class="block text-sm text-gray-600 mb-1">Confirm New Password</label>
+    <input type="password" id="confirmPassword" class="border w-full p-2 rounded mb-3" placeholder="Confirm new password">
+    
+    <div id="passwordError" class="text-red-500 text-sm mb-2 hidden">Please check your password requirements.</div>
+    
+    <div class="flex justify-end gap-2">
+      <button id="cancelPasswordBtn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
+      <button id="verifyPasswordBtn" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700">Send OTP</button>
+    </div>
+  </div>
+</div>
+
+<!-- Password OTP Modal -->
+<div id="passwordOtpModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+  <div class="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl relative">
+    <h2 class="text-2xl font-semibold mb-4 text-gray-800">Verify OTP</h2>
+    
+    <p class="text-sm text-gray-600 mb-4">An OTP has been sent to your email. Please enter it below to confirm the password change.</p>
+
+    <label for="passwordOtpInput" class="block text-sm font-medium text-gray-700 mb-1">Enter OTP</label>
+    <input type="text" id="passwordOtpInput" maxlength="6"
+      class="border border-gray-300 w-full p-2 rounded-md mb-2 focus:ring-2 focus:ring-blue-500 focus:outline-none text-center tracking-widest text-lg"
+      placeholder="6-digit OTP">
+
+    <div id="passwordOtpError" class="text-red-500 text-sm mb-2 hidden">Invalid OTP.</div>
+
+    <!-- Timer and Resend -->
+    <div class="flex justify-between items-center mb-4">
+      <div class="text-sm">
+        <span class="text-gray-500">Expires in</span>
+        <span id="otpTimer" class="ml-1 px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-semibold">60s</span>
+      </div>
+      <button id="resendOtpBtn" class="text-blue-600 text-sm font-medium hover:underline hidden">Resend OTP</button>
+    </div>
+
+    <div class="flex justify-end gap-2">
+      <button id="cancelPasswordOtpBtn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition">Cancel</button>
+      <button id="submitPasswordOtpBtn" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Confirm OTP</button>
+    </div>
+  </div>
+</div>
+
+
+
+<div id="toaster"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -204,6 +291,7 @@ submitOtpBtn.addEventListener('click', async () => {
 
     if (data.success) {
       otpModal.classList.add('hidden');
+      otpInput.value = ''
       Swal.fire({
               title: 'Email Changed Successfully',
               text: '',
@@ -270,6 +358,8 @@ submitOtpBtn.addEventListener('click', async () => {
     const district = document.getElementById('district').value;
     const address = document.getElementById('address').value;
 
+    console.log(address)
+
     let isValid = true;
 
     document.querySelectorAll('.error-message').forEach(el => el.remove());
@@ -287,10 +377,11 @@ submitOtpBtn.addEventListener('click', async () => {
     const nameRegex = /^[A-Za-z\s]+$/;
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     const phoneRegex = /^[0-9]{10}$/;
+    const addressRegex = /^[a-zA-Z0-9\s,'./-]{10,100}$/;
 
 
     validateField(name, 'name', 'Full Name should be characters only', nameRegex);
-    validateField(address, 'address', 'Address is required', nameRegex);
+    validateField(address, 'address', 'Address is required', addressRegex);
     validateField(state, 'state', 'State is required', nameRegex);
     validateField(district, 'district', 'District is required', nameRegex);
     validateField(dob, 'dob', 'Date of Birth is required', dateRegex);
@@ -317,14 +408,17 @@ submitOtpBtn.addEventListener('click', async () => {
 
       const data = await res.json();
       if (data.success) {
-        console.log('Profile updated successfully');
+        showToaster("Profile updated successfully!", "success");
       } else if (data.existBoth) {
         showFieldError('email', data.emailMsg);
         showFieldError('phone', data.phoneMsg);
+        showToaster('error while ');
       } else if (data.existFound) {
         showFieldError(data.existFoundField, data.message);
+        showToaster(`${data.message}`, "error");
       } else {
         console.error('Update failed', data.message);
+        showToaster(`${data.message}`, "error");
       }
     } catch (err) {
       console.error('Error updating profile', err);
@@ -337,6 +431,240 @@ submitOtpBtn.addEventListener('click', async () => {
     error.textContent = message;
     document.getElementById(id).insertAdjacentElement('afterend', error);
   }
+
+// Password change modal elements
+const passwordModal = document.getElementById('passwordModal');
+const passwordOtpModal = document.getElementById('passwordOtpModal');
+
+// Get the Change Password button by its ID (it already exists in your HTML)
+const openPasswordModal = document.getElementById('openPasswordModal');
+
+const cancelPasswordBtn = document.getElementById('cancelPasswordBtn');
+const verifyPasswordBtn = document.getElementById('verifyPasswordBtn');
+const currentPasswordInput = document.getElementById('currentPassword');
+const newPasswordInput = document.getElementById('newPassword');
+const confirmPasswordInput = document.getElementById('confirmPassword');
+const passwordError = document.getElementById('passwordError');
+
+const passwordOtpInput = document.getElementById('passwordOtpInput');
+const passwordOtpError = document.getElementById('passwordOtpError');
+const cancelPasswordOtpBtn = document.getElementById('cancelPasswordOtpBtn');
+const submitPasswordOtpBtn = document.getElementById('submitPasswordOtpBtn');
+
+let passwordChangeData = {}; // Store password data for OTP verification
+
+// Show password modal
+openPasswordModal.addEventListener('click', () => {
+  passwordModal.classList.remove('hidden');
+  currentPasswordInput.value = '';
+  newPasswordInput.value = '';
+  confirmPasswordInput.value = '';
+  passwordError.classList.add('hidden');
+});
+
+// Close password modal
+cancelPasswordBtn.addEventListener('click', () => {
+  passwordModal.classList.add('hidden');
+});
+
+
+//OTP resend and timer
+  let otpTimerInterval;
+  let otpTimeLeft = 60;
+
+  function startOtpTimer() {
+    const timerDisplay = document.getElementById('otpTimer');
+    const resendBtn = document.getElementById('resendOtpBtn');
+    resendBtn.classList.add('hidden');
+    otpTimeLeft = 60;
+
+    timerDisplay.textContent = `${otpTimeLeft}s`;
+
+    clearInterval(otpTimerInterval); // prevent multiple timers
+    otpTimerInterval = setInterval(() => {
+      otpTimeLeft--;
+      timerDisplay.textContent = `${otpTimeLeft}s`;
+
+      if (otpTimeLeft <= 49) {
+        resendBtn.classList.remove('hidden');
+      }
+
+      if (otpTimeLeft <= 0) {
+        clearInterval(otpTimerInterval);
+        timerDisplay.textContent = 'Expired';
+      }
+    }, 1000);
+  }
+
+  function stopOtpTimer() {
+    clearInterval(otpTimerInterval);
+    document.getElementById('otpTimer').textContent = '';
+    document.getElementById('resendOtpBtn').classList.add('hidden');
+  }
+
+  document.getElementById('resendOtpBtn').addEventListener('click', () => {
+    // Call resend OTP logic here
+    fetch('/resend-password-otp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        showToaster('OTP resent to your email.', 'success');
+        startOtpTimer(); // restart timer
+      } else {
+        showToaster(data.message || 'Failed to resend OTP.', 'error');
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      showToaster('An error occurred while resending OTP.', 'error');
+    });
+  });
+
+  document.getElementById('cancelPasswordOtpBtn').addEventListener('click', () => {
+    document.getElementById('passwordOtpModal').classList.add('hidden');
+    stopOtpTimer();
+  });
+
+  // Call this function when opening the modal
+  function openOtpModal() {
+    document.getElementById('passwordOtpModal').classList.remove('hidden');
+    startOtpTimer();
+  }
+
+// Verify password and send OTP
+verifyPasswordBtn.addEventListener('click', async () => {
+  const currentPassword = currentPasswordInput.value.trim();
+  const newPassword = newPasswordInput.value.trim();
+  const confirmPassword = confirmPasswordInput.value.trim();
+
+  // Validation
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    passwordError.classList.remove('hidden');
+    passwordError.textContent = 'All fields are required.';
+    return;
+  }
+
+  if (newPassword.length < 8) {
+    passwordError.classList.remove('hidden');
+    passwordError.textContent = 'New password must be at least 8 characters long.';
+    return;
+  }
+
+  if (newPassword !== confirmPassword) {
+    passwordError.classList.remove('hidden');
+    passwordError.textContent = 'New passwords do not match.';
+    return;
+  }
+
+  if (currentPassword === newPassword) {
+    passwordError.classList.remove('hidden');
+    passwordError.textContent = 'New password must be different from current password.';
+    return;
+  }
+
+  passwordError.classList.add('hidden');
+
+  try {
+    const res = await fetch('/changePassword', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        currentPassword: currentPassword,
+        newPassword: newPassword 
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      passwordChangeData = { currentPassword, newPassword };
+      passwordModal.classList.add('hidden');
+      passwordOtpModal.classList.remove('hidden');
+      passwordOtpInput.value = '';
+      passwordOtpError.classList.add('hidden');
+      openOtpModal()
+    } else {
+      passwordError.classList.remove('hidden');
+      passwordError.textContent = data.message || 'Failed to send OTP.';
+    }
+  } catch (error) {
+    passwordError.classList.remove('hidden');
+    passwordError.textContent = 'Something went wrong. Try again.';
+  }
+});
+
+// Submit password OTP
+submitPasswordOtpBtn.addEventListener('click', async () => {
+  const otp = passwordOtpInput.value.trim();
+  
+  if (!otp) {
+    passwordOtpError.classList.remove('hidden');
+    passwordOtpError.textContent = 'OTP is required.';
+    return;
+  }
+
+  try {
+    const res = await fetch('/verifyPassword-OTP', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        otp: otp,
+        currentPassword: passwordChangeData.currentPassword,
+        newPassword: passwordChangeData.newPassword
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      passwordOtpModal.classList.add('hidden');
+      passwordOtpInput.value = '';
+      passwordChangeData = {}; // Clear stored data
+
+      showToaster('Password Changed Successfully', "success");
+      
+    } else {
+      passwordOtpError.classList.remove('hidden');
+      passwordOtpError.textContent = data.message || 'Invalid OTP.';
+      showToaster(`${data.message}`, "error");
+      
+    }
+  } catch (err) {
+    passwordOtpError.classList.remove('hidden');
+    passwordOtpError.textContent = 'Error verifying OTP.';
+  }
+});
+
+function clearFieldError(id) {
+  const inputElement = document.getElementById(id);
+  if (!inputElement) return;
+
+  // Find the next sibling with class 'error-message' and remove it
+  const next = inputElement.nextElementSibling;
+  if (next && next.classList.contains('error-message')) {
+    next.remove();
+  }
+}
+
+//Toaster Message Function
+function showToaster(message, type = 'success', duration = 3000) {
+  const toaster = document.getElementById('toaster');
+  toaster.textContent = message;
+
+  // Reset previous state
+  toaster.className = '';
+  toaster.classList.add('show', type);
+
+  setTimeout(() => {
+    toaster.classList.remove('show');
+  }, duration);
+}
+
 </script>
 
 <%- include('../../views/partials/user/footer') %>

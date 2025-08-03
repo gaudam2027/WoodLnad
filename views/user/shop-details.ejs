@@ -1,18 +1,31 @@
-
 <link rel="stylesheet" href="./css/home.css">
-
-
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 <%- include('../../views/partials/user/header') %>
-<style>
 
+<style>
   #imageZoom {
     position: relative;
   }
   #imageZoom img {
     width: 100%;
-    height: 100%;
+    height: 537px;
     object-fit: cover;
     object-position: 0 0;
+  }
+  @media (max-width: 1024px) {
+    #imageZoom img {
+      height: 350px;
+    }
+  }
+  @media (max-width: 768px) {
+    #imageZoom img {
+      height: 300px;
+    }
+  }
+  @media (max-width: 640px) {
+    #imageZoom img {
+      height: 250px;
+    }
   }
   #imageZoom::after {
     display: var(--display);
@@ -26,160 +39,579 @@
     position: absolute;
     left: 0;
     top: 0;
-    border-radius: 0.5rem; /* to match rounded corners */
+    border-radius: 0.5rem;
   }
+  .variant-disabled {
+    opacity: 0.5;
+    cursor: not-allowed !important;
+    pointer-events: none;
+  }
+  .stock-message {
+    font-weight: 500;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-top: 8px;
+    display: inline-block;
+  }
+  .stock-out {
+    background-color: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+  }
+  .stock-low {
+    background-color: #fef3c7;
+    color: #d97706;
+    border: 1px solid #fed7aa;
+  }
+  .stock-available {
+    background-color: #dcfce7;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+  }
+  .star-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+  }
+  .star-btn:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  /* Toast Notification Styles */
+  .toast-notification {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    z-index: 9999;
+    min-width: 300px;
+    max-width: 500px;
+    opacity: 0;
+    transition: all 0.3s ease-in-out;
+    pointer-events: none;
+  }
+  .toast-notification.toast-show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .toast-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    font-weight: 500;
+    font-size: 14px;
+  }
+  .toast-success .toast-content {
+    background-color: #10b981;
+    color: white;
+  }
+  .toast-error .toast-content {
+    background-color: #ef4444;
+    color: white;
+  }
+  .toast-warning .toast-content {
+    background-color: #f59e0b;
+    color: white;
+  }
+  .toast-info .toast-content {
+    background-color: #3b82f6;
+    color: white;
+  }
+  .toast-close {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+    margin-left: auto;
+  }
+  .toast-close:hover {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  @media (max-width: 640px) {
+    .star-btn {
+      font-size: 1.25rem;
+    }
+    .toast-notification {
+      left: 10px;
+      right: 10px;
+      transform: translateY(100px);
+      min-width: auto;
+      max-width: none;
+    }
+    .toast-notification.toast-show {
+      transform: translateY(0);
+    }
+    .toast-content {
+      padding: 14px 16px;
+      font-size: 13px;
+    }
+  }
+.custom-toast {
+  font-size: 0.85rem;
+  padding: 8px 12px;
+  min-width: 220px;
+  max-width: 620px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
 
 </style>
 
-
-<div class="max-w-7xl mx-auto px-4 py-10 select-none">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-10 select-none">
+  <!-- Breadcrumb -->
+  <nav class="text-sm text-gray-600 mb-4" aria-label="Breadcrumb">
+    <ol class="list-none p-0 inline-flex items-center space-x-1 sm:space-x-2">
+      <li>
+        <a href="/" class="text-gray-500 hover:text-gray-800">Home</a>
+        <span class="mx-2 text-gray-900 font-semibold text-sm">></span>
+      </li>
+      <li>
+        <a href="/shop" class="text-gray-500 hover:text-gray-800">Shop</a>
+        <span class="mx-2 text-gray-900 font-semibold text-sm">></span>
+      </li>
+      <li class="text-gray-800 font-medium truncate max-w-[200px] sm:max-w-xs">
+        <%= product.productName %>
+      </li>
+    </ol>
+  </nav>
 
   <!-- Top Section -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-20 mb-16">
-    
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-20 mb-16">
     <!-- Left: Image Section -->
     <div class="w-full">
       <!-- Main Image -->
-      <div id="imageZoom" class="border rounded-lg overflow-hidden" style="
-          --url: url('/uploads/product-images/<%= product.images[0] %>');
-          --zoom-x: 0%; 
-          --zoom-y: 0%;
-          --display: none
-        ">
-          <img id="mainImage" src="/uploads/product-images/<%= product.images[0] %>" class="w-full h-[400px] object-cover" alt="Main Product Image">
-        </div>
-
+      <div id="imageZoom" class="border rounded-lg overflow-hidden"
+        style="--url: url('/uploads/product-images/<%= product.images[0] %>'); --zoom-x: 0%; --zoom-y: 0%; --display: none">
+        <img id="mainImage" src="/uploads/product-images/<%= product.images[0] %>" 
+             class="w-full h-[300px] md:h-[350px] lg:h-[400px] object-cover" alt="Main Product Image">
+      </div>
+      
       <!-- Thumbnails -->
-      <div class="flex gap-3 mt-4 flex-wrap">
+      <div class="flex gap-3 mt-4 flex-wrap mb-6">
         <% product.images.forEach((image, index) => { %>
-          <img 
-            src="/uploads/product-images/<%= image %>" 
-            class="w-20 h-20 object-cover rounded cursor-pointer border hover:border-blue-500 transition" 
+          <img
+            src="/uploads/product-images/<%= image %>"
+            class="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded cursor-pointer border hover:border-blue-500 transition"
             onclick="changeMainImage('/uploads/product-images/<%= image %>')"
             alt="Thumbnail <%= index + 1 %>">
         <% }) %>
       </div>
     </div>
 
-
     <!-- Right: Product Details -->
-<div class="flex flex-col  h-full space-y-6">
-  <div class="space-y-6">
-    <!-- Title & Offer -->
-    <div class="flex justify-between items-center">
-      <h1 class="text-3xl font-bold text-gray-800 tracking-tight"><%= product.productName %></h1>
-      <% if (product.offer) { %>
-        <span class="bg-red-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
-          <%= product.offer %> OFF
-        </span>
-      <% } %>
-    </div>
+    <div class="flex flex-col space-y-6">
+      <div class="space-y-6">
+        <!-- Title & Offer -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 tracking-tight break-words">
+            <%= product.productName %>
+          </h1>
+          <% if (product.offer) { %>
+            <span class="bg-red-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
+              <%= product.offer %> OFF
+            </span>
+          <% } %>
+        </div>
 
-    <!-- Rating -->
-    <div class="flex items-center text-yellow-400 text-lg">
-      <i class="fas fa-star"></i>
-      <i class="fas fa-star"></i>
-      <i class="fas fa-star"></i>
-      <i class="fas fa-star-half-alt"></i>
-      <i class="far fa-star"></i>
-      <span class="text-gray-600 text-sm ml-2">(132 reviews)</span>
-    </div>
+        <% 
+          const fullStars = Math.floor(averageRating);
+          const hasHalfStar = averageRating % 1 >= 0.25 && averageRating % 1 <= 0.75;
+          const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+        %>
 
-    <!-- Price Section -->
-    <div class="flex items-center gap-4 mt-4">
-      <span id="salePrice" class="text-2xl text-gray-600 font-semibold">
-        Price: ₹ <%= product.variants[0].salePrice.toLocaleString('en-IN') %>
-      </span>
-      <span id="regularPrice" class="text-gray-500 line-through text-base">
-        ₹ <%= product.variants[0].regularPrice.toLocaleString('en-IN') %>
-      </span>
-    </div>
+        <!-- Rating -->
+        <div class="flex items-center text-yellow-400 text-lg">
+          <% for(let i = 0; i < fullStars||0; i++) { %>
+            <i class="fas fa-star"></i>
+          <% } %>
+          <% if(hasHalfStar) { %>
+            <i class="fas fa-star-half-alt"></i>
+          <% } %>
+          <% for(let i = 0; i < emptyStars||0; i++) { %>
+            <i class="far fa-star"></i>
+          <% } %>
+          <span class="text-gray-600 text-sm ml-2">(<%= totalReviews %> reviews)</span>
+        </div>
 
-   <!-- Color Selection -->
-   <% 
-   const uniqueVariants = {};
-   product.variants.forEach(v => {
-     if (!uniqueVariants[v.color]) uniqueVariants[v.color] = v;
-   });
-    %>
-    <% if (Object.keys(uniqueVariants).length > 0) { %>
-      <div class="flex items-center gap-3 flex-wrap mt-4">
-        <span class="text-gray-700 font-medium">Color:</span>
-        <% for (let color in uniqueVariants) { 
-            const variant = uniqueVariants[color]; %>
-          <span
-            class="variant-color px-3 py-1 bg-gray-100 text-gray-800 text-sm rounded-full border border-gray-300 shadow-sm hover:bg-gray-200 cursor-pointer transition"
-            data-color="<%= variant.color %>"
-            data-sale-price="<%= variant.salePrice %>"
-            data-regular-price="<%= variant.regularPrice %>"
-          >
-          <input type="hidden" name="selectedColor" id="selectedColor">
-            <%= variant.color.charAt(0).toUpperCase() + variant.color.slice(1) %>
+        <!-- Price Section -->
+        <div class="flex flex-wrap items-center gap-4 mt-4">
+          <span id="salePrice" class="text-xl sm:text-2xl text-gray-600 font-semibold">
+            Price: ₹ <span id="currentSalePrice"><%= selectedVariant.salePrice.toLocaleString('en-IN') %></span>
           </span>
-        <% } %>
+          <span id="regularPrice" class="text-gray-500 line-through text-base">
+            ₹ <span id="currentRegularPrice"><%= selectedVariant.regularPrice.toLocaleString('en-IN') %></span>
+          </span>
+        </div>
+
+        <!-- Color Selection -->
+        <div id="colorSelection" class="flex flex-wrap items-center gap-3 mt-4">
+          <span class="text-gray-700 font-medium">Color:</span>
+          <%
+            const seenColors = new Set();
+            variantsWithRemainingStock.forEach((variant) => {
+              if (!seenColors.has(variant.color)) {
+                seenColors.add(variant.color);
+          %>
+            <span 
+              class="variant-color cursor-pointer px-3 py-1 bg-gray-100 text-gray-800 text-sm rounded-full border border-gray-300 shadow-sm hover:bg-gray-200 transition
+                <%= selectedVariant._id.toString() === variant._id.toString() ? 'border-blue-600 bg-blue-100' : '' %>
+                <%= variant.remainingStock === 0 ? 'variant-disabled' : '' %>"
+              title="<%= variant.remainingStock === 0 ? 'Out of Stock' : 'Select color ' + variant.color %>"
+              data-variant-id="<%= variant._id %>"
+              data-sale-price="<%= variant.salePrice %>"
+              data-regular-price="<%= variant.regularPrice %>"
+              data-remaining-stock="<%= variant.remainingStock %>"
+              data-original-quantity="<%= variant.originalQuantity %>"
+              data-color="<%= variant.color %>"
+              <%= variant.remainingStock === 0 ? 'data-disabled="true"' : '' %>
+            >
+              <%= variant.color.charAt(0).toUpperCase() + variant.color.slice(1) %>
+              <% if (variant.remainingStock === 0) { %>
+                <span class="text-xs text-red-500 ml-1">(Out of Stock)</span>
+              <% } %>
+            </span>
+          <% } }); %>
+        </div>
+
+        <!-- Stock Status Message -->
+        <div id="stockStatus" class="stock-message <%= remainingStock === 0 ? 'stock-out' : remainingStock <= 5 ? 'stock-low' : 'stock-available' %>">
+          <% if (remainingStock === 0) { %>
+            <i class="fas fa-times-circle mr-2"></i>Currently Out Of Stock
+          <% } else if (remainingStock <= 5) { %>
+            <i class="fas fa-exclamation-triangle mr-2"></i>Hurry! Only <%= remainingStock %> left in stock
+          <% } else { %>
+            <i class="fas fa-check-circle mr-2"></i>In Stock (<%= remainingStock %> available)
+          <% } %>
+        </div>
+
+        <!-- Quantity Control -->
+        <form id="addToCartForm" class="flex flex-col lg:flex-row lg:items-center gap-4 mt-6">
+          <div class="flex items-center gap-4">
+            <span class="text-gray-700 font-medium">Quantity:</span>
+            <div class="flex items-center border border-gray-300 rounded-md overflow-hidden">
+              <button type="button" id="decreaseQty" 
+                class="px-3 py-1 text-xl text-gray-600 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">−</button>
+              <input 
+                type="text"
+                id="quantity-display"
+                value="1"
+                readonly
+                class="w-12 text-center outline-none border-x border-gray-300"
+                data-max="<%= remainingStock %>"
+              >
+              <input type="hidden" name="quantity" id="quantity-input" value="1">
+              <input type="hidden" name="productId" value="<%= product._id %>">
+              <input type="hidden" name="variantId" id="selectedVariantId" value="<%= selectedVariant._id %>">
+              <button type="button" id="increaseQty" 
+                class="px-3 py-1 text-xl text-gray-600 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">+</button>
+            </div>
+          </div>
+          
+          <button type="submit" id="addToCartBtn"
+            class="px-6 py-2 rounded-lg transition shadow flex items-center gap-2 w-full sm:w-auto
+            <%= remainingStock === 0 ? 'bg-gray-400 text-gray-600 cursor-not-allowed' : 'bg-gray-800 text-white hover:bg-gray-600' %>"
+            <%= remainingStock === 0 ? 'disabled' : '' %>>
+            <i class="fas fa-shopping-cart"></i>
+            <%= remainingStock === 0 ? 'Out of Stock' : 'Add to Cart' %>
+          </button>
+        </form>
+
+        <!-- Quantity Message -->
+        <div id="quantityMessage" class="text-sm mt-2 hidden"></div>
+
+        <!-- Wishlist Link -->
+        <a href="#"
+          class="add-to-wishlist-link text-red-500 hover:text-red-800 transition-all py-2 rounded-lg flex items-center gap-2"
+          data-product-id="<%= product._id %>"
+          data-variant-id="<%= selectedVariant._id %>">
+          <i class="fas fa-heart"></i> Add To Wishlist
+        </a>
+      </div>
+
+      <!-- Description -->
+      <p class="text-gray-700 text-base leading-relaxed border-t pt-4">
+        <%= product.description %>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Reviews Section -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+  <div class="border-t pt-10">
+    <!-- Reviews Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
+      <div>
+        <h2 class="text-2xl font-bold text-gray-800 mb-2">Customer Reviews</h2>
+        <div class="flex items-center gap-4">
+          <div class="flex items-center text-yellow-400 text-lg">
+            <% for(let i = 0; i < fullStars||0; i++) { %>
+              <i class="fas fa-star"></i>
+            <% } %>
+            <% if(hasHalfStar) { %>
+              <i class="fas fa-star-half-alt"></i>
+            <% } %>
+            <% for(let i = 0; i < emptyStars||0; i++) { %>
+              <i class="far fa-star"></i>
+            <% } %>
+          </div>
+          <span class="text-gray-600 text-lg font-medium">
+            <%= averageRating ? averageRating : '0.0' %> out of 5
+          </span>
+          <span class="text-gray-500">(<%= totalReviews %> reviews)</span>
+        </div>
+      </div>
+      
+      <!-- Review Stats -->
+      <div class="mt-4 sm:mt-0">
+        <div class="text-right">
+          <div class="text-sm text-gray-600">
+            <% if (totalReviews > 0) { %>
+              <div class="flex items-center gap-2 mb-1">
+                <span class="w-12 text-xs">5 star</span>
+                <div class="w-20 bg-gray-200 rounded-full h-2">
+                  <div class="bg-yellow-400 h-2 rounded-full" style="width: <%= ((reviewStats?.fiveStar || 0) / totalReviews * 100) %>%"></div>
+                </div>
+                <span class="text-xs w-8"><%= reviewStats?.fiveStar || 0 %></span>
+              </div>
+              <div class="flex items-center gap-2 mb-1">
+                <span class="w-12 text-xs">4 star</span>
+                <div class="w-20 bg-gray-200 rounded-full h-2">
+                  <div class="bg-yellow-400 h-2 rounded-full" style="width: <%= ((reviewStats?.fourStar || 0) / totalReviews * 100) %>%"></div>
+                </div>
+                <span class="text-xs w-8"><%= reviewStats?.fourStar || 0 %></span>
+              </div>
+              <div class="flex items-center gap-2 mb-1">
+                <span class="w-12 text-xs">3 star</span>
+                <div class="w-20 bg-gray-200 rounded-full h-2">
+                  <div class="bg-yellow-400 h-2 rounded-full" style="width: <%= ((reviewStats?.threeStar || 0) / totalReviews * 100) %>%"></div>
+                </div>
+                <span class="text-xs w-8"><%= reviewStats?.threeStar || 0 %></span>
+              </div>
+              <div class="flex items-center gap-2 mb-1">
+                <span class="w-12 text-xs">2 star</span>
+                <div class="w-20 bg-gray-200 rounded-full h-2">
+                  <div class="bg-yellow-400 h-2 rounded-full" style="width: <%= ((reviewStats?.twoStar || 0) / totalReviews * 100) %>%"></div>
+                </div>
+                <span class="text-xs w-8"><%= reviewStats?.twoStar || 0 %></span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-12 text-xs">1 star</span>
+                <div class="w-20 bg-gray-200 rounded-full h-2">
+                  <div class="bg-yellow-400 h-2 rounded-full" style="width: <%= ((reviewStats?.oneStar || 0) / totalReviews * 100) %>%"></div>
+                </div>
+                <span class="text-xs w-8"><%= reviewStats?.oneStar || 0 %></span>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Review Form (Only for logged-in users) -->
+    <% if (user) { %>
+      <div class="bg-gray-50 rounded-lg p-6 mb-8">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Write a Review</h3>
+        <form id="reviewForm" action="/review" method="POST" data-product-id="<%=product._id%>">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Rating Selection -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Your Rating</label>
+              <div class="flex items-center gap-1" id="starRating">
+                <% for(let i = 1; i <= 5; i++) { %>
+                  <button type="button" class="star-btn text-2xl text-gray-300 hover:text-yellow-400 transition-colors" data-rating="<%= i %>">
+                    <i class="far fa-star"></i>
+                  </button>
+                <% } %>
+              </div>
+              <input type="hidden" name="rating" id="ratingInput" required>
+              <p class="text-sm text-gray-500 mt-1">Click to rate this product</p>
+            </div>
+            
+            <!-- User Info Display -->
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
+                <% if (user.profileImage) { %>
+                  <img src="<%= user.profileImage %>" alt="<%= user.name %>" class="w-full h-full object-cover">
+                <% } else { %>
+                  <i class="fas fa-user text-gray-600 text-lg"></i>
+                <% } %>
+              </div>
+              <div>
+                <p class="font-medium text-gray-800"><%= user.name %></p>
+                <p class="text-sm text-gray-500">Verified Purchase</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Comment -->
+          <div class="mt-4">
+            <label for="comment" class="block text-sm font-medium text-gray-700 mb-2">Your Review</label>
+            <textarea 
+              name="comment"
+              id="comment"
+              rows="4"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              placeholder="Share your experience with this product..."
+              required
+            ></textarea>
+          </div>
+          
+          <!-- Submit Button -->
+          <div class="mt-4 flex justify-end">
+            <button 
+              type="submit"
+              class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
+              id="submitReview"
+            >
+              Submit Review
+            </button>
+          </div>
+        </form>
+      </div>
+    <% } else { %>
+      <!-- Login prompt for non-logged users -->
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
+        <div class="flex items-center gap-2">
+          <i class="fas fa-info-circle text-blue-600"></i>
+          <p class="text-blue-800">
+            <a href="/signIn" class="font-medium underline hover:no-underline">Sign in</a> to write a review for this product.
+          </p>
+        </div>
       </div>
     <% } %>
 
-    <!-- Size Selection -->
-    <!-- <% const sizeSet = new Set(); 
-    product.variants.forEach(v => sizeSet.add(v.size));%>
-    <% if (sizeSet.size > 0) { %>
-    <div class="flex items-center gap-3 flex-wrap mt-4">
-      <span class="text-gray-700 font-medium">Size:</span>
-      <% Array.from(sizeSet).forEach(size => { %>
-        <span class="px-3 py-1 border border-gray-300 rounded-md text-sm cursor-pointer hover:bg-gray-200">
-          <%= size %>
-        </span>
-      <% }) %>
-    </div>
-    <% } %> -->
-
-    <!-- Quantity Control -->
-    <form action="/addToCart/<%= product._id %>" method="POST" class="flex flex-col md:flex-row md:items-center gap-4 mt-6">
-      <div class="flex items-center gap-4">
-        <span class="text-gray-700 font-medium">Quantity:</span>
-        <% if (product.variants[0].quantity) { %>
-          <div class="flex items-center border border-gray-300 rounded-md overflow-hidden">
-            <button type="button" onclick="adjustQty(-1)" class="px-3 py-1 text-xl text-gray-600 hover:bg-gray-200">−</button>
-            <input type="text" id="quantity" name="quantityDisplay" value="1" readonly class="w-12 text-center outline-none border-x border-gray-300">
-            <input type="hidden" name="quantity" id="formQty" value="1">
-            <button type="button" onclick="adjustQty(1)" class="px-3 py-1 text-xl text-gray-600 hover:bg-gray-200">+</button>
+    <!-- Reviews List -->
+    <div class="space-y-6">
+      <% if (reviews && reviews.length > 0) { %>
+        <% reviews.forEach(review => { %>
+          <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-start gap-4">
+              <!-- User Avatar -->
+              <div class="flex-shrink-0">
+                <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
+                  <% if (review.user.profileImage) { %>
+                    <img src="<%= review.user.profileImage %>" alt="<%= review.user.name %>" class="w-full h-full object-cover">
+                  <% } else { %>
+                    <i class="fas fa-user text-gray-600 text-lg"></i>
+                  <% } %>
+                </div>
+              </div>
+              
+              <!-- Review Content -->
+              <div class="flex-1 min-w-0">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
+                  <div>
+                    <h4 class="font-semibold text-gray-800"><%= review.user.name %></h4>
+                    <div class="flex items-center gap-2 mt-1">
+                      <!-- Star Rating -->
+                      <div class="flex items-center text-yellow-400">
+                        <% for(let i = 1; i <= 5; i++) { %>
+                          <% if (i <= review.rating) { %>
+                            <i class="fas fa-star text-sm"></i>
+                          <% } else { %>
+                            <i class="far fa-star text-sm"></i>
+                          <% } %>
+                        <% } %>
+                      </div>
+                      <span class="text-sm text-gray-500">
+                        <%= new Date(review.createdAt).toLocaleDateString('en-US', {
+                           year: 'numeric',
+                           month: 'long',
+                           day: 'numeric'
+                         }) %>
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <!-- Verified Purchase Badge -->
+                  <div class="mt-2 sm:mt-0">
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      <i class="fas fa-check-circle mr-1"></i>
+                      Verified Purchase
+                    </span>
+                  </div>
+                </div>
+                
+                <!-- Review Text -->
+                <p class="text-gray-700 leading-relaxed mt-3">
+                  <%= review.comment %>
+                </p>
+                
+                <!-- Review Actions -->
+                <div class="flex items-center gap-4 mt-4 text-sm">
+                  <button class="text-gray-500 hover:text-gray-700 transition-colors flex items-center gap-1">
+                    <i class="far fa-thumbs-up"></i>
+                    Helpful (<%= review.helpfulCount || 0 %>)
+                  </button>
+                  <button class="text-gray-500 hover:text-gray-700 transition-colors">
+                    Report
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+        
+        <!-- Load More Reviews Button -->
+        <% if (totalReviews > reviews.length) { %>
+          <div class="text-center mt-8">
+            <button 
+              id="loadMoreReviews"
+              class="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+              data-product-id="<%= product._id %>"
+              data-page="2"
+            >
+              Load More Reviews
+            </button>
           </div>
         <% } %>
-      </div>
-    
-      <button type="submit" class="bg-gray-800 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition shadow flex items-center gap-2">
-        <i class="fas fa-shopping-cart"></i> Add to Cart
-      </button>
-    </form>
-    
-    <!-- Wishlist Link -->
-    <a href="/addToWishlist/<%= product._id %>" class="text-red-500 hover:text-red-800 transition-all py-2 rounded-lg flex items-center gap-2 mt-4 md:mt-0">
-      <i class="fas fa-heart"></i> Add To Wishlist
-    </a>
-    
-    
+      <% } else { %>
+        <!-- No Reviews State -->
+        <div class="text-center py-12">
+          <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-star text-gray-400 text-2xl"></i>
+          </div>
+          <h3 class="text-lg font-medium text-gray-800 mb-2">No reviews yet</h3>
+          <p class="text-gray-500 mb-4">Be the first to review this product!</p>
+          <% if (!user) { %>
+            <a href="/signIn" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+              Sign in to write a review
+            </a>
+          <% } %>
+        </div>
+      <% } %>
+    </div>
   </div>
-
- 
-  
-    <!-- Description -->
-    <p class="text-gray-700 text-base leading-relaxed border-t pt-4">
-      <%= product.description %>
-    </p>
-  
-</div>
-</div>
 </div>
 
 <!-- Bottom Section: Related Products -->
-<div class="max-w-7xl mx-auto mb-5">
+<div class="max-w-7xl mx-auto mb-5 px-4">
   <h2 class="text-xl font-semibold text-gray-800 mb-6">Related Products</h2>
-  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
     <% relatedProducts.forEach(prod => { %>
       <div class="bg-white rounded-lg shadow hover:shadow-lg transition">
         <a href="/shopDetails?id=<%= prod._id %>">
-          <img src="/uploads/product-images/<%= prod.images[0] %>" alt="<%= prod.productName %>" class="h-48 w-full object-cover rounded-t-lg">
+          <img src="/uploads/product-images/<%= prod.images[0] %>" alt="<%= prod.productName %>" 
+               class="h-44 w-full object-cover rounded-t-lg">
         </a>
         <div class="p-4">
           <h3 class="font-semibold text-gray-800 text-md line-clamp-2 mb-1"><%= prod.productName %></h3>
@@ -190,12 +622,182 @@
   </div>
 </div>
 
+<!-- Socket.io -->
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-
-
-
+<!-- Lottie Web -->
+<script type="module" src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.6.2/dist/dotlottie-wc.js"></script>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Product variants data with remaining stock for JavaScript
+  const productVariants = <%- JSON.stringify(variantsWithRemainingStock) %>;
+  const productId = '<%= product._id %>';
+  let currentVariantId = '<%= selectedVariant._id %>';
+  let currentQuantity = 1;
+
+  // DOM Elements
+  const quantityDisplay = document.getElementById('quantity-display');
+  const quantityInput = document.getElementById('quantity-input');
+  const decreaseBtn = document.getElementById('decreaseQty');
+  const increaseBtn = document.getElementById('increaseQty');
+  const addToCartBtn = document.getElementById('addToCartBtn');
+  const stockStatus = document.getElementById('stockStatus');
+  const quantityMessage = document.getElementById('quantityMessage');
+  const selectedVariantIdInput = document.getElementById('selectedVariantId');
+
+  // Find variant by ID
+  function findVariantById(variantId) {
+    return productVariants.find(variant => variant._id === variantId);
+  }
+
+  // Update UI based on current variant
+  function updateVariantUI(variantId) {
+    const variant = findVariantById(variantId);
+    if (!variant) return;
+    
+    const remainingStock = variant.remainingStock;
+    console.log('Updating variant UI:', { variantId, remainingStock, variant });
+
+    // Update prices
+    document.getElementById('currentSalePrice').textContent = variant.salePrice.toLocaleString('en-IN');
+    document.getElementById('currentRegularPrice').textContent = variant.regularPrice.toLocaleString('en-IN');
+
+    // Update stock status
+    updateStockStatus(remainingStock);
+
+    // Update quantity controls
+    updateQuantityControls(remainingStock);
+
+    // Update selected variant ID
+    selectedVariantIdInput.value = variantId;
+    currentVariantId = variantId;
+
+    // Update wishlist link with current variant ID
+    const wishlistLink = document.querySelector('.add-to-wishlist-link');
+    if (wishlistLink) {
+      wishlistLink.setAttribute('data-variant-id', variantId);
+    }
+
+    // Reset quantity to 1
+    currentQuantity = 1;
+    if (quantityDisplay) {
+      quantityDisplay.value = currentQuantity;
+      quantityDisplay.setAttribute('data-max', remainingStock);
+    }
+    if (quantityInput) quantityInput.value = currentQuantity;
+  }
+
+  // Update stock status message
+  function updateStockStatus(remainingStock) {
+    stockStatus.className = 'stock-message';
+    
+    if (remainingStock === 0) {
+      stockStatus.className += ' stock-out';
+      stockStatus.innerHTML = '<i class="fas fa-times-circle mr-2"></i>Currently Out Of Stock';
+    } else if (remainingStock <= 5) {
+      stockStatus.className += ' stock-low';
+      stockStatus.innerHTML = `<i class="fas fa-exclamation-triangle mr-2"></i>Hurry! Only ${remainingStock} left in stock`;
+    } else {
+      stockStatus.className += ' stock-available';
+      stockStatus.innerHTML = `<i class="fas fa-check-circle mr-2"></i>In Stock (${remainingStock} available)`;
+    }
+  }
+
+  // Update quantity controls
+  function updateQuantityControls(remainingStock) {
+    const quantityContainer = document.querySelector('.flex.items-center.border.border-gray-300');
+    
+    if (remainingStock === 0) {
+      // Disable all quantity controls
+      if (decreaseBtn) decreaseBtn.disabled = true;
+      if (increaseBtn) increaseBtn.disabled = true;
+      if (quantityDisplay) {
+        quantityDisplay.value = '0';
+        quantityDisplay.classList.add('text-gray-400');
+      }
+      if (quantityContainer) {
+        quantityContainer.classList.add('opacity-50');
+      }
+      
+      // Update add to cart button
+      addToCartBtn.disabled = true;
+      addToCartBtn.className = 'px-6 py-2 rounded-lg transition shadow flex items-center gap-2 w-full sm:w-auto bg-gray-400 text-gray-600 cursor-not-allowed';
+      addToCartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Out of Stock';
+    } else {
+      // Enable quantity controls
+      if (decreaseBtn) decreaseBtn.disabled = false;
+      if (increaseBtn) increaseBtn.disabled = false;
+      if (quantityDisplay) {
+        quantityDisplay.classList.remove('text-gray-400');
+        quantityDisplay.setAttribute('data-max', remainingStock);
+      }
+      if (quantityContainer) {
+        quantityContainer.classList.remove('opacity-50');
+      }
+      
+      // Update add to cart button
+      addToCartBtn.disabled = false;
+      addToCartBtn.className = 'px-6 py-2 rounded-lg transition shadow flex items-center gap-2 w-full sm:w-auto bg-gray-800 text-white hover:bg-gray-600';
+      addToCartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Add to Cart';
+    }
+  }
+
+  // Show quantity message
+  function showQuantityMessage(message, type = 'error') {
+    quantityMessage.textContent = message;
+    quantityMessage.className = `text-sm mt-2 ${type === 'error' ? 'text-red-500' : 'text-yellow-500'}`;
+    quantityMessage.classList.remove('hidden');
+    
+    setTimeout(() => {
+      quantityMessage.classList.add('hidden');
+    }, 3000);
+  }
+
+  // Color selection handler
+  document.getElementById('colorSelection').addEventListener('click', function(e) {
+    const target = e.target.closest('.variant-color');
+    if (!target || target.dataset.disabled === 'true') return;
+
+    const variantId = target.getAttribute('data-variant-id');
+    
+    // Update visual selection
+    document.querySelectorAll('.variant-color').forEach(span => {
+      span.classList.remove('border-blue-600', 'bg-blue-100');
+    });
+    target.classList.add('border-blue-600', 'bg-blue-100');
+
+    // Update variant UI
+    updateVariantUI(variantId);
+  });
+
+  // Quantity adjustment
+  if (decreaseBtn) {
+    decreaseBtn.addEventListener('click', () => {
+      const maxQty = parseInt(quantityDisplay.getAttribute('data-max')) || 0;
+      if (maxQty === 0) return;
+      if (currentQuantity > 1) {
+        currentQuantity--;
+        quantityDisplay.value = currentQuantity;
+        quantityInput.value = currentQuantity;
+      }
+    });
+  }
+
+  if (increaseBtn) {
+    increaseBtn.addEventListener('click', () => {
+      const maxQty = parseInt(quantityDisplay.getAttribute('data-max')) || 0;
+      if (maxQty === 0) return;
+      if (currentQuantity < maxQty) {
+        currentQuantity++;
+        quantityDisplay.value = currentQuantity;
+        quantityInput.value = currentQuantity;
+      } else {
+        showQuantityMessage('Reached maximum available quantity', 'error');
+      }
+    });
+  }
 
   // Main Image Zoom
   const imageZoom = document.getElementById('imageZoom');
@@ -208,58 +810,426 @@
     imageZoom.style.setProperty('--zoom-x', pointer.x + '%');
     imageZoom.style.setProperty('--zoom-y', pointer.y + '%');
   });
+
   imageZoom.addEventListener('mouseleave', () => {
     imageZoom.style.setProperty('--display', 'none');
   });
 
-  // Update Zoom Background when thumbnail clicked
-  function changeMainImage(src) {
+  // Change main image and update zoom background
+  window.changeMainImage = function(src) {
     const mainImg = document.getElementById('mainImage');
     mainImg.src = src;
     imageZoom.style.setProperty('--url', `url(${src})`);
   }
 
-  //for sale price according to color
-  const colorButtons = document.querySelectorAll('.variant-color');
-  const salePriceSpan = document.getElementById('salePrice');
-  const regularPriceSpan = document.getElementById('regularPrice');
+  // Add to Cart form submission
+  const form = document.getElementById('addToCartForm');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-  colorButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.getElementById('selectedColor').value = btn.getAttribute('data-color');
-      // Remove active class from others
-      colorButtons.forEach(b => b.classList.remove('bg-gray-300'));
-      btn.classList.add('bg-gray-300');
+    
+    const variant = findVariantById(currentVariantId);
+    if (!variant || variant.remainingStock === 0) {
+      showQuantityMessage('This variant is currently out of stock', 'error');
+      return;
+    }
 
-      const sale = parseInt(btn.getAttribute('data-sale-price'));
-      const regular = parseInt(btn.getAttribute('data-regular-price'));
+    if (currentQuantity > variant.remainingStock) {
+      showQuantityMessage(`Only ${variant.remainingStock} items available`, 'error');
+      return;
+    }
+   
 
-      salePriceSpan.innerHTML = `Price: ₹ ${sale.toLocaleString('en-IN')}`;
-      regularPriceSpan.innerHTML = `₹ ${regular.toLocaleString('en-IN')}`;
+    
+    try {
+      const response = await fetch(`/cart/${productId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          quantity: currentQuantity,
+          variantId: currentVariantId 
+        })
+      });
+
+      const result = await response.json();
+
+
+
+      
+      if (response.ok) {
+      Swal.fire({
+      toast: true,
+      position: 'top-end',
+      background: 'rgba(55, 65, 81, 0.7)',
+      color: '#fff',
+      showConfirmButton: false,
+      timer: 2500, // Will reset after animation is ready
+      timerProgressBar: true,
+      html: `
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <dotlottie-wc 
+            id="dotlottie-toast" 
+            src="https://lottie.host/1ab73faf-3e61-4263-ae9b-f00c4b9d9d18/8dR4YXcTvc.lottie" 
+            style="width: 65px; height: 65px;" 
+            autoplay 
+            loop 
+            speed="1">
+          </dotlottie-wc>
+          <span style="font-size: 0.9rem;">Product added to cart successfully!</span>
+        </div>
+      `,
+      didOpen: () => {
+        const toast = Swal.getPopup();
+        const animation = document.getElementById('dotlottie-toast');
+
+        // Pause the timer initially
+        Swal.stopTimer();
+
+        // Wait until animation is fully loaded
+        animation.addEventListener('ready', () => {
+          Swal.resumeTimer(); // Start timer only after Lottie is ready
+        });
+      },
+      customClass: {
+        popup: 'custom-toast'
+      }
+    });
+        
+        // Update the remaining stock locally
+        const variantIndex = productVariants.findIndex(v => v._id === currentVariantId);
+        if (variantIndex !== -1) {
+          productVariants[variantIndex].remainingStock -= currentQuantity;
+          updateVariantUI(currentVariantId);
+        }
+        
+        setTimeout(() => window.location.reload(), 2000);
+      } else if (!result.user) {
+   Swal.fire({
+    toast: true,
+    position: 'top-end',
+    background: 'rgba(185, 28, 28, 0.7)', // Tailwind Red-700 with transparency
+    color: '#fff',
+    showConfirmButton: false,
+    timer: 2500,
+    timerProgressBar: true,
+    html: `
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <dotlottie-wc 
+          id="dotlottie-error-toast" 
+          src="https://lottie.host/a26f082c-2164-451e-92a7-c41802b39fdb/hve9YGahrz.lottie"
+          style="width: 45px; height: 45px;" 
+          autoplay 
+          loop 
+          speed="1">
+        </dotlottie-wc>
+        <span style="font-size: 0.9rem; font-weight: 500;">${result.message}</span>
+      </div>
+    `,
+    didOpen: () => {
+      const animation = document.getElementById('dotlottie-error-toast');
+    },
+    customClass: {
+      popup: 'custom-toast'
+    }
+  });
+
+  // Optional reload
+   //setTimeout(() => window.location.reload(), 2800);
+
+      } else {
+        showQuantityMessage(result.message, 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'An unexpected error occurred.',
+      });
+    }
+  });
+
+  // Socket stock update listener
+  const socket = io();
+  socket.on('stock-update', ({ productId: updatedProductId, variantId, remainingStock }) => {
+    if (updatedProductId === productId) {
+      console.log('Stock update received:', { variantId, remainingStock });
+      
+      // Update the variant data
+      const variantIndex = productVariants.findIndex(v => v._id === variantId);
+      if (variantIndex !== -1) {
+        productVariants[variantIndex].remainingStock = remainingStock;
+      }
+
+      // If this is the currently selected variant, update UI
+      if (variantId === currentVariantId) {
+        updateVariantUI(variantId);
+      }
+
+      // Update variant color display
+      const variantColorEl = document.querySelector(`[data-variant-id="${variantId}"]`);
+      if (variantColorEl) {
+        variantColorEl.setAttribute('data-remaining-stock', remainingStock);
+        
+        if (remainingStock === 0) {
+          variantColorEl.classList.add('variant-disabled');
+          variantColorEl.setAttribute('data-disabled', 'true');
+          variantColorEl.title = 'Out of Stock';
+          if (!variantColorEl.querySelector('.text-red-500')) {
+            variantColorEl.innerHTML += '<span class="text-xs text-red-500 ml-1">(Out of Stock)</span>';
+          }
+        } else {
+          variantColorEl.classList.remove('variant-disabled');
+          variantColorEl.removeAttribute('data-disabled');
+          variantColorEl.title = `Select color ${variantColorEl.dataset.color}`;
+          const outOfStockSpan = variantColorEl.querySelector('.text-red-500');
+          if (outOfStockSpan) {
+            outOfStockSpan.remove();
+          }
+        }
+      }
+    }
+  });
+
+  // Wishlist add handler
+  const wishlistLinks = document.querySelectorAll('.add-to-wishlist-link');
+  wishlistLinks.forEach(link => {
+    link.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const productId = link.getAttribute('data-product-id');
+      const variantId = currentVariantId; // Use the current selected variant ID
+
+      try {
+        const response = await fetch('/wishlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            productId,
+            variantId // Include the variant ID in the request
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          link.classList.remove('text-red-500', 'hover:text-red-800');
+          link.classList.add('text-gray-400');
+          link.style.pointerEvents = 'none';
+          link.innerHTML = '<i class="fas fa-check"></i> Added to Wishlist';
+          
+          Swal.fire({
+            icon: 'success',
+            title: 'Added to Wishlist!',
+            timer: 1500,
+            showConfirmButton: false,
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Failed',
+            text: data.message || 'Could not add to wishlist.',
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: 'An unexpected error occurred.',
+        });
+      }
     });
   });
 
-  //image thamnail
-  function changeMainImage(src) {
-    const mainImg = document.getElementById('mainImage');
-    mainImg.src = src;
-    imageZoom.style.setProperty('--url', `url(${src})`);
+  // Star Rating Functionality
+  const starButtons = document.querySelectorAll('.star-btn');
+  const ratingInput = document.getElementById('ratingInput');
+  let selectedRating = 0;
+
+  starButtons.forEach((button, index) => {
+    button.addEventListener('click', function() {
+      selectedRating = parseInt(this.dataset.rating);
+      ratingInput.value = selectedRating;
+      updateStarDisplay();
+    });
+
+    button.addEventListener('mouseenter', function() {
+      const hoverRating = parseInt(this.dataset.rating);
+      highlightStars(hoverRating);
+    });
+  });
+
+  document.getElementById('starRating')?.addEventListener('mouseleave', function() {
+    updateStarDisplay();
+  });
+
+  function highlightStars(rating) {
+    starButtons.forEach((button, index) => {
+      const star = button.querySelector('i');
+      if (index < rating) {
+        star.className = 'fas fa-star';
+        button.classList.add('text-yellow-400');
+        button.classList.remove('text-gray-300');
+      } else {
+        star.className = 'far fa-star';
+        button.classList.remove('text-yellow-400');
+        button.classList.add('text-gray-300');
+      }
+    });
   }
 
-  //quantity + and -
-  function adjustQty(change) {
-    const displayInput = document.getElementById('quantity');
-    const formInput = document.getElementById('formQty');
-    let current = parseInt(displayInput.value);
-    if (!isNaN(current)) {
-      let newQty = current + change;
-      if (newQty < 1) newQty = 1;
-      displayInput.value = newQty;
-      formInput.value = newQty;
+  function updateStarDisplay() {
+    highlightStars(selectedRating);
+  }
+
+  // Review Form Submission
+  const reviewForm = document.getElementById('reviewForm');
+  if (reviewForm) {
+    reviewForm.addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      if (selectedRating === 0) {
+        showToast('Please select a rating before submitting your review.', 'warning');
+        return;
+      }
+
+      const comment = document.querySelector('textarea[name="comment"]').value;
+      const productId = this.dataset.productId; 
+
+      const submitButton = document.getElementById('submitReview');
+      submitButton.disabled = true;
+      submitButton.textContent = 'Submitting...';
+
+      try {
+        const response = await fetch(this.action, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            rating: selectedRating,
+            comment: comment,
+            productId: productId,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          showToast('Review submitted successfully!', 'success');
+          setTimeout(() => window.location.reload(), 2000);
+        } else {
+          throw new Error(result.message || 'Failed to submit review');
+        }
+      } catch (error) {
+        console.error('Error submitting review:', error);
+        showToast(error.message || 'Failed to submit review. Please try again.', 'error');
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Submit Review';
+      }
+    });
+  }
+
+  // Load More Reviews
+  const loadMoreBtn = document.getElementById('loadMoreReviews');
+  if (loadMoreBtn) {
+    loadMoreBtn.addEventListener('click', async function() {
+      const productId = this.dataset.productId;
+      const page = parseInt(this.dataset.page);
+      
+      this.disabled = true;
+      this.textContent = 'Loading...';
+
+      try {
+        const response = await fetch(`/product/${productId}/reviews?page=${page}`);
+        const data = await response.json();
+
+        if (response.ok && data.reviews.length > 0) {
+          // Add new reviews to the page (you'll need to implement this)
+          // For now, just reload the page
+          window.location.reload();
+        } else {
+          this.style.display = 'none';
+        }
+      } catch (error) {
+        console.error('Error loading more reviews:', error);
+        showToast('Failed to load more reviews.', 'error');
+      } finally {
+        this.disabled = false;
+        this.textContent = 'Load More Reviews';
+      }
+    });
+  }
+
+  // Helpful button functionality
+  document.querySelectorAll('[data-action="helpful"]').forEach(button => {
+    button.addEventListener('click', async function() {
+      const reviewId = this.dataset.reviewId;
+      // Implement helpful functionality
+      console.log('Mark review as helpful:', reviewId);
+    });
+  });
+
+  // Toast notification function
+  function showToast(message, type = 'info') {
+    // Remove existing toast if any
+    const existingToast = document.getElementById('toast-notification');
+    if (existingToast) {
+      existingToast.remove();
+    }
+
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.id = 'toast-notification';
+    toast.className = `toast-notification toast-${type}`;
+    
+    // Toast content
+    const iconMap = {
+      success: 'fas fa-check-circle',
+      error: 'fas fa-exclamation-circle',
+      warning: 'fas fa-exclamation-triangle',
+      info: 'fas fa-info-circle'
+    };
+    
+    toast.innerHTML = `
+      <div class="toast-content">
+        <i class="${iconMap[type] || iconMap.info}"></i>
+        <span>${message}</span>
+        <button class="toast-close" onclick="closeToast()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    `;
+    
+    // Add to page
+    document.body.appendChild(toast);
+    
+    // Show toast with animation
+    setTimeout(() => {
+      toast.classList.add('toast-show');
+    }, 100);
+    
+    // Auto hide after 4 seconds
+    setTimeout(() => {
+      closeToast();
+    }, 4000);
+  }
+
+  window.closeToast = function() {
+    const toast = document.getElementById('toast-notification');
+    if (toast) {
+      toast.classList.remove('toast-show');
+      setTimeout(() => {
+        toast.remove();
+      }, 300);
     }
   }
 
-  
+  // Initialize UI on page load
+  console.log('Page loaded, initializing UI with variant:', currentVariantId);
+  updateVariantUI(currentVariantId);
+});
 </script>
 
-  <%- include('../../views/partials/user/footer') %>
+<%- include('../../views/partials/user/footer') %>

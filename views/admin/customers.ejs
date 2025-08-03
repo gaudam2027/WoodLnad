@@ -1,147 +1,623 @@
 <%- include('../partials/admin/header', { title: 'Admin Panel - Customers' }) %>
 
+<!-- Notyf Notifications -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+
 <style>
   .swal2-popup {
-    border-radius: .7rem !important; /* 16px */
+    border-radius: .7rem !important;
   }
   .swal2-title {
     font-size: 20px !important;
   }
+  
+  .customer-card {
+    transition: all 0.3s ease;
+  }
+  
+  .customer-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+  
+  .status-badge {
+    transition: all 0.2s ease;
+  }
+  
+  .status-badge:hover {
+    transform: scale(1.05);
+  }
+  
+  .action-btn {
+    transition: all 0.2s ease;
+  }
+  
+  .action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  @media (max-width: 768px) {
+    .mobile-card {
+      display: block;
+    }
+    .desktop-table {
+      display: none;
+    }
+  }
+  
+  @media (min-width: 769px) {
+    .mobile-card {
+      display: none;
+    }
+    .desktop-table {
+      display: table;
+    }
+  }
 </style>
 
-<div class="flex flex-1 min-h-screen bg-gray-50">
-  <!-- Main content -->
-  <main class="flex-1 flex flex-col p-8">
-    <!-- Page title -->
-    <h1 class="text-3xl font-bold text-gray-800 mb-8">Customers</h1>
-
-    <!-- Search bar -->
-    <div class="mb-6">
-      <form method="GET" action="/admin/users" class="flex gap-2">
-        <input type="text" name="search" placeholder="Search categories..."
-          value="<%= searchQuery %>"
-          class="w-full md:w-1/3 px-4 py-2 rounded-md border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800" />
-        <button type="submit"
-          class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition font-medium">
-          Search
-        </button>
-        <% if (searchQuery) { %>
-          <a href="/admin/users" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-400 transition">
-            Clear
-          </a>
-        <% } %>
-      </form>
+<div class="pt-24 h-[calc(100vh-6rem)] overflow-y-scroll scrollbar-hide px-6 bg-gray-100 w-full">
+  <div class="max-w-7xl mx-auto">
+    
+    <!-- Page Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-slate-800 mb-2">Customer Management</h1>
+      <p class="text-gray-600">Manage customer accounts, monitor activity, and handle user permissions</p>
     </div>
 
-    <!-- User table -->
-    <div class="overflow-x-auto bg-white shadow-md rounded-xl">
-      <table class="min-w-full divide-y divide-gray-200 text-sm">
-        <thead class="bg-gray-100 text-gray-700">
-          <tr>
-            <th class="px-6 py-3 text-left font-semibold">Name</th>
-            <th class="px-6 py-3 text-left font-semibold">Email</th>
-            <th class="px-6 py-3 text-left font-semibold">Phone No</th>
-            <th class="px-6 py-3 text-center font-semibold">Action</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100">
-          <% if (users.length === 0) { %>
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-600 text-sm font-medium mb-1">Total Customers</p>
+            <p class="text-2xl font-bold text-slate-800"><%= allUserData.length %></p>
+          </div>
+          <div class="bg-blue-50 p-3 rounded-lg">
+            <i class="fas fa-users text-2xl text-blue-500"></i>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-600 text-sm font-medium mb-1">Active Customers</p>
+            <p class="text-2xl font-bold text-slate-800" id="activeUserCount"><%= allUserData.filter(u => !u.isBlocked).length %></p>
+          </div>
+          <div class="bg-green-50 p-3 rounded-lg">
+            <i class="fas fa-user-check text-2xl text-green-500"></i>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-600 text-sm font-medium mb-1">Blocked Customers</p>
+            <p class="text-2xl font-bold text-slate-800" id="blockedUserCount"><%= allUserData.filter(u => u.isBlocked).length %></p>
+          </div>
+          <div class="bg-red-50 p-3 rounded-lg">
+            <i class="fas fa-user-slash text-2xl text-red-500"></i>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-600 text-sm font-medium mb-1">New This Month</p>
+            <p class="text-2xl font-bold text-slate-800">0</p>
+          </div>
+          <div class="bg-purple-50 p-3 rounded-lg">
+            <i class="fas fa-user-plus text-2xl text-purple-500"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search and Actions Bar -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+      <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+        <h2 class="text-lg font-semibold text-slate-700 flex items-center">
+          <i class="fas fa-search mr-3 text-blue-500"></i>
+          Search & Settings
+        </h2>
+      </div>
+      <div class="p-6">
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+          
+          <!-- Search Form -->
+          <form method="GET" action="/admin/users" class="flex-1 max-w-md">
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i class="fas fa-search text-gray-400"></i>
+              </div>
+              <input
+                type="text"
+                name="search"
+                placeholder="Search customers by name, email..."
+                value="<%= searchQuery %>"
+                class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-800 transition-all duration-200"
+              />
+            </div>
+            <div class="flex gap-2 mt-3">
+              <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition duration-200 flex items-center gap-2 font-medium">
+                <i class="fas fa-search"></i>
+                Search
+              </button>
+              <% if (searchQuery) { %>
+                <a href="/admin/users" class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition duration-200 flex items-center gap-2 font-medium">
+                  <i class="fas fa-times"></i>
+                  Clear
+                </a>
+              <% } %>
+            </div>
+          </form>
+
+          <!-- Audio Notification Toggle -->
+          <div class="flex items-center gap-3">
+            <label for="audioToggle" class="flex items-center cursor-pointer">
+              <span class="mr-3 text-sm text-gray-700 font-medium">Audio Notifications</span>
+              <div class="relative">
+                <input type="checkbox" id="audioToggle" class="sr-only peer" checked>
+                <div class="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-colors"></div>
+                <div class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform peer-checked:translate-x-5 shadow-sm"></div>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Customers Table/Cards -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+      <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+        <h2 class="text-lg font-semibold text-slate-700 flex items-center">
+          <i class="fas fa-users mr-3 text-green-500"></i>
+          Customer Directory
+        </h2>
+      </div>
+      
+      <!-- Desktop Table -->
+      <div class="desktop-table w-full overflow-x-auto">
+        <table class="w-full min-w-full">
+          <thead class="bg-gray-50 border-b border-gray-200">
             <tr>
-              <td colspan="4" class="text-center py-6 text-gray-500">No users found.</td>
+              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                <i class="fas fa-user mr-2 text-blue-500"></i>Customer
+              </th>
+              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                <i class="fas fa-envelope mr-2 text-purple-500"></i>Email
+              </th>
+              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                <i class="fas fa-phone mr-2 text-green-500"></i>Phone
+              </th>
+              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                <i class="fas fa-crown mr-2 text-amber-500"></i>Customer Type
+              </th>
+              <th class="px-6 py-4 text-center text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                <i class="fas fa-toggle-on mr-2 text-slate-500"></i>Status
+              </th>
+              <th class="px-6 py-4 text-center text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                <i class="fas fa-cogs mr-2 text-gray-500"></i>Actions
+              </th>
             </tr>
-          <% } else { %>
-            <% users.forEach(user => { %>
-              <tr class="hover:bg-gray-50">
-                <td class="px-6 py-4"><%= user.name %></td>
-                <td class="px-6 py-4"><%= user.email %></td>
-                <td class="px-6 py-4"><%= user.phone || 'N/A' %></td>
-                <td class="px-6 py-4 text-center">
-                  <% if (!user.isBlocked) { %>
-                   <button onclick="toggleUserBlock('<%= user._id %>', true, this)" class="inline-block px-4 py-2 text-sm font-semibold rounded-md bg-red-500 hover:bg-red-600 text-white">Block</button>
-                  <% } else { %>
-                    <button onclick="toggleUserBlock('<%= user._id %>', false, this)" class="inline-block px-4 py-2 text-sm font-semibold rounded-md bg-green-500 hover:bg-green-600 text-white">Unblock</button>
-                  <% } %>
+          </thead>
+          <tbody id="user-table-body" class="divide-y divide-gray-200 bg-white">
+            <% if (users.length === 0) { %>
+              <tr>
+                <td colspan="6" class="text-center py-12">
+                  <div class="flex flex-col items-center">
+                    <i class="fas fa-users text-4xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-500 text-lg font-medium">No customers found</p>
+                    <p class="text-gray-400 text-sm">Customers will appear here once they register</p>
+                  </div>
                 </td>
               </tr>
-            <% }) %>
-          <% } %>
-        </tbody>
-      </table>
+            <% } else { %>
+              <% users.forEach(user => { %>
+                <tr class="hover:bg-gray-50 transition-colors duration-200">
+                  <td class="px-6 py-4">
+                    <div class="flex items-center">
+                      <div class="flex-shrink-0 h-10 w-10">
+                        <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                          <span class="text-indigo-600 font-semibold text-sm">
+                            <%= user.name.charAt(0).toUpperCase() %>
+                          </span>
+                        </div>
+                      </div>
+                      <div class="ml-4">
+                        <div class="text-sm font-semibold text-slate-800"><%= user.name %></div>
+                        <div class="text-sm text-gray-500">Customer ID: #<%= user._id.toString().slice(-6) %></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="text-sm text-slate-800"><%= user.email %></div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="text-sm text-slate-800">
+                      <%= user.phone || 'Not provided' %>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <% 
+                      // You can add logic here to determine if customer is premium based on your criteria
+                      // For now, defaulting to 'Normal' - you can modify this based on your business logic
+                      const customerType = user.isPremium || (user.totalOrders && user.totalOrders > 10) ? 'Premium' : 'Normal';
+                    %>
+                    <% if (customerType === 'Premium') { %>
+                      <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                        <i class="fas fa-crown mr-1"></i>Premium
+                      </span>
+                    <% } else { %>
+                      <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
+                        <i class="fas fa-user mr-1"></i>Normal
+                      </span>
+                    <% } %>
+                  </td>
+                  <td class="px-6 py-4 text-center">
+                    <% if (!user.isBlocked) { %>
+                      <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                        <i class="fas fa-check-circle mr-1"></i>Active
+                      </span>
+                    <% } else { %>
+                      <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">
+                        <i class="fas fa-ban mr-1"></i>Blocked
+                      </span>
+                    <% } %>
+                  </td>
+                  <td class="px-6 py-4 text-center">
+                    <% if (!user.isBlocked) { %>
+                      <button onclick="toggleUserBlock('<%= user._id %>', true, this)" 
+                              class="action-btn inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium bg-red-600 text-white hover:bg-red-700 transition-all duration-200 shadow-sm hover:shadow-md">
+                        <i class="fas fa-ban mr-1"></i>Block
+                      </button>
+                    <% } else { %>
+                      <button onclick="toggleUserBlock('<%= user._id %>', false, this)" 
+                              class="action-btn inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium bg-green-600 text-white hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow-md">
+                        <i class="fas fa-check mr-1"></i>Unblock
+                      </button>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile Cards -->
+      <div class="mobile-card p-4 space-y-4">
+        <% if (users.length === 0) { %>
+          <div class="text-center py-12">
+            <div class="flex flex-col items-center">
+              <i class="fas fa-users text-4xl text-gray-300 mb-4"></i>
+              <p class="text-gray-500 text-lg font-medium">No customers found</p>
+              <p class="text-gray-400 text-sm">Customers will appear here once they register</p>
+            </div>
+          </div>
+        <% } else { %>
+          <% users.forEach(user => { %>
+            <div class="customer-card bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <div class="flex items-start space-x-4">
+                <div class="flex-shrink-0">
+                  <div class="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center">
+                    <span class="text-indigo-600 font-semibold">
+                      <%= user.name.charAt(0).toUpperCase() %>
+                    </span>
+                  </div>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-start justify-between">
+                    <div>
+                      <h3 class="text-sm font-semibold text-slate-800"><%= user.name %></h3>
+                      <p class="text-xs text-gray-500">ID: #<%= user._id.toString().slice(-6) %></p>
+                    </div>
+                    <div class="flex space-x-1">
+                      <% if (!user.isBlocked) { %>
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                          <i class="fas fa-check-circle mr-1"></i>Active
+                        </span>
+                      <% } else { %>
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">
+                          <i class="fas fa-ban mr-1"></i>Blocked
+                        </span>
+                      <% } %>
+                    </div>
+                  </div>
+                  
+                  <div class="mt-2">
+                    <p class="text-sm text-slate-800"><%= user.email %></p>
+                    <p class="text-sm text-gray-500"><%= user.phone || 'Phone not provided' %></p>
+                    <div class="mt-1">
+                      <% 
+                        const customerType = user.isPremium || (user.totalOrders && user.totalOrders > 10) ? 'Premium' : 'Normal';
+                      %>
+                      <% if (customerType === 'Premium') { %>
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                          <i class="fas fa-crown mr-1"></i>Premium
+                        </span>
+                      <% } else { %>
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
+                          <i class="fas fa-user mr-1"></i>Normal
+                        </span>
+                      <% } %>
+                    </div>
+                  </div>
+                  
+                  <div class="mt-3 flex justify-end">
+                    <% if (!user.isBlocked) { %>
+                      <button onclick="toggleUserBlock('<%= user._id %>', true, this)" 
+                              class="text-xs bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
+                        Block
+                      </button>
+                    <% } else { %>
+                      <button onclick="toggleUserBlock('<%= user._id %>', false, this)" 
+                              class="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
+                        Unblock
+                      </button>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        <% } %>
+      </div>
     </div>
 
- <!-- Pagination Section -->
- <% if (totalPages > 1) { %>
-  <div class="flex justify-center mt-8">
-    <ul class="flex gap-2">
-      <% for (let i = 1; i <= totalPages; i++) { %>
-        <li>
-          <a href="?page=<%= i %>&search=<%= searchQuery %>"
-            class="px-4 py-2 rounded-md text-sm font-semibold border transition
-            <%= i === currentPage 
-              ? 'bg-gray-600 text-white border-gray-600' 
-              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' %>">
-            <%= i %>
-          </a>
-        </li>
-      <% } %>
-    </ul>
+    <!-- Pagination -->
+    <% if (totalPages > 1) { %>
+      <div class="flex justify-center mt-8">
+        <nav class="flex items-center space-x-2">
+          <% if (currentPage > 1) { %>
+            <a href="?page=<%= currentPage - 1 %>&search=<%= searchQuery %>" 
+               class="px-3 py-2 rounded-lg text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors duration-200 shadow-sm">
+              <i class="fas fa-chevron-left"></i>
+            </a>
+          <% } %>
+          
+          <% for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) { %>
+            <a href="?page=<%= i %>&search=<%= searchQuery %>"
+               class="px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm
+                 <%= i === currentPage 
+                   ? 'bg-indigo-600 text-white shadow-lg' 
+                   : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50' %>">
+              <%= i %>
+            </a>
+          <% } %>
+          
+          <% if (currentPage < totalPages) { %>
+            <a href="?page=<%= currentPage + 1 %>&search=<%= searchQuery %>" 
+               class="px-3 py-2 rounded-lg text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors duration-200 shadow-sm">
+              <i class="fas fa-chevron-right"></i>
+            </a>
+          <% } %>
+        </nav>
+      </div>
+    <% } %>
+
   </div>
-<% } %>
-  </main>
 </div>
 </div>
 
+<!-- Optional sound -->
+<audio id="newUserSound" src="/audio/new-user.mp3" preload="auto"></audio>
+
+<script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+<script src="/socket.io/socket.io.js"></script>
 <script>
-
-  function toggleUserBlock(userId,block,button){
+  function toggleUserBlock(userId, block, button) {
     const action = block ? "block" : "unblock";
-
     Swal.fire({
-      title:`Are you sure you want to ${action} this user?`,
-      showCancelButton:true,
-      confirmButtonColor: '#1f2937', 
-      cancelButtonColor: '#d1d5db',
-      confirmButtonText: `Yes, ${action}`,
+      title: `${action.charAt(0).toUpperCase() + action.slice(1)} Customer?`,
+      text: `Are you sure you want to ${action} this customer?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: block ? '#ef4444' : '#10b981',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: `<i class="fas fa-${block ? 'ban' : 'check'} mr-2"></i>Yes, ${action}`,
+      cancelButtonText: '<i class="fas fa-times mr-2"></i>Cancel',
+      reverseButtons: true,
       customClass: {
-        popup: 'text-center',
-      }
-    }).then((result)=>{
-      if(result.isConfirmed){
-        fetch('/admin/users-block',{
-          method:'POST',
-          headers:{
-            "Content-Type":"application/json"
+        popup: 'rounded-lg shadow-2xl',
+        title: 'text-gray-800 font-semibold',
+        content: 'text-gray-600',
+        confirmButton: 'rounded-lg px-6 py-3 font-medium shadow-lg hover:shadow-xl transition-all duration-200',
+        cancelButton: 'rounded-lg px-6 py-3 font-medium shadow-lg hover:shadow-xl transition-all duration-200'
+      },
+      buttonsStyling: false
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Show loading
+        Swal.fire({
+          title: `${action.charAt(0).toUpperCase() + action.slice(1)}ing Customer...`,
+          text: 'Please wait while we update the customer status.',
+          icon: 'info',
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          showConfirmButton: false,
+          customClass: {
+            popup: 'rounded-lg shadow-2xl'
           },
-          body:JSON.stringify({userId,block})
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        fetch('/admin/users-block', {
+          method: 'POST',
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ userId, block })
         })
-        .then(res=> res.json())
-        .then(data=>{
-          if(data.success){
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
             Swal.fire({
-              title: `User ${block ? 'blocked' : 'unblocked'} successfully`,
-              text: '',
-              confirmButtonColor: '#1f2937' 
-            }).then(()=>{
-              button.textContent = block ? 'Unblock' : 'Block';
-              button.className = block
-              ? 'inline-block px-4 py-2 text-sm font-semibold rounded-md bg-green-500 hover:bg-green-600 text-white'
-              : 'inline-block px-4 py-2 text-sm font-semibold rounded-md bg-red-500 hover:bg-red-600 text-white';
-            button.setAttribute("onclick", `toggleUserBlock('${userId}', ${!block}, this)`);
-            })
-          }else{
-            Swal.fire("Error", "Failed to update user status", "error");
+              title: 'Success!',
+              text: `Customer ${block ? 'blocked' : 'unblocked'} successfully`,
+              icon: 'success',
+              confirmButtonColor: '#10b981',
+              confirmButtonText: '<i class="fas fa-check mr-2"></i>OK',
+              customClass: {
+                popup: 'rounded-lg shadow-2xl',
+                title: 'text-gray-800 font-semibold',
+                content: 'text-gray-600',
+                confirmButton: 'rounded-lg px-6 py-3 font-medium shadow-lg hover:shadow-xl transition-all duration-200'
+              },
+              buttonsStyling: false,
+              timer: 2000,
+              timerProgressBar: true
+            }).then(() => {
+
+              // Update active product count in the DOM
+              const activeUserElement = document.getElementById('activeUserCount');
+              const blockedUserElement = document.getElementById('blockedUserCount');
+
+              if (activeUserElement && blockedUserElement) {
+                let active = parseInt(activeUserElement.textContent.trim(), 10);
+                let blocked = parseInt(blockedUserElement.textContent.trim(), 10);
+
+                if (block && active > 0) {
+                  // Blocking a user
+                  activeUserElement.textContent = active - 1;
+                  blockedUserElement.textContent = blocked + 1;
+                } else if (!block && blocked > 0) {
+                  // Unblocking a user
+                  activeUserElement.textContent = active + 1;
+                  blockedUserElement.textContent = blocked - 1;
+                }
+              }
+
+              // Update button appearance
+              if (block) {
+                button.innerHTML = '<i class="fas fa-check mr-1"></i>Unblock';
+                button.className = 'action-btn inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium bg-green-600 text-white hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow-md';
+              } else {
+                button.innerHTML = '<i class="fas fa-ban mr-1"></i>Block';
+                button.className = 'action-btn inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium bg-red-600 text-white hover:bg-red-700 transition-all duration-200 shadow-sm hover:shadow-md';
+              }
+              button.setAttribute("onclick", `toggleUserBlock('${userId}', ${!block}, this)`);
+            });
+          } else {
+            Swal.fire({
+              title: 'Error!',
+              text: 'Failed to update customer status',
+              icon: 'error',
+              confirmButtonColor: '#ef4444',
+              confirmButtonText: '<i class="fas fa-times mr-2"></i>OK',
+              customClass: {
+                popup: 'rounded-lg shadow-2xl',
+                confirmButton: 'rounded-lg px-6 py-3 font-medium shadow-lg hover:shadow-xl transition-all duration-200'
+              },
+              buttonsStyling: false
+            });
           }
         })
+        .catch(err => {
+          console.error(err);
+          Swal.fire({
+            title: 'Error!',
+            text: 'Something went wrong. Please try again.',
+            icon: 'error',
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: '<i class="fas fa-times mr-2"></i>OK',
+            customClass: {
+              popup: 'rounded-lg shadow-2xl',
+              confirmButton: 'rounded-lg px-6 py-3 font-medium shadow-lg hover:shadow-xl transition-all duration-200'
+            },
+            buttonsStyling: false
+          });
+        });
       }
-    })
-    .catch(err => {
-      console.error(err);
-      Swal.fire("Error", "Something went wrong", "error");
     });
   }
 
+  const socket = io();
+  socket.emit('register-admin');
+
+  const notyf = new Notyf({
+    duration: 4000,
+    position: { x: 'right', y: 'top' },
+    types: [{
+      type: 'success',
+      background: '#22c55e',
+      icon: {
+        className: 'fas fa-check-circle',
+        tagName: 'i',
+        color: 'white'
+      }
+    }]
+  });
+
+  const audioToggle = document.getElementById('audioToggle');
+  const audioElement = document.getElementById('newUserSound');
+  let audioEnabled = audioToggle?.checked;
+
+  audioToggle?.addEventListener('change', () => {
+    audioEnabled = audioToggle.checked;
+  });
+
+  socket.on('new-user', (user) => {
+    notyf.success(`New customer signed up: ${user.name}`);
+    
+    // Play sound & TTS if enabled
+    if (audioEnabled) {
+      audioElement?.play();
+      const msg = new SpeechSynthesisUtterance(`New customer ${user.name} has signed up`);
+      window.speechSynthesis.speak(msg);
+    }
+
+    // Update table
+    const tbody = document.getElementById('user-table-body');
+    if (tbody) {
+      const noUsersRow = tbody.querySelector('td[colspan="5"]');
+      if (noUsersRow) noUsersRow.closest('tr').remove();
+
+      const row = document.createElement('tr');
+      row.className = 'hover:bg-gray-50 transition-colors duration-200';
+      row.innerHTML = `
+        <td class="px-6 py-4">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 h-10 w-10">
+              <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                <span class="text-indigo-600 font-semibold text-sm">
+                  ${user.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            </div>
+            <div class="ml-4">
+              <div class="text-sm font-semibold text-slate-800">${user.name}</div>
+              <div class="text-sm text-gray-500">Customer ID: #${user.id.slice(-6)}</div>
+            </div>
+          </div>
+        </td>
+        <td class="px-6 py-4">
+          <div class="text-sm text-slate-800">${user.email}</div>
+        </td>
+        <td class="px-6 py-4">
+          <div class="text-sm text-slate-800">${user.phone || 'Not provided'}</div>
+        </td>
+        <td class="px-6 py-4 text-center">
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+            <i class="fas fa-check-circle mr-1"></i>Active
+          </span>
+        </td>
+        <td class="px-6 py-4 text-center">
+          <button onclick="toggleUserBlock('${user.id}', true, this)"
+                  class="action-btn inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium bg-red-600 text-white hover:bg-red-700 transition-all duration-200 shadow-sm hover:shadow-md">
+            <i class="fas fa-ban mr-1"></i>Block
+          </button>
+        </td>
+      `;
+      tbody.prepend(row);
+    }
+  });
 </script>
 
 <%- include('../partials/admin/footer') %>

@@ -35,27 +35,32 @@ const userIslog = async(req,res,next)=>{
  
 }
 
-const isBlock = async (req, res, next) => { // is blocked problem here 
+const checkUserStatus = async (req, res, next) => {
   try {
-    req.session.userId = req.session.passport?.user || req.session.user?._id;
-    console.log( req.session.userId )
-    if (!req.session.userId) {
-      return next(); 
+    const userId = req.session.passport?.user || req.session?.user?._id;
+    if (!userId) return next();
+
+    const user = await User.findById(userId);
+    if (!user) {
+      if (req.session.passport) req.session.passport.user = null;
+      if (req.session.user) req.session.user = null;
+      return next();
     }
 
-    const user = await User.findOne({ _id: req.session.userId, isBlocked: false });
-
-    if (user) {
-      next();
-    } else {
-      req.session.destroy();
-      next(); // Continue, but user is effectively treated as unauthenticated
+    if (user.isBlocked) {
+      if (req.session.passport) req.session.passport.user = null;
+      if (req.session.user) req.session.user = null;
+      return next();
     }
-  } catch (err) {
-    console.error('Error in isBlock middleware:', err);
-    next(err);
+
+    req.userData = user;
+    next();
+  } catch (error) {
+    console.error('User status check middleware error:', error);
+    next(error);
   }
 };
+
 
 const adminAuth = (req, res, next) => {
   
@@ -84,5 +89,5 @@ module.exports = {
     userAuth,
     userIslog,
     adminAuth,
-    isBlock
+    checkUserStatus
 }

@@ -18,6 +18,11 @@ const userSchema = new Schema({
         unique:true
     },
 
+    dob: {
+    type: Date,
+    required: false
+   },
+
     phone:{
         type: String,
         required: false,
@@ -36,6 +41,21 @@ const userSchema = new Schema({
     password:{
         type: String,
         required: false
+    },
+
+    state:{
+        type: String,
+        require:false
+    },
+
+    district:{
+        type: String,
+        require:false
+    },
+
+    address:{
+        type: String,
+        require:false
     },
 
     isBlocked:{

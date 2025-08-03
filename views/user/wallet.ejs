@@ -1,0 +1,875 @@
+<link rel="stylesheet" href="./css/profile.css">
+<%- include('../../views/partials/user/header') %>
+
+<style>
+  .wallet-card {
+    background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .wallet-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    transform: rotate(45deg);
+  }
+  .stat-card {
+    background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+  }
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  }
+  .transaction-item {
+    transition: all 0.2s ease;
+    border-left: 4px solid transparent;
+  }
+  .transaction-item:hover {
+    background-color: #f9fafb;
+    border-left-color: #6b7280;
+  }
+  .transaction-credit {
+    border-left-color: #10b981;
+  }
+  .transaction-debit {
+    border-left-color: #ef4444;
+  }
+  .chart-container {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  }
+  .feature-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+  }
+  .feature-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-color: #d1d5db;
+  }
+  .progress-bar {
+    background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  }
+  .spending-category {
+    background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+    border: 1px solid #e5e7eb;
+  }
+  .activity-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  @media (max-width: 640px) {
+    .wallet-card::before {
+      display: none;
+    }
+  }
+</style>
+
+<div class="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+    <!-- Sidebar -->
+    <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md profile-card relative min-h-[400px] sm:min-h-[500px] lg:!min-h-[500px]" style="min-height: 400px;">
+      <ul class="space-y-2">
+        <li><a href="/profile" class="block py-2 px-4 rounded hover:bg-gray-200 text-sm sm:text-base">Profile</a></li>
+        <li><a href="/order" class="block py-2 px-4 rounded hover:bg-gray-200 text-sm sm:text-base">My Orders</a></li>
+        <li><a href="/address" class="block py-2 px-4 rounded hover:bg-gray-200 text-sm sm:text-base">Manage Address</a></li>
+        <li><a href="/wishlist" class="block py-2 px-4 rounded hover:bg-gray-200 text-sm sm:text-base">WishList</a></li>
+        <li><a href="/wallet" class="block py-2 px-4 rounded bg-gray-100 text-gray-900 font-semibold text-sm sm:text-base">Wallet</a></li>
+      </ul>
+      <button class="absolute bottom-4 left-4 right-4 sm:left-6 sm:right-6 bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-700 text-sm sm:text-base">Logout</button>
+    </div>
+
+    <!-- Wallet Section -->
+    <div class="lg:col-span-2 space-y-6">
+      <!-- Enhanced Wallet Balance Card -->
+      <div class="wallet-card text-white p-6 rounded-xl shadow-lg relative z-10">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start">
+          <div class="mb-4 sm:mb-0">
+            <div class="flex items-center gap-2 mb-2">
+              <svg class="w-5 h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+              </svg>
+              <h2 class="text-sm font-medium opacity-90">Digital Wallet</h2>
+            </div>
+            <p class="text-3xl sm:text-4xl font-bold mb-2">₹<%= wallet ? wallet.balance.toFixed(2) : '0.00' %></p>
+            <div class="flex items-center gap-4 text-sm opacity-90">
+              <%
+                const totalTransactions = wallet && wallet.transactions ? wallet.transactions.length : 0;
+              %>
+              <span class="flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+                <%= totalTransactions %> transactions
+              </span>
+              <span class="flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Active
+              </span>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="bg-white bg-opacity-20 rounded-lg p-3 backdrop-blur-sm">
+              <p class="text-xs opacity-75 mb-1">Wallet ID</p>
+              <p class="text-sm font-mono">#<%= wallet ? wallet._id.toString().slice(-8).toUpperCase() : 'WLT00001' %></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Enhanced Quick Stats -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <%
+          let totalCredit = 0;
+          let totalDebit = 0;
+          let thisMonthTransactions = 0;
+          let lastMonthSpent = 0;
+          
+          if (wallet && wallet.transactions) {
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+            const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+            
+            wallet.transactions.forEach(transaction => {
+              if (transaction.type === 'credit') {
+                totalCredit += transaction.amount;
+              } else if (transaction.type === 'debit') {
+                totalDebit += transaction.amount;
+              }
+              
+              const transactionDate = new Date(transaction.date);
+              if (transactionDate.getMonth() === currentMonth && transactionDate.getFullYear() === currentYear) {
+                if (transaction.type === 'debit') {
+                  thisMonthTransactions += transaction.amount;
+                }
+              }
+              
+              if (transactionDate.getMonth() === lastMonth && transactionDate.getFullYear() === lastMonthYear) {
+                if (transaction.type === 'debit') {
+                  lastMonthSpent += transaction.amount;
+                }
+              }
+            });
+          }
+          
+          const spendingChange = lastMonthSpent > 0 ? ((thisMonthTransactions - lastMonthSpent) / lastMonthSpent * 100) : 0;
+        %>
+        
+        <div class="stat-card p-4 rounded-lg">
+          <div class="flex items-center justify-between mb-2">
+            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+              </svg>
+            </div>
+            <span class="text-xs px-2 py-1 rounded-full <%= spendingChange >= 0 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600' %>">
+              <%= spendingChange >= 0 ? '+' : '' %><%= spendingChange.toFixed(1) %>%
+            </span>
+          </div>
+          <p class="text-xs text-gray-600 mb-1">This Month</p>
+          <p class="text-lg font-bold text-gray-800">₹<%= thisMonthTransactions.toFixed(2) %></p>
+        </div>
+        
+        <div class="stat-card p-4 rounded-lg">
+          <div class="flex items-center justify-between mb-2">
+            <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+              <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+              </svg>
+            </div>
+          </div>
+          <p class="text-xs text-gray-600 mb-1">Total Spent</p>
+          <p class="text-lg font-bold text-gray-800">₹<%= totalDebit.toFixed(2) %></p>
+        </div>
+        
+        <div class="stat-card p-4 rounded-lg">
+          <div class="flex items-center justify-between mb-2">
+            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+              <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+              </svg>
+            </div>
+          </div>
+          <p class="text-xs text-gray-600 mb-1">Total Added</p>
+          <p class="text-lg font-bold text-gray-800">₹<%= totalCredit.toFixed(2) %></p>
+        </div>
+        
+        <div class="stat-card p-4 rounded-lg">
+          <div class="flex items-center justify-between mb-2">
+            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+              <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+              </svg>
+            </div>
+          </div>
+          <p class="text-xs text-gray-600 mb-1">Avg Transaction</p>
+          <p class="text-lg font-bold text-gray-800">₹<%= totalTransactions > 0 ? (totalDebit / totalTransactions).toFixed(2) : '0.00' %></p>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="bg-white p-6 rounded-xl shadow-md">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <button onclick="openAddMoneyModal()" class="feature-card p-4 rounded-lg text-center">
+            <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+              <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+              </svg>
+            </div>
+            <p class="text-sm font-medium text-gray-800">Add Money</p>
+          </button>
+          
+          <button onclick="openTransactionHistoryModal()" class="feature-card p-4 rounded-lg text-center">
+            <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+              <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+              </svg>
+            </div>
+            <p class="text-sm font-medium text-gray-800">History</p>
+          </button>
+          
+          <button onclick="openSpendingAnalyticsModal()" class="feature-card p-4 rounded-lg text-center">
+            <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+              <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+              </svg>
+            </div>
+            <p class="text-sm font-medium text-gray-800">Analytics</p>
+          </button>
+          
+          <button onclick="exportTransactions()" class="feature-card p-4 rounded-lg text-center">
+            <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+              <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+            </div>
+            <p class="text-sm font-medium text-gray-800">Export</p>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Transaction History Modal -->
+<div id="transactionHistoryModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden p-4">
+  <div class="bg-white w-full max-w-2xl rounded-xl shadow-2xl relative max-h-[85vh] overflow-hidden">
+    <div class="sticky top-0 bg-white border-b p-4 rounded-t-xl">
+      <button onclick="closeTransactionHistoryModal()" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-gray-800">Transaction History</h2>
+          <p class="text-sm text-gray-600">View all your wallet transactions</p>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <div class="relative flex-1">
+          <input type="text" id="transactionSearch" placeholder="Search transactions..." class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-500 focus:border-transparent">
+          <svg class="w-4 h-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+        </div>
+        <select id="transactionFilter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-500 focus:border-transparent">
+          <option value="all">All</option>
+          <option value="credit">Added</option>
+          <option value="debit">Spent</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="overflow-y-auto p-4" style="max-height: calc(85vh - 140px);">
+      <div class="space-y-3">
+        <% if (wallet && wallet.transactions && wallet.transactions.length > 0) { %>
+          <%
+            const sortedTransactions = wallet.transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+          %>
+          <% sortedTransactions.forEach((transaction, index) => { %>
+            <div class="transaction-item <%= transaction.type === 'credit' ? 'transaction-credit' : 'transaction-debit' %> border rounded-lg p-4 bg-white hover:shadow-sm" data-type="<%= transaction.type %>">
+              <div class="flex items-center gap-4">
+                <div class="relative">
+                  <div class="w-12 h-12 rounded-full flex items-center justify-center <%= transaction.type === 'credit' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600' %>">
+                    <% if (transaction.type === 'credit') { %>
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                      </svg>
+                    <% } else { %>
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                      </svg>
+                    <% } %>
+                  </div>
+                  <% if (index < 3) { %>
+                    <div class="activity-dot bg-green-400 absolute -top-1 -right-1"></div>
+                  <% } %>
+                </div>
+                
+                <div class="flex-1 min-w-0">
+                  <div class="flex justify-between items-start">
+                    <div class="min-w-0 flex-1">
+                      <p class="font-medium text-gray-800 text-sm truncate">
+                        <%= transaction.description || (transaction.type === 'credit' ? 'Money Added to Wallet' : 'Purchase Payment') %>
+                      </p>
+                      <div class="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                        <span>
+                          <%= new Date(transaction.date).toLocaleDateString('en-IN', {
+                             year: 'numeric',
+                             month: 'short',
+                             day: 'numeric',
+                             hour: '2-digit',
+                             minute: '2-digit'
+                          }) %>
+                        </span>
+                        <% if (transaction.reference) { %>
+                          <span class="bg-gray-100 px-2 py-1 rounded">Ref: <%= transaction.reference %></span>
+                        <% } %>
+                      </div>
+                    </div>
+                    
+                    <div class="text-right ml-4">
+                      <p class="font-bold text-sm <%= transaction.type === 'credit' ? 'text-green-600' : 'text-red-600' %>">
+                        <%= transaction.type === 'credit' ? '+' : '-' %>₹<%= transaction.amount.toFixed(2) %>
+                      </p>
+                      <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-1">
+                        <div class="w-1.5 h-1.5 bg-green-400 rounded-full mr-1"></div>
+                        Completed
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        <% } else { %>
+          <div class="text-center text-gray-600 bg-gray-50 p-8 rounded-lg">
+            <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+            </svg>
+            <h4 class="text-lg font-semibold mb-2">No transactions yet</h4>
+            <p class="text-sm mb-4">Start using your wallet to see history here.</p>
+            <button onclick="closeTransactionHistoryModal(); openAddMoneyModal();" class="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-700 text-sm">
+              Add Money to Get Started
+            </button>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Spending Analytics Modal -->
+<div id="spendingAnalyticsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden p-4">
+  <div class="bg-white w-full max-w-2xl rounded-xl shadow-2xl relative max-h-[85vh] overflow-hidden">
+    <div class="sticky top-0 bg-white border-b p-4 rounded-t-xl">
+      <button onclick="closeSpendingAnalyticsModal()" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-gray-800">Spending Analytics</h2>
+          <p class="text-sm text-gray-600">Analyze your spending patterns</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="overflow-y-auto p-4" style="max-height: calc(85vh - 100px);">
+      <!-- Monthly Spending Chart -->
+      <div class="chart-container p-4 rounded-lg mb-6">
+        <h4 class="text-sm font-medium text-gray-700 mb-4">Monthly Spending Trend</h4>
+        <div class="flex items-end justify-between h-32 gap-2">
+          <% 
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+            const monthlyData = [1200, 800, 1500, 900, 1100, thisMonthTransactions];
+            const maxAmount = Math.max(...monthlyData);
+          %>
+          <% months.forEach((month, index) => { %>
+            <div class="flex flex-col items-center flex-1">
+              <div class="w-full bg-gray-200 rounded-t" style="height: <%= Math.max((monthlyData[index] / maxAmount) * 100, 20) %>px;">
+                <div class="w-full bg-gray-600 rounded-t h-full"></div>
+              </div>
+              <span class="text-xs text-gray-600 mt-2"><%= month %></span>
+              <span class="text-xs text-gray-500">₹<%= monthlyData[index] %></span>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+      
+      <!-- Spending Categories -->
+      <div class="space-y-4">
+        <h4 class="text-sm font-medium text-gray-700 mb-3">Spending Categories</h4>
+        
+        <div class="spending-category p-4 rounded-lg">
+          <div class="flex justify-between items-center mb-3">
+            <div class="flex items-center gap-2">
+              <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+              <span class="text-sm font-medium text-gray-700">Shopping</span>
+            </div>
+            <span class="text-sm text-gray-600">₹<%= (thisMonthTransactions * 0.6).toFixed(2) %></span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2">
+            <div class="progress-bar h-2 rounded-full" style="width: 60%"></div>
+          </div>
+          <p class="text-xs text-gray-500 mt-1">60% of total spending</p>
+        </div>
+        
+        <div class="spending-category p-4 rounded-lg">
+          <div class="flex justify-between items-center mb-3">
+            <div class="flex items-center gap-2">
+              <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+              <span class="text-sm font-medium text-gray-700">Food & Dining</span>
+            </div>
+            <span class="text-sm text-gray-600">₹<%= (thisMonthTransactions * 0.25).toFixed(2) %></span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2">
+            <div class="bg-blue-500 h-2 rounded-full" style="width: 25%"></div>
+          </div>
+          <p class="text-xs text-gray-500 mt-1">25% of total spending</p>
+        </div>
+        
+        <div class="spending-category p-4 rounded-lg">
+          <div class="flex justify-between items-center mb-3">
+            <div class="flex items-center gap-2">
+              <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+              <span class="text-sm font-medium text-gray-700">Transportation</span>
+            </div>
+            <span class="text-sm text-gray-600">₹<%= (thisMonthTransactions * 0.1).toFixed(2) %></span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2">
+            <div class="bg-yellow-500 h-2 rounded-full" style="width: 10%"></div>
+          </div>
+          <p class="text-xs text-gray-500 mt-1">10% of total spending</p>
+        </div>
+        
+        <div class="spending-category p-4 rounded-lg">
+          <div class="flex justify-between items-center mb-3">
+            <div class="flex items-center gap-2">
+              <div class="w-3 h-3 bg-purple-500 rounded-full"></div>
+              <span class="text-sm font-medium text-gray-700">Others</span>
+            </div>
+            <span class="text-sm text-gray-600">₹<%= (thisMonthTransactions * 0.05).toFixed(2) %></span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2">
+            <div class="bg-purple-500 h-2 rounded-full" style="width: 5%"></div>
+          </div>
+          <p class="text-xs text-gray-500 mt-1">5% of total spending</p>
+        </div>
+      </div>
+      
+      <!-- Insights -->
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+        <div class="flex items-start gap-3">
+          <svg class="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <div>
+            <h5 class="font-medium text-blue-800 mb-1">Spending Insight</h5>
+            <p class="text-sm text-blue-700">
+              <% if (spendingChange > 0) { %>
+                Your spending increased by <%= spendingChange.toFixed(1) %>% compared to last month. Consider reviewing your shopping expenses.
+              <% } else if (spendingChange < 0) { %>
+                Great job! Your spending decreased by <%= Math.abs(spendingChange).toFixed(1) %>% compared to last month.
+              <% } else { %>
+                Your spending pattern is consistent with last month.
+              <% } %>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Compact Add Money Modal -->
+<div id="addMoneyModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden p-4">
+  <div class="bg-white w-full max-w-sm rounded-xl shadow-2xl relative max-h-[85vh] overflow-y-auto">
+    <div class="sticky top-0 bg-white border-b p-4 rounded-t-xl">
+      <button onclick="closeAddMoneyModal()" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+          <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-lg font-bold text-gray-800">Add Money</h2>
+          <p class="text-xs text-gray-600">Add funds to wallet</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="p-4">
+      <form id="addMoneyForm">
+        <!-- Amount Input -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Amount</label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">₹</span>
+            <input type="number" name="amount" id="amount" class="w-full border-2 border-gray-200 rounded-lg pl-8 pr-3 py-2 focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-base font-medium transition-colors" placeholder="0" >
+          </div>
+        </div>
+        
+        <!-- Quick Amount Buttons -->
+        <div class="mb-4">
+          <p class="text-sm font-medium text-gray-700 mb-2">Quick Select</p>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" onclick="setAmount(100)" class="bg-gray-50 hover:bg-gray-100 border border-gray-200 hover:border-gray-300 px-3 py-2 rounded-lg text-sm font-medium transition-colors">₹100</button>
+            <button type="button" onclick="setAmount(500)" class="bg-gray-50 hover:bg-gray-100 border border-gray-200 hover:border-gray-300 px-3 py-2 rounded-lg text-sm font-medium transition-colors">₹500</button>
+            <button type="button" onclick="setAmount(1000)" class="bg-gray-50 hover:bg-gray-100 border border-gray-200 hover:border-gray-300 px-3 py-2 rounded-lg text-sm font-medium transition-colors">₹1,000</button>
+            <button type="button" onclick="setAmount(2000)" class="bg-gray-50 hover:bg-gray-100 border border-gray-200 hover:border-gray-300 px-3 py-2 rounded-lg text-sm font-medium transition-colors">₹2,000</button>
+          </div>
+        </div>
+        
+        <!-- Payment Methods -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
+          <div class="space-y-2">
+            <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-gray-300 cursor-pointer transition-colors">
+              <input type="radio" name="paymentMethod" value="Upi" class="mr-3 w-4 h-4 text-gray-600" required>
+              <div class="flex items-center flex-1">
+                <div class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mr-2">
+                  <svg class="w-4 h-4 text-orange-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  </svg>
+                </div>
+                <div>
+                  <p class="font-medium text-gray-800 text-sm">UPI</p>
+                  <p class="text-xs text-gray-600">Instant payment</p>
+                </div>
+              </div>
+            </label>
+            
+            <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-gray-300 cursor-pointer transition-colors">
+              <input type="radio" name="paymentMethod" value="Net-Banking" class="mr-3 w-4 h-4 text-gray-600">
+              <div class="flex items-center flex-1">
+                <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-2">
+                  <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                  </svg>
+                </div>
+                <div>
+                  <p class="font-medium text-gray-800 text-sm">Net Banking</p>
+                  <p class="text-xs text-gray-600">Bank transfer</p>
+                </div>
+              </div>
+            </label>
+            
+            <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-gray-300 cursor-pointer transition-colors">
+              <input type="radio" name="paymentMethod" value="Debit-Card" class="mr-3 w-4 h-4 text-gray-600">
+              <div class="flex items-center flex-1">
+                <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-2">
+                  <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                  </svg>
+                </div>
+                <div>
+                  <p class="font-medium text-gray-800 text-sm">Debit Card</p>
+                  <p class="text-xs text-gray-600">Card payment</p>
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+        
+        <!-- Submit Buttons -->
+        <div class="flex gap-2">
+          <button type="button" onclick="closeAddMoneyModal()" class="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 font-medium transition-colors text-sm">Cancel</button>
+          <button type="submit" id="addBtn" class="flex-1 bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-700 font-medium transition-colors text-sm">Add Money</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Razorpay -->
+ <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+// Transaction History Modal functions
+function openTransactionHistoryModal() {
+  document.getElementById('transactionHistoryModal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeTransactionHistoryModal() {
+  document.getElementById('transactionHistoryModal').classList.add('hidden');
+  document.body.style.overflow = 'auto';
+}
+
+// Spending Analytics Modal functions
+function openSpendingAnalyticsModal() {
+  document.getElementById('spendingAnalyticsModal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSpendingAnalyticsModal() {
+  document.getElementById('spendingAnalyticsModal').classList.add('hidden');
+  document.body.style.overflow = 'auto';
+}
+
+// Add Money Modal functions
+function openAddMoneyModal() {
+  document.getElementById('addMoneyModal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAddMoneyModal() {
+  document.getElementById('addMoneyModal').classList.add('hidden');
+  document.getElementById('addMoneyForm').reset();
+  document.body.style.overflow = 'auto';
+}
+
+function setAmount(amount) {
+  document.getElementById('amount').value = amount;
+}
+
+//Add Money
+const form = document.getElementById('addMoneyForm');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const amount = Number(form.amount.value)
+  const paymentMethod = form.paymentMethod.value
+  
+
+
+  try{
+
+    const response = await fetch('/wallet',{
+      method:'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({amount,paymentMethod})
+    });
+
+    const data = await response.json();
+
+
+    if(data.success){
+      const options = {
+        key: data.razorpayKey,
+        amount: data.amount,
+        currency: data.currency,
+        name: 'WoodLand',
+        image: '/images/logo.png',
+        order_id: data.orderId,
+        handler: function (response) {
+              console.log(response)
+            // After payment success, verify
+            fetch('/verify-walletPayment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                ...response,
+                paymentMethod,
+                amount:amount,
+              })
+            })
+            .then(res =>res.json())
+            .then(verifyData=>{
+              if(verifyData.success){
+                closeAddMoneyModal()
+                showToast(verifyData.message, 'success');
+                setTimeout(()=>{
+                  window.location.reload()
+                },1800);
+              }else{
+                return showToast(verifyData.message,'error')
+              }
+            });
+        },
+        prefill: {
+          name: "<%= user.name %>",
+          email: "<%= user.email %>",
+          contact: "<%= user.phone %>"
+        },
+        notes: {
+          purpose: 'Adding money to wallet'
+        },
+        theme: {
+          color: "#1F2937"
+        },
+        external: {
+          wallets: ['paytm', 'phonepe']
+        }
+      };
+
+      const rzp = new Razorpay(options)
+      rzp.open()
+    }
+    else{
+      return showToast(data.message, 'error');
+    }
+  }catch (error){
+    console.error('Error:', error);
+    showToast('Server error. Please try again.', 'error');
+  }
+
+  
+})
+
+// Export transactions
+function exportTransactions() {
+  const transactions = document.querySelectorAll('.transaction-item');
+  let csvContent = "Date,Description,Type,Amount,Status\n";
+  
+  transactions.forEach(transaction => {
+    const date = transaction.querySelector('.text-xs').textContent.trim();
+    const description = transaction.querySelector('.font-medium').textContent.trim();
+    const type = transaction.dataset.type === 'credit' ? 'Credit' : 'Debit';
+    const amount = transaction.querySelector('.font-bold').textContent.replace('₹', '').replace('+', '').replace('-', '');
+    csvContent += `"${date}","${description}","${type}","${amount}","Completed"\n`;
+  });
+  
+  const blob = new Blob([csvContent], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'wallet_transactions.csv';
+  a.click();
+  window.URL.revokeObjectURL(url);
+}
+
+// Transaction filter functionality
+document.getElementById('transactionFilter')?.addEventListener('change', function(e) {
+  const filterValue = e.target.value;
+  const transactions = document.querySelectorAll('[data-type]');
+  
+  transactions.forEach(transaction => {
+    const transactionType = transaction.getAttribute('data-type');
+    if (filterValue === 'all' || filterValue === transactionType) {
+      transaction.style.display = 'block';
+    } else {
+      transaction.style.display = 'none';
+    }
+  });
+});
+
+// Transaction search functionality
+document.getElementById('transactionSearch')?.addEventListener('input', function(e) {
+  const searchTerm = e.target.value.toLowerCase();
+  const transactions = document.querySelectorAll('.transaction-item');
+  
+  transactions.forEach(transaction => {
+    const description = transaction.querySelector('.font-medium').textContent.toLowerCase();
+    const amount = transaction.querySelector('.font-bold').textContent.toLowerCase();
+    
+    if (description.includes(searchTerm) || amount.includes(searchTerm)) {
+      transaction.style.display = 'block';
+    } else {
+      transaction.style.display = 'none';
+    }
+  });
+});
+
+// Form validation
+//document.getElementById('addMoneyForm').addEventListener('submit', function(e) {
+//  const amount = document.getElementById('amount').value;
+//  const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
+//  
+//  if (!amount || amount <= 0) {
+//    e.preventDefault();
+//    alert('Please enter a valid amount');
+//    return;
+//  }
+  
+//  if (!paymentMethod) {
+//    e.preventDefault();
+//    alert('Please select a payment method');
+//    return;
+//  }
+//});
+
+// Close modals when clicking outside
+document.getElementById('transactionHistoryModal').addEventListener('click', function(e) {
+  if (e.target === this) {
+    closeTransactionHistoryModal();
+  }
+});
+
+document.getElementById('spendingAnalyticsModal').addEventListener('click', function(e) {
+  if (e.target === this) {
+    closeSpendingAnalyticsModal();
+  }
+});
+
+document.getElementById('addMoneyModal').addEventListener('click', function(e) {
+  if (e.target === this) {
+    closeAddMoneyModal();
+  }
+});
+
+// Handle escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closeAddMoneyModal();
+    closeTransactionHistoryModal();
+    closeSpendingAnalyticsModal();
+  }
+});
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+  // Add smooth scroll behavior
+  document.documentElement.style.scrollBehavior = 'smooth';
+  
+  // Animate stats on load
+  const statCards = document.querySelectorAll('.stat-card');
+  statCards.forEach((card, index) => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    setTimeout(() => {
+      card.style.transition = 'all 0.5s ease';
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0)';
+    }, index * 100);
+  });
+});
+
+function showToast(message, type = 'success') {
+  const toast = document.createElement('div');
+  toast.textContent = message;
+  toast.className = `fixed top-4 right-4 px-4 py-2 rounded text-white shadow z-50 transition-opacity duration-300 ${
+    type === 'success' ? 'bg-green-600' : 'bg-red-600'
+  }`;
+
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+</script>
+
+<%- include('../../views/partials/user/footer') %>
