@@ -17,30 +17,10 @@ const productSchema = new mongoose.Schema({
     ref: 'Category',
     required: true
    },
-//    color: {
-//     type: String
-//    },
+
    images: [{
     type: String
     }],
-    // quantity: {
-    //     type: Number,
-    //     required: true
-    // },
-    // regularPrice: {
-    //     type: Number,
-    //     required: true
-    // },
-    // salePrice: {
-    //     type: Number,
-    //     required: true
-    // },
-    
-    // offerPrice: {
-    //     type: Number, // Discounted price for this variant
-    //     required: false
-    // },
-
 
    variants: [{
     color: {
@@ -65,24 +45,22 @@ const productSchema = new mongoose.Schema({
         type: Number,
         
     },
-    
-    offerPrice: {
-        type: Number, // Discounted price for this variant
-        required: false,
-        default:null
+    offerPercentage:{
+        type: Number,
+        max: 100
+    },
+    offername:{
+        type:String,
+    },
+    finalPrice: {
+        type: Number,
     }
+
 }],
-
-   productOffer:{
-    type: Number,
-    default:0
-   },
-
    isBlocked:{
     type: Boolean,
     default: false
    },
-
    status:{
     type: String,
     enum: ["Available","Out of stock","Discountinued"],

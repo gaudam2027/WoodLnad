@@ -205,9 +205,11 @@ const loadProfilepage = async (req,res)=>{
         
         
         const user = req.session.userId || req.session.user?._id
-        const userData = await User.findOne({_id:user,isBlocked:false});
+        const userData = await User.findOne({_id:user,isBlocked:false}).populate('referredUsers');;
+        console.log(userData.referredUsers)
+        const referralLink = `${process.env.BASE_URL}/signup?ref=${userData.referralCode}`;
         
-        res.render('profile',{user:userData});
+        res.render('profile',{user:userData,referralLink});
     } catch (error) {
         console.log('Profile page not found');
         res.status(500).send('Server error')

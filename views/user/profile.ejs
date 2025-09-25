@@ -1,9 +1,10 @@
 <link rel="stylesheet" href="./css/profile.css">
 <%- include('../../views/partials/user/header') %>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
 
 <style>
   .swal2-popup {
-    border-radius: .7rem !important; /* 16px */
+    border-radius: .7rem !important;
   }
   .swal2-title {
     font-size: 20px !important;
@@ -29,157 +30,633 @@
   }
 
   #toaster.success {
-    background-color: #38a169; /* green-600 */
+    background-color: #38a169;
   }
 
   #toaster.error {
-    background-color: #e53e3e; /* red-600 */
+    background-color: #e53e3e;
+  }
+
+  /* Fixed Mobile Menu Button */
+  #mobileMenuToggle {
+    position: fixed;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1001;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Show only on mobile screens */
+  @media (max-width: 767px) {
+    #mobileMenuToggle {
+      display: flex !important;
+    }
+  }
+
+  #mobileMenuToggle:hover {
+    background: rgba(255, 255, 255, 1);
+    border-color: rgba(0, 0, 0, 0.2);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+    transform: translateY(-50%) scale(1.05);
+  }
+
+  #mobileMenuToggle i {
+    color: #374151;
+    font-size: 1.8rem;
+    transition: all 0.3s ease;
+  }
+
+  /* Fixed Sidebar Overlay */
+  .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .sidebar-overlay.show {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .mobile-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 320px;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    z-index: 1001;
+    border-radius: 0 20px 20px 0;
+    overflow-y: auto;
+  }
+
+  .mobile-sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* Profile container and other styles */
+  .profile-container {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    min-height: 100vh;
+    padding-top: 80px;
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+
+  .profile-img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+
+  .menu-item {
+    transition: all 0.3s ease;
+    border-radius: 12px;
+    margin-bottom: 8px;
+  }
+
+  .menu-item:hover {
+    background: rgba(55, 65, 81, 0.1);
+    transform: translateX(8px);
+  }
+
+  .menu-item.active {
+    background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(55, 65, 81, 0.3);
+  }
+
+  /* Simplified Referral Design */
+  .referral-section {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .referral-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .referral-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1f2937;
+  }
+
+  .referral-count {
+    background: #3b82f6;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .referral-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  @media (min-width: 768px) {
+    .referral-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .referral-item {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .referral-label {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 8px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .referral-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    background: white;
+    color: #1f2937;
+    margin-bottom: 12px;
+    outline: none;
+    transition: border-color 0.3s ease;
+  }
+
+  .referral-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .referral-buttons {
+    display: flex;
+    gap: 8px;
+  }
+
+  .referral-btn {
+    flex: 1;
+    padding: 10px 14px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .referral-btn:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+  }
+
+  .referral-btn.secondary {
+    background: #6b7280;
+  }
+
+  .referral-btn.secondary:hover {
+    background: #4b5563;
+  }
+
+  .referred-user-card {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+  }
+
+  .referred-user-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Responsive breakpoints */
+  @media (max-width: 768px) {
+    .profile-container {
+      padding-top: 60px;
+    }
+    
+    .profile-img {
+      width: 100px;
+      height: 100px;
+    }
+
+    #mobileMenuToggle {
+      left: 15px;
+      width: 50px;
+      height: 50px;
+    }
+
+    #mobileMenuToggle i {
+      font-size: 1.5rem;
+    }
+
+    .referral-buttons {
+      flex-direction: column;
+    }
+
+    .referral-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .mobile-sidebar {
+      width: 280px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    #mobileMenuToggle {
+      left: 10px;
+      width: 45px;
+      height: 45px;
+    }
+
+    #mobileMenuToggle i {
+      font-size: 1.2rem;
+    }
+
+    .mobile-sidebar {
+      width: 260px;
+    }
   }
 </style>
 
-<div class="container mx-auto px-6 py-12">
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="profile-container">
+  <div class="container mx-auto px-4 py-6">
     
-    <!-- Sidebar -->
-   <div class="bg-white p-6 rounded-lg shadow-md min-h-[500px] flex flex-col">
-      <ul class="space-y-2">
-        <li><a href="/profile" class="block py-2 px-4 rounded bg-gray-100 font-semibold">Profile</a></li>
-        <li><a href="/order" class="block py-2 px-4 rounded hover:bg-gray-200">My Orders</a></li>
-        <li><a href="/address" class="block py-2 px-4 rounded hover:bg-gray-200">Manage Address</a></li>
-        <li><a href="/wishlist" class="block py-2 px-4 rounded hover:bg-gray-200">WishList</a></li>
-        <li><a href="/wallet" class="block py-2 px-4 rounded hover:bg-gray-200">Wallet</a></li>
-      </ul>
-      <button class="mt-auto w-full bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700">Logout</button>
+    <!-- Fixed Mobile Menu Toggle -->
+    <button id="mobileMenuToggle">
+      <i class="fas fa-chevron-right"></i>
+    </button>
+
+    <!-- Mobile Header -->
+    <div class="block sm:hidden text-center mb-8">
+      <h1 class="text-2xl font-bold text-gray-800 mb-2" style="font-family: 'Raleway', sans-serif;">My Profile</h1>
+      <p class="text-gray-600">Manage your account and preferences</p>
     </div>
-    
-    <!-- Profile Info -->
-    <div class="col-span-2 bg-white p-6 rounded-lg shadow-md profile-card">
-      <h2 class="text-xl font-semibold mb-4 s1">Personal Information</h2>
-      <div class="flex flex-row items-center mb-6">
-        <div class="relative">
-          <img src="<%= user.profileImage %>" alt="Profile" class="profile-img" id="profilePreview">
-          <label for="profileUpload" class="absolute bottom-0 right-0 bg-gray-200 p-1 rounded-full cursor-pointer hover:bg-gray-300">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2L7 19H4v-3l11-11z" />
-            </svg>
-          </label>
-          <input type="file" id="profileUpload" name="profileImage" class="hidden" accept="image/*">
-        </div>
-        <h3 class="profile-name"><%= user.name %></h3>
-      </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="text-gray-500 s1" for="name">Full Name</label>
-          <input type="text" id="name" class="border p-2 w-full profile-input" value="<%= user.name %>" oninput="clearFieldError('name')">
-        </div>
-        <div>
-          <label class="text-gray-500 s1" for="dob">D.O.B</label>
-          <input type="date" id="dob" class="border p-2 w-full profile-input" value="<%= user.dob ? user.dob.toISOString().slice(0, 10) : '' %>"  oninput="clearFieldError('dob')">
-        </div>
-        <div class="relative">
-          <label class="text-gray-500 s1" for="email">Email</label>
-          <input type="email" id="email" class="border p-2 w-full profile-input pr-32" value="<%= user.email %>" readonly>
-          <button id="openEmailModal" type="button" class="absolute right-2 top-8 bg-gray-700 text-white px-3 py-1 text-sm rounded hover:bg-gray-600">Change Email</button>
-        </div>
-
-        <div>
-          <label class="text-gray-500 s1" for="phone">Phone No.</label>
-          <input type="tel" id="phone" class="border p-2 w-full profile-input" value="<%= user.phone %>" oninput="clearFieldError('phone')">
-        </div>
-        <div>
-          <label class="text-gray-500 s1" for="state">State</label>
-          <input type="text" id="state" class="border p-2 w-full profile-input" value="<%= user.state %>" oninput="clearFieldError('state')">
-        </div>
-        <div>
-          <label class="text-gray-500 s1" for="district">District/City/Town</label>
-          <input type="text" id="district" class="border p-2 w-full profile-input" value="<%= user.district %>" oninput="clearFieldError('district')">
-        </div>
-        <div class="col-span-2">
-          <label class="text-gray-500 s1" for="address">Address</label>
-          <input type="text" id="address" class="border p-2 w-full profile-input" value="<%= user.address %>" oninput="clearFieldError('district')">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      
+      <!-- Desktop Sidebar -->
+      <div class="hidden lg:block">
+        <div class="glass-card p-6 rounded-2xl sticky top-6">
+          <div class="text-center mb-6">
+            <img src="<%= user.profileImage || '/images/default-avatar.png' %>" alt="Profile" class="profile-img mx-auto mb-4">
+            <h3 class="text-xl font-bold text-gray-800 mb-1" style="font-family: 'Raleway', sans-serif;"><%= user.name %></h3>
+            <p class="text-sm text-gray-600">Member since <%= new Date(user.createdOn).getFullYear() %></p>
+          </div>
+          
+          <nav class="space-y-2">
+            <a href="/profile" class="menu-item active flex items-center py-3 px-4 text-gray-700 font-medium">
+              <i class="fas fa-user mr-3"></i>Profile
+            </a>
+            <a href="/order" class="menu-item flex items-center py-3 px-4 text-gray-700 font-medium">
+              <i class="fas fa-shopping-bag mr-3"></i>My Orders
+            </a>
+            <a href="/address" class="menu-item flex items-center py-3 px-4 text-gray-700 font-medium">
+              <i class="fas fa-map-marker-alt mr-3"></i>Addresses
+            </a>
+            <a href="/wishlist" class="menu-item flex items-center py-3 px-4 text-gray-700 font-medium">
+              <i class="fas fa-heart mr-3"></i>Wishlist
+            </a>
+            <a href="/wallet" class="menu-item flex items-center py-3 px-4 text-gray-700 font-medium">
+              <i class="fas fa-wallet mr-3"></i>Wallet
+            </a>
+          </nav>
+          
+          <button class="w-full mt-6 bg-gray-800 text-white py-3 px-4 rounded-xl hover:bg-gray-700 transition font-medium flex items-center justify-center">
+            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+          </button>
         </div>
       </div>
 
-      <div class="mt-6 flex space-x-4">
-        <button id="saveChanges" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-400 w-full">Save Changes</button>
-        <%if(user.password){%>
-        <button id="openPasswordModal" class="bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-400 w-full">Change Password</button>
-        <%}%>
+      <!-- Fixed Mobile Sidebar Overlay -->
+      <div id="sidebarOverlay" class="sidebar-overlay">
+        <div id="mobileSidebar" class="mobile-sidebar">
+          <div class="flex items-center justify-between mb-6 p-6">
+            <h2 class="text-xl font-bold text-gray-800" style="font-family: 'Raleway', sans-serif;">Menu</h2>
+            <button id="closeSidebar" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              <i class="fas fa-times text-gray-600 text-xl"></i>
+            </button>
+          </div>
+
+          <div class="text-center mb-6 px-6">
+            <img src="<%= user.profileImage || '/images/default-avatar.png' %>" alt="Profile" class="profile-img mx-auto mb-4">
+            <h3 class="text-lg font-bold text-gray-800 mb-1"><%= user.name %></h3>
+            <p class="text-sm text-gray-600">Member since <%= new Date(user.createdOn).getFullYear() %></p>
+          </div>
+          
+          <nav class="space-y-3 px-6">
+            <a href="/profile" class="menu-item active flex items-center py-3 px-4 text-gray-700 font-medium">
+              <i class="fas fa-user mr-3"></i>Profile
+            </a>
+            <a href="/order" class="menu-item flex items-center py-3 px-4 text-gray-700 font-medium">
+              <i class="fas fa-shopping-bag mr-3"></i>My Orders
+            </a>
+            <a href="/address" class="menu-item flex items-center py-3 px-4 text-gray-700 font-medium">
+              <i class="fas fa-map-marker-alt mr-3"></i>Addresses
+            </a>
+            <a href="/wishlist" class="menu-item flex items-center py-3 px-4 text-gray-700 font-medium">
+              <i class="fas fa-heart mr-3"></i>Wishlist
+            </a>
+            <a href="/wallet" class="menu-item flex items-center py-3 px-4 text-gray-700 font-medium">
+              <i class="fas fa-wallet mr-3"></i>Wallet
+            </a>
+          </nav>
+          
+          <div class="px-6 mt-8">
+            <button class="w-full bg-gray-800 text-white py-3 px-4 rounded-xl hover:bg-gray-700 transition font-medium flex items-center justify-center">
+              <i class="fas fa-sign-out-alt mr-2"></i>Logout
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="lg:col-span-3 space-y-6">
+        
+        <!-- Profile Information Card -->
+        <div class="glass-card p-6 md:p-8 rounded-2xl">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+            <div>
+              <h2 class="text-2xl font-bold text-gray-800 mb-2" style="font-family: 'Raleway', sans-serif;">Personal Information</h2>
+              <p class="text-gray-600">Manage your account details and preferences</p>
+            </div>
+            <div class="mt-4 md:mt-0">
+              <div class="relative">
+                <img src="<%= user.profileImage || '/images/default-avatar.png' %>" alt="Profile" class="profile-img" id="profilePreview">
+                <label for="profileUpload" class="absolute bottom-2 right-2 bg-white p-2 rounded-full cursor-pointer hover:bg-gray-50 shadow-lg border border-gray-200">
+                  <i class="fas fa-camera text-gray-600"></i>
+                </label>
+                <input type="file" id="profileUpload" name="profileImage" class="hidden" accept="image/*">
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label class="block text-sm font-semibold text-gray-700" for="name">Full Name</label>
+              <input type="text" id="name" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-white" value="<%= user.name %>" oninput="clearFieldError('name')">
+            </div>
+            
+            <div class="space-y-2">
+              <label class="block text-sm font-semibold text-gray-700" for="dob">Date of Birth</label>
+              <input type="date" id="dob" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-white" value="<%= user.dob ? user.dob.toISOString().slice(0, 10) : '' %>" oninput="clearFieldError('dob')">
+            </div>
+            
+            <div class="space-y-2">
+              <label class="block text-sm font-semibold text-gray-700" for="email">Email Address</label>
+              <div class="relative">
+                <input type="email" id="email" class="w-full px-4 py-3 pr-32 border border-gray-300 rounded-xl bg-gray-50" value="<%= user.email %>" readonly>
+                <button id="openEmailModal" type="button" class="absolute right-2 top-2 bg-blue-600 text-white px-3 py-2 text-sm rounded-lg hover:bg-blue-700 transition">
+                  Change
+                </button>
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-sm font-semibold text-gray-700" for="phone">Phone Number</label>
+              <input type="tel" id="phone" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-white" value="<%= user.phone %>" oninput="clearFieldError('phone')">
+            </div>
+            
+            <div class="space-y-2">
+              <label class="block text-sm font-semibold text-gray-700" for="state">State</label>
+              <input type="text" id="state" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-white" value="<%= user.state %>" oninput="clearFieldError('state')">
+            </div>
+            
+            <div class="space-y-2">
+              <label class="block text-sm font-semibold text-gray-700" for="district">District/City</label>
+              <input type="text" id="district" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-white" value="<%= user.district %>" oninput="clearFieldError('district')">
+            </div>
+            
+            <div class="md:col-span-2 space-y-2">
+              <label class="block text-sm font-semibold text-gray-700" for="address">Full Address</label>
+              <textarea id="address" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-white resize-none" oninput="clearFieldError('address')"><%= user.address %></textarea>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-4 mt-8">
+            <button id="saveChanges" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition font-semibold flex items-center justify-center">
+              <i class="fas fa-save mr-2"></i>Save Changes
+            </button>
+            <% if(user.password) { %>
+            <button id="openPasswordModal" class="flex-1 bg-gray-800 text-white px-6 py-3 rounded-xl hover:bg-gray-700 transition font-semibold flex items-center justify-center">
+              <i class="fas fa-key mr-2"></i>Change Password
+            </button>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Simplified Referral Section -->
+        <div class="glass-card p-6 md:p-8 rounded-2xl">
+          <div class="flex items-center mb-6">
+            <div class="bg-blue-100 p-3 rounded-xl mr-4">
+              <i class="fas fa-users text-blue-600 text-xl"></i>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-gray-800" style="font-family: 'Raleway', sans-serif;">Referral Program</h3>
+              <p class="text-gray-600">Share your code and earn rewards</p>
+            </div>
+          </div>
+
+          <!-- Simplified Referral Card -->
+          <div class="referral-section">
+            <div class="referral-header">
+              <div class="referral-title">Share & Earn</div>
+              <div class="referral-count"><%= user.referredUsers.length %> Referred</div>
+            </div>
+
+            <div class="referral-grid">
+              <!-- Referral Code -->
+              <div class="referral-item">
+                <div class="referral-label">Referral Code</div>
+                <input type="text" class="referral-input" id="referralCode" value="<%= user.referralCode %>" readonly>
+                <div class="referral-buttons">
+                  <button class="referral-btn" onclick="copyReferralCode()">
+                    <i class="fas fa-copy"></i>Copy Code
+                  </button>
+                </div>
+              </div>
+
+              <!-- Referral Link -->
+              <div class="referral-item">
+                <div class="referral-label">Referral Link</div>
+                <input type="text" class="referral-input" id="referralLink" value="<%= user.referralLink || `${process.env.BASE_URL || 'http://localhost:3000'}/signup?ref=${user.referralCode}` %>" readonly>
+                <div class="referral-buttons">
+                  <button class="referral-btn" onclick="copyReferralLink()">
+                    <i class="fas fa-link"></i>Copy Link
+                  </button>
+                  <button class="referral-btn secondary" onclick="shareReferralLink()">
+                    <i class="fas fa-share-alt"></i>Share
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Referred Users List -->
+          <% if (user.referredUsers && user.referredUsers.length > 0) { %>
+          <div class="mt-8">
+            <h4 class="text-lg font-semibold text-gray-800 mb-4">Your Referrals</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <% user.referredUsers.forEach((referredUser, index) => { %>
+              <div class="referred-user-card p-4 rounded-xl">
+                <div class="flex items-center">
+                  <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold mr-3">
+                    <%= referredUser.name.charAt(0).toUpperCase() %>
+                  </div>
+                  <div>
+                    <h5 class="font-semibold text-gray-800"><%= referredUser.name %></h5>
+                    <p class="text-sm text-gray-600">Joined <%= new Date(referredUser.createdOn).toLocaleDateString() %></p>
+                  </div>
+                </div>
+              </div>
+              <% }) %>
+            </div>
+          </div>
+          <% } else { %>
+          <div class="text-center py-8">
+            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-user-friends text-gray-400 text-2xl"></i>
+            </div>
+            <h4 class="text-lg font-semibold text-gray-800 mb-2">No Referrals Yet</h4>
+            <p class="text-gray-600">Share your referral code or link with friends to start earning rewards!</p>
+          </div>
+          <% } %>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
-
-<!-- change email modal -->
+<!-- All modals remain the same... -->
+<!-- Email Change Modal -->
 <div id="emailModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-  <div class="bg-white rounded-lg p-6 w-96 shadow-lg">
+  <div class="glass-card rounded-2xl p-6 w-full max-w-md mx-4">
     <h2 class="text-xl font-semibold mb-4 text-gray-800">Change Email</h2>
-    <label for="newEmail" class="block text-sm text-gray-600 mb-1">Enter New Email</label>
-    <input type="email" id="newEmail" class="border w-full p-2 rounded mb-3" placeholder="example@email.com">
-    <div id="emailError" class="text-red-500 text-sm mb-2 hidden">Please enter a valid email.</div>
-    <div class="flex justify-end gap-2">
-      <button id="cancelEmailBtn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
-      <button id="verifyEmailBtn" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700">Verify Email</button>
+    <label for="newEmail" class="block text-sm font-semibold text-gray-700 mb-2">New Email Address</label>
+    <input type="email" id="newEmail" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-white mb-4" placeholder="example@email.com">
+    <div id="emailError" class="text-red-500 text-sm mb-4 hidden">Please enter a valid email.</div>
+    <div class="flex gap-3">
+      <button id="cancelEmailBtn" class="flex-1 bg-gray-500 text-white px-4 py-3 rounded-xl hover:bg-gray-600 transition font-medium">Cancel</button>
+      <button id="verifyEmailBtn" class="flex-1 bg-blue-600 text-white px-4 py-3 rounded-xl hover:bg-blue-700 transition font-medium">Verify Email</button>
     </div>
   </div>
 </div>
 
 <!-- OTP Modal -->
 <div id="otpModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-  <div class="bg-white rounded-lg p-6 w-96 shadow-lg">
+  <div class="glass-card rounded-2xl p-6 w-full max-w-md mx-4">
     <h2 class="text-xl font-semibold mb-4 text-gray-800">Verify OTP</h2>
-    <label for="otpInput" class="block text-sm text-gray-600 mb-1">Enter the OTP sent to your email</label>
-    <input type="text" id="otpInput" class="border w-full p-2 rounded mb-3" placeholder="Enter OTP">
-    <div id="otpError" class="text-red-500 text-sm mb-2 hidden">Invalid OTP.</div>
-    <div class="flex justify-end gap-2">
-      <button id="cancelOtpBtn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
-      <button id="submitOtpBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Submit OTP</button>
+    <label for="otpInput" class="block text-sm font-semibold text-gray-700 mb-2">Enter OTP</label>
+    <input type="text" id="otpInput" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-white mb-4" placeholder="Enter OTP">
+    <div id="otpError" class="text-red-500 text-sm mb-4 hidden">Invalid OTP.</div>
+    <div class="flex gap-3">
+      <button id="cancelOtpBtn" class="flex-1 bg-gray-500 text-white px-4 py-3 rounded-xl hover:bg-gray-600 transition font-medium">Cancel</button>
+      <button id="submitOtpBtn" class="flex-1 bg-blue-600 text-white px-4 py-3 rounded-xl hover:bg-blue-700 transition font-medium">Submit OTP</button>
     </div>
   </div>
 </div>
 
-
-<!-- Change Password Modal -->
+<!-- Password Change Modal -->
 <div id="passwordModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-  <div class="bg-white rounded-lg p-6 w-96 shadow-lg">
+  <div class="glass-card rounded-2xl p-6 w-full max-w-md mx-4">
     <h2 class="text-xl font-semibold mb-4 text-gray-800">Change Password</h2>
     
-    <label for="currentPassword" class="block text-sm text-gray-600 mb-1">Current Password</label>
-    <input type="password" id="currentPassword" class="border w-full p-2 rounded mb-3" placeholder="Enter current password">
+    <div class="space-y-4">
+      <div>
+        <label for="currentPassword" class="block text-sm font-semibold text-gray-700 mb-2">Current Password</label>
+        <input type="password" id="currentPassword" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-white" placeholder="Enter current password">
+      </div>
+      
+      <div>
+        <label for="newPassword" class="block text-sm font-semibold text-gray-700 mb-2">New Password</label>
+        <input type="password" id="newPassword" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-white" placeholder="Enter new password">
+      </div>
+      
+      <div>
+        <label for="confirmPassword" class="block text-sm font-semibold text-gray-700 mb-2">Confirm New Password</label>
+        <input type="password" id="confirmPassword" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-white" placeholder="Confirm new password">
+      </div>
+    </div>
     
-    <label for="newPassword" class="block text-sm text-gray-600 mb-1">New Password</label>
-    <input type="password" id="newPassword" class="border w-full p-2 rounded mb-3" placeholder="Enter new password">
+    <div id="passwordError" class="text-red-500 text-sm mt-2 mb-4 hidden">Please check your password requirements.</div>
     
-    <label for="confirmPassword" class="block text-sm text-gray-600 mb-1">Confirm New Password</label>
-    <input type="password" id="confirmPassword" class="border w-full p-2 rounded mb-3" placeholder="Confirm new password">
-    
-    <div id="passwordError" class="text-red-500 text-sm mb-2 hidden">Please check your password requirements.</div>
-    
-    <div class="flex justify-end gap-2">
-      <button id="cancelPasswordBtn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
-      <button id="verifyPasswordBtn" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700">Send OTP</button>
+    <div class="flex gap-3 mt-6">
+      <button id="cancelPasswordBtn" class="flex-1 bg-gray-500 text-white px-4 py-3 rounded-xl hover:bg-gray-600 transition font-medium">Cancel</button>
+      <button id="verifyPasswordBtn" class="flex-1 bg-gray-800 text-white px-4 py-3 rounded-xl hover:bg-gray-700 transition font-medium">Send OTP</button>
     </div>
   </div>
 </div>
 
 <!-- Password OTP Modal -->
 <div id="passwordOtpModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-  <div class="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl relative">
-    <h2 class="text-2xl font-semibold mb-4 text-gray-800">Verify OTP</h2>
+  <div class="glass-card rounded-2xl p-6 w-full max-w-md mx-4">
+    <h2 class="text-xl font-semibold mb-4 text-gray-800">Verify OTP</h2>
     
     <p class="text-sm text-gray-600 mb-4">An OTP has been sent to your email. Please enter it below to confirm the password change.</p>
 
-    <label for="passwordOtpInput" class="block text-sm font-medium text-gray-700 mb-1">Enter OTP</label>
-    <input type="text" id="passwordOtpInput" maxlength="6"
-      class="border border-gray-300 w-full p-2 rounded-md mb-2 focus:ring-2 focus:ring-blue-500 focus:outline-none text-center tracking-widest text-lg"
-      placeholder="6-digit OTP">
+    <label for="passwordOtpInput" class="block text-sm font-semibold text-gray-700 mb-2">Enter OTP</label>
+    <input type="text" id="passwordOtpInput" maxlength="6" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-white text-center tracking-widest text-lg mb-4" placeholder="6-digit OTP">
 
-    <div id="passwordOtpError" class="text-red-500 text-sm mb-2 hidden">Invalid OTP.</div>
+    <div id="passwordOtpError" class="text-red-500 text-sm mb-4 hidden">Invalid OTP.</div>
 
     <!-- Timer and Resend -->
-    <div class="flex justify-between items-center mb-4">
+    <div class="flex justify-between items-center mb-6">
       <div class="text-sm">
         <span class="text-gray-500">Expires in</span>
         <span id="otpTimer" class="ml-1 px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-semibold">60s</span>
@@ -187,21 +664,173 @@
       <button id="resendOtpBtn" class="text-blue-600 text-sm font-medium hover:underline hidden">Resend OTP</button>
     </div>
 
-    <div class="flex justify-end gap-2">
-      <button id="cancelPasswordOtpBtn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition">Cancel</button>
-      <button id="submitPasswordOtpBtn" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Confirm OTP</button>
+    <div class="flex gap-3">
+      <button id="cancelPasswordOtpBtn" class="flex-1 bg-gray-500 text-white px-4 py-3 rounded-xl hover:bg-gray-600 transition font-medium">Cancel</button>
+      <button id="submitPasswordOtpBtn" class="flex-1 bg-gray-800 text-white px-4 py-3 rounded-xl hover:bg-gray-700 transition font-medium">Confirm OTP</button>
     </div>
   </div>
 </div>
-
-
 
 <div id="toaster"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+// Fixed mobile sidebar functionality - Working solution
+document.addEventListener('DOMContentLoaded', function() {
+  const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+  const mobileSidebar = document.getElementById('mobileSidebar');
+  const closeSidebar = document.getElementById('closeSidebar');
 
+  console.log('Mobile elements:', { mobileMenuToggle, sidebarOverlay, mobileSidebar, closeSidebar });
+
+  if (!mobileMenuToggle || !sidebarOverlay || !mobileSidebar || !closeSidebar) {
+    console.warn('Some mobile sidebar elements are missing');
+    return;
+  }
+
+  // Open sidebar function
+  function openSidebar() {
+    console.log('Opening sidebar');
+    sidebarOverlay.classList.add('show');
+    setTimeout(() => {
+      mobileSidebar.classList.add('open');
+    }, 50);
+  }
+
+  // Close sidebar function
+  function closeSidebarFunc() {
+    console.log('Closing sidebar');
+    mobileSidebar.classList.remove('open');
+    setTimeout(() => {
+      sidebarOverlay.classList.remove('show');
+    }, 300);
+  }
+
+  // Event listeners
+  mobileMenuToggle.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    openSidebar();
+  });
+
+  closeSidebar.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    closeSidebarFunc();
+  });
+
+  // Close on overlay click
+  sidebarOverlay.addEventListener('click', function(e) {
+    if (e.target === sidebarOverlay) {
+      closeSidebarFunc();
+    }
+  });
+
+  // Prevent body scroll when sidebar is open
+  const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+        if (sidebarOverlay.classList.contains('show')) {
+          document.body.style.overflow = 'hidden';
+        } else {
+          document.body.style.overflow = '';
+        }
+      }
+    });
+  });
+
+  observer.observe(sidebarOverlay, {
+    attributes: true,
+    attributeFilter: ['class']
+  });
+});
+
+// Referral functionality
+function copyReferralCode() {
+  const referralCode = document.getElementById('referralCode').value;
+  navigator.clipboard.writeText(referralCode).then(() => {
+    showToaster('Referral code copied to clipboard!', 'success');
+  }).catch(() => {
+    showToaster('Failed to copy referral code', 'error');
+  });
+}
+
+function copyReferralLink() {
+  const referralLink = document.getElementById('referralLink').value;
+  navigator.clipboard.writeText(referralLink).then(() => {
+    showToaster('Referral link copied to clipboard!', 'success');
+  }).catch(() => {
+    showToaster('Failed to copy referral link', 'error');
+  });
+}
+
+function shareReferralLink() {
+  const referralLink = document.getElementById('referralLink').value;
+  const shareText = `Join me on this amazing platform! Use my referral link: ${referralLink}`;
+
+  if (navigator.share) {
+    navigator.share({
+      title: 'Join My Referral Program',
+      text: shareText,
+      url: referralLink
+    }).then(() => {
+      showToaster('Referral link shared successfully!', 'success');
+    }).catch((error) => {
+      console.log('Error sharing:', error);
+      fallbackShare(shareText);
+    });
+  } else {
+    fallbackShare(shareText);
+  }
+}
+
+function fallbackShare(text) {
+  const shareOptions = [
+    {
+      name: 'WhatsApp',
+      icon: 'fab fa-whatsapp',
+      url: `https://wa.me/?text=${encodeURIComponent(text)}`
+    },
+    {
+      name: 'Telegram',
+      icon: 'fab fa-telegram',
+      url: `https://t.me/share/url?url=${encodeURIComponent(document.getElementById('referralLink').value)}&text=${encodeURIComponent('Join me on this amazing platform!')}`
+    },
+    {
+      name: 'Facebook',
+      icon: 'fab fa-facebook',
+      url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(document.getElementById('referralLink').value)}`
+    },
+    {
+      name: 'Twitter',
+      icon: 'fab fa-twitter',
+      url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`
+    }
+  ];
+
+  let optionsHtml = '<div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">';
+  shareOptions.forEach(option => {
+    optionsHtml += `
+      <a href="${option.url}" target="_blank" onclick="showToaster('Opening ${option.name}...', 'success')" 
+         style="display: flex; align-items: center; gap: 8px; padding: 10px 15px; background: #3b82f6; color: white; text-decoration: none; border-radius: 8px; font-size: 14px;">
+        <i class="${option.icon}"></i> ${option.name}
+      </a>
+    `;
+  });
+  optionsHtml += '</div>';
+
+  Swal.fire({
+    title: 'Share Your Referral Link',
+    html: optionsHtml,
+    showConfirmButton: false,
+    showCloseButton: true,
+    width: 400
+  });
+}
+
+// Rest of existing JavaScript code...
 const emailModal = document.getElementById('emailModal');
 const openEmailModal = document.getElementById('openEmailModal');
 const cancelEmailBtn = document.getElementById('cancelEmailBtn');
@@ -215,26 +844,22 @@ const otpError = document.getElementById('otpError');
 const cancelOtpBtn = document.getElementById('cancelOtpBtn');
 const submitOtpBtn = document.getElementById('submitOtpBtn');
 
-let latestEmail = ''; // Store new email to validate OTP later
+let latestEmail = '';
 
-// Show modal
 openEmailModal.addEventListener('click', () => {
   emailModal.classList.remove('hidden');
   emailInput.value = '';
   emailError.classList.add('hidden');
 });
 
-// Close modal
 cancelEmailBtn.addEventListener('click', () => {
   emailModal.classList.add('hidden');
 });
 
-// Close OTP modal
 cancelOtpBtn.addEventListener('click', () => {
   otpModal.classList.add('hidden');
 });
 
-// Verify button logic
 verifyEmailBtn.addEventListener('click', async () => {
   const newEmail = emailInput.value.trim();
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -270,10 +895,10 @@ verifyEmailBtn.addEventListener('click', async () => {
   }
 });
 
-// Submit OTP logic
 submitOtpBtn.addEventListener('click', async () => {
   const otp = otpInput.value.trim();
   const oldEmail = document.getElementById('email').value.trim();
+  
   if (!otp) {
     otpError.classList.remove('hidden');
     otpError.textContent = 'OTP is required.';
@@ -284,24 +909,24 @@ submitOtpBtn.addEventListener('click', async () => {
     const res = await fetch('/verifyEmail-OTP', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: latestEmail, otp ,oldEmail})
+      body: JSON.stringify({ email: latestEmail, otp, oldEmail })
     });
 
     const data = await res.json();
 
     if (data.success) {
       otpModal.classList.add('hidden');
-      otpInput.value = ''
+      otpInput.value = '';
       Swal.fire({
-              title: 'Email Changed Successfully',
-              text: '',
-              confirmButtonColor: '#1f2937' 
-            })
-      // update email in UI
+        title: 'Email Changed Successfully',
+        text: '',
+        confirmButtonColor: '#1f2937'
+      });
+      
       const emailInputField = document.getElementById('email');
       emailInputField.removeAttribute('readonly');
-      emailInputField.value = latestEmail;         
-      emailInputField.setAttribute('readonly', true); 
+      emailInputField.value = latestEmail;
+      emailInputField.setAttribute('readonly', true);
     } else {
       otpError.classList.remove('hidden');
       otpError.textContent = data.message || 'Invalid OTP.';
@@ -312,133 +937,113 @@ submitOtpBtn.addEventListener('click', async () => {
   }
 });
 
+document.getElementById('profileUpload').addEventListener('change', async function (event) {
+  const file = event.target.files[0];
+  if (!file) return;
 
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    document.getElementById('profilePreview').src = e.target.result;
+  };
+  reader.readAsDataURL(file);
 
+  const formData = new FormData();
+  formData.append('profileImage', file);
 
+  try {
+    const res = await fetch('/editProfile', {
+      method: 'POST',
+      body: formData,
+    });
 
-
-  // Auto-preview and upload profile image
-  document.getElementById('profileUpload').addEventListener('change', async function (event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      document.getElementById('profilePreview').src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-
-    const formData = new FormData();
-    formData.append('profileImage', file);
-
-    try {
-      const res = await fetch('/editProfile', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        console.log('Image uploaded successfully');
-      } else {
-        console.error('Upload failed', data.message);
-      }
-    } catch (err) {
-      console.error('Error uploading image', err);
+    const data = await res.json();
+    if (data.success) {
+      showToaster('Profile image updated successfully!', 'success');
+    } else {
+      showToaster('Failed to update profile image', 'error');
     }
-  });
-
-
-  // Save changes
-  document.getElementById('saveChanges').addEventListener('click', async function () {
-    const name = document.getElementById('name').value;
-    const dob = document.getElementById('dob').value;
-    const phone = document.getElementById('phone').value;
-    const state = document.getElementById('state').value;
-    const district = document.getElementById('district').value;
-    const address = document.getElementById('address').value;
-
-    console.log(address)
-
-    let isValid = true;
-
-    document.querySelectorAll('.error-message').forEach(el => el.remove());
-
-    const validateField = (value, id, message, regex) => {
-      if (!value || (regex && !regex.test(value))) {
-        const errorMessage = document.createElement('p');
-        errorMessage.classList.add('text-red-500', 'text-sm', 'error-message');
-        errorMessage.textContent = message;
-        document.getElementById(id).insertAdjacentElement('afterend', errorMessage);
-        isValid = false;
-      }
-    };
-
-    const nameRegex = /^[A-Za-z\s]+$/;
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    const phoneRegex = /^[0-9]{10}$/;
-    const addressRegex = /^[a-zA-Z0-9\s,'./-]{10,100}$/;
-
-
-    validateField(name, 'name', 'Full Name should be characters only', nameRegex);
-    validateField(address, 'address', 'Address is required', addressRegex);
-    validateField(state, 'state', 'State is required', nameRegex);
-    validateField(district, 'district', 'District is required', nameRegex);
-    validateField(dob, 'dob', 'Date of Birth is required', dateRegex);
-    
-    
-
-    validateField(phone, 'phone', 'Phone number must be 10 digits', phoneRegex);
-
-    if (!isValid) return;
-
-    const formData = new FormData();
-    formData.append('name', name);
-    formData.append('dob', dob);
-    formData.append('phone', phone);
-    formData.append('state', state);
-    formData.append('district', district);
-    formData.append('address', address);
-
-    try {
-      const res = await fetch('/editProfile', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        showToaster("Profile updated successfully!", "success");
-      } else if (data.existBoth) {
-        showFieldError('email', data.emailMsg);
-        showFieldError('phone', data.phoneMsg);
-        showToaster('error while ');
-      } else if (data.existFound) {
-        showFieldError(data.existFoundField, data.message);
-        showToaster(`${data.message}`, "error");
-      } else {
-        console.error('Update failed', data.message);
-        showToaster(`${data.message}`, "error");
-      }
-    } catch (err) {
-      console.error('Error updating profile', err);
-    }
-  });
-
-  function showFieldError(id, message) {
-    const error = document.createElement('p');
-    error.classList.add('text-red-500', 'text-sm', 'error-message');
-    error.textContent = message;
-    document.getElementById(id).insertAdjacentElement('afterend', error);
+  } catch (err) {
+    showToaster('Error uploading image', 'error');
   }
+});
 
-// Password change modal elements
+document.getElementById('saveChanges').addEventListener('click', async function () {
+  const name = document.getElementById('name').value;
+  const dob = document.getElementById('dob').value;
+  const phone = document.getElementById('phone').value;
+  const state = document.getElementById('state').value;
+  const district = document.getElementById('district').value;
+  const address = document.getElementById('address').value;
+
+  let isValid = true;
+
+  document.querySelectorAll('.error-message').forEach(el => el.remove());
+
+  const validateField = (value, id, message, regex) => {
+    if (!value || (regex && !regex.test(value))) {
+      const errorMessage = document.createElement('p');
+      errorMessage.classList.add('text-red-500', 'text-sm', 'error-message', 'mt-1');
+      errorMessage.textContent = message;
+      document.getElementById(id).insertAdjacentElement('afterend', errorMessage);
+      isValid = false;
+    }
+  };
+
+  const nameRegex = /^[A-Za-z\s]+$/;
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  const phoneRegex = /^[0-9]{10}$/;
+  const addressRegex = /^[a-zA-Z0-9\s,'./-]{10,100}$/;
+
+  validateField(name, 'name', 'Full Name should be characters only', nameRegex);
+  validateField(address, 'address', 'Address is required', addressRegex);
+  validateField(state, 'state', 'State is required', nameRegex);
+  validateField(district, 'district', 'District is required', nameRegex);
+  validateField(dob, 'dob', 'Date of Birth is required', dateRegex);
+  validateField(phone, 'phone', 'Phone number must be 10 digits', phoneRegex);
+
+  if (!isValid) return;
+
+  const formData = new FormData();
+  formData.append('name', name);
+  formData.append('dob', dob);
+  formData.append('phone', phone);
+  formData.append('state', state);
+  formData.append('district', district);
+  formData.append('address', address);
+
+  try {
+    const res = await fetch('/editProfile', {
+      method: 'POST',
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      showToaster('Profile updated successfully!', 'success');
+    } else if (data.existBoth) {
+      showFieldError('email', data.emailMsg);
+      showFieldError('phone', data.phoneMsg);
+    } else if (data.existFound) {
+      showFieldError(data.existFoundField, data.message);
+      showToaster(`${data.message}`, 'error');
+    } else {
+      showToaster(`${data.message}`, 'error');
+    }
+  } catch (err) {
+    showToaster('Error updating profile', 'error');
+  }
+});
+
+function showFieldError(id, message) {
+  const error = document.createElement('p');
+  error.classList.add('text-red-500', 'text-sm', 'error-message', 'mt-1');
+  error.textContent = message;
+  document.getElementById(id).insertAdjacentElement('afterend', error);
+}
+
 const passwordModal = document.getElementById('passwordModal');
 const passwordOtpModal = document.getElementById('passwordOtpModal');
-
-// Get the Change Password button by its ID (it already exists in your HTML)
 const openPasswordModal = document.getElementById('openPasswordModal');
-
 const cancelPasswordBtn = document.getElementById('cancelPasswordBtn');
 const verifyPasswordBtn = document.getElementById('verifyPasswordBtn');
 const currentPasswordInput = document.getElementById('currentPassword');
@@ -451,98 +1056,89 @@ const passwordOtpError = document.getElementById('passwordOtpError');
 const cancelPasswordOtpBtn = document.getElementById('cancelPasswordOtpBtn');
 const submitPasswordOtpBtn = document.getElementById('submitPasswordOtpBtn');
 
-let passwordChangeData = {}; // Store password data for OTP verification
+let passwordChangeData = {};
 
-// Show password modal
-openPasswordModal.addEventListener('click', () => {
-  passwordModal.classList.remove('hidden');
-  currentPasswordInput.value = '';
-  newPasswordInput.value = '';
-  confirmPasswordInput.value = '';
-  passwordError.classList.add('hidden');
-});
+if (openPasswordModal) {
+  openPasswordModal.addEventListener('click', () => {
+    passwordModal.classList.remove('hidden');
+    currentPasswordInput.value = '';
+    newPasswordInput.value = '';
+    confirmPasswordInput.value = '';
+    passwordError.classList.add('hidden');
+  });
+}
 
-// Close password modal
 cancelPasswordBtn.addEventListener('click', () => {
   passwordModal.classList.add('hidden');
 });
 
+let otpTimerInterval;
+let otpTimeLeft = 60;
 
-//OTP resend and timer
-  let otpTimerInterval;
-  let otpTimeLeft = 60;
+function startOtpTimer() {
+  const timerDisplay = document.getElementById('otpTimer');
+  const resendBtn = document.getElementById('resendOtpBtn');
+  resendBtn.classList.add('hidden');
+  otpTimeLeft = 60;
 
-  function startOtpTimer() {
-    const timerDisplay = document.getElementById('otpTimer');
-    const resendBtn = document.getElementById('resendOtpBtn');
-    resendBtn.classList.add('hidden');
-    otpTimeLeft = 60;
+  timerDisplay.textContent = `${otpTimeLeft}s`;
 
+  clearInterval(otpTimerInterval);
+  otpTimerInterval = setInterval(() => {
+    otpTimeLeft--;
     timerDisplay.textContent = `${otpTimeLeft}s`;
 
-    clearInterval(otpTimerInterval); // prevent multiple timers
-    otpTimerInterval = setInterval(() => {
-      otpTimeLeft--;
-      timerDisplay.textContent = `${otpTimeLeft}s`;
+    if (otpTimeLeft <= 49) {
+      resendBtn.classList.remove('hidden');
+    }
 
-      if (otpTimeLeft <= 49) {
-        resendBtn.classList.remove('hidden');
-      }
+    if (otpTimeLeft <= 0) {
+      clearInterval(otpTimerInterval);
+      timerDisplay.textContent = 'Expired';
+    }
+  }, 1000);
+}
 
-      if (otpTimeLeft <= 0) {
-        clearInterval(otpTimerInterval);
-        timerDisplay.textContent = 'Expired';
-      }
-    }, 1000);
-  }
+function stopOtpTimer() {
+  clearInterval(otpTimerInterval);
+  document.getElementById('otpTimer').textContent = '';
+  document.getElementById('resendOtpBtn').classList.add('hidden');
+}
 
-  function stopOtpTimer() {
-    clearInterval(otpTimerInterval);
-    document.getElementById('otpTimer').textContent = '';
-    document.getElementById('resendOtpBtn').classList.add('hidden');
-  }
-
-  document.getElementById('resendOtpBtn').addEventListener('click', () => {
-    // Call resend OTP logic here
-    fetch('/resend-password-otp', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        showToaster('OTP resent to your email.', 'success');
-        startOtpTimer(); // restart timer
-      } else {
-        showToaster(data.message || 'Failed to resend OTP.', 'error');
-      }
-    })
-    .catch(err => {
-      console.error(err);
-      showToaster('An error occurred while resending OTP.', 'error');
-    });
+document.getElementById('resendOtpBtn').addEventListener('click', () => {
+  fetch('/resend-password-otp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      showToaster('OTP resent to your email.', 'success');
+      startOtpTimer();
+    } else {
+      showToaster(data.message || 'Failed to resend OTP.', 'error');
+    }
+  })
+  .catch(err => {
+    showToaster('An error occurred while resending OTP.', 'error');
   });
+});
 
-  document.getElementById('cancelPasswordOtpBtn').addEventListener('click', () => {
-    document.getElementById('passwordOtpModal').classList.add('hidden');
-    stopOtpTimer();
-  });
+document.getElementById('cancelPasswordOtpBtn').addEventListener('click', () => {
+  passwordOtpModal.classList.add('hidden');
+  stopOtpTimer();
+});
 
-  // Call this function when opening the modal
-  function openOtpModal() {
-    document.getElementById('passwordOtpModal').classList.remove('hidden');
-    startOtpTimer();
-  }
+function openOtpModal() {
+  passwordOtpModal.classList.remove('hidden');
+  startOtpTimer();
+}
 
-// Verify password and send OTP
 verifyPasswordBtn.addEventListener('click', async () => {
   const currentPassword = currentPasswordInput.value.trim();
   const newPassword = newPasswordInput.value.trim();
   const confirmPassword = confirmPasswordInput.value.trim();
 
-  // Validation
   if (!currentPassword || !newPassword || !confirmPassword) {
     passwordError.classList.remove('hidden');
     passwordError.textContent = 'All fields are required.';
@@ -587,7 +1183,7 @@ verifyPasswordBtn.addEventListener('click', async () => {
       passwordOtpModal.classList.remove('hidden');
       passwordOtpInput.value = '';
       passwordOtpError.classList.add('hidden');
-      openOtpModal()
+      openOtpModal();
     } else {
       passwordError.classList.remove('hidden');
       passwordError.textContent = data.message || 'Failed to send OTP.';
@@ -598,7 +1194,6 @@ verifyPasswordBtn.addEventListener('click', async () => {
   }
 });
 
-// Submit password OTP
 submitPasswordOtpBtn.addEventListener('click', async () => {
   const otp = passwordOtpInput.value.trim();
   
@@ -624,15 +1219,12 @@ submitPasswordOtpBtn.addEventListener('click', async () => {
     if (data.success) {
       passwordOtpModal.classList.add('hidden');
       passwordOtpInput.value = '';
-      passwordChangeData = {}; // Clear stored data
-
-      showToaster('Password Changed Successfully', "success");
-      
+      passwordChangeData = {};
+      showToaster('Password changed successfully!', 'success');
     } else {
       passwordOtpError.classList.remove('hidden');
       passwordOtpError.textContent = data.message || 'Invalid OTP.';
-      showToaster(`${data.message}`, "error");
-      
+      showToaster(`${data.message}`, 'error');
     }
   } catch (err) {
     passwordOtpError.classList.remove('hidden');
@@ -644,19 +1236,16 @@ function clearFieldError(id) {
   const inputElement = document.getElementById(id);
   if (!inputElement) return;
 
-  // Find the next sibling with class 'error-message' and remove it
   const next = inputElement.nextElementSibling;
   if (next && next.classList.contains('error-message')) {
     next.remove();
   }
 }
 
-//Toaster Message Function
 function showToaster(message, type = 'success', duration = 3000) {
   const toaster = document.getElementById('toaster');
   toaster.textContent = message;
 
-  // Reset previous state
   toaster.className = '';
   toaster.classList.add('show', type);
 
@@ -664,7 +1253,6 @@ function showToaster(message, type = 'success', duration = 3000) {
     toaster.classList.remove('show');
   }, duration);
 }
-
 </script>
 
 <%- include('../../views/partials/user/footer') %>

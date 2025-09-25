@@ -2,7 +2,6 @@ const User = require('../../model/userSchema');
 const Cart = require('../../model/cartSchema');
 const Product = require('../../model/productSchema');
 const Category = require('../../model/categorySchema');
-const Coupon = require('../../model/couponSchema');
 const { getIO } = require('../../config/socket'); //for getting socket IO
 
 const managecart = async (req, res) => {
@@ -18,46 +17,37 @@ const managecart = async (req, res) => {
     let processedCartItems = [];
 
     if (cart && cart.items.length > 0) {
-      processedCartItems = cart.items
-        .map((item) => {
-          const product = item.productid;
+        processedCartItems = cart.items
+          .map((item) => {
+            const product = item.productid;
+            if (!product || !product.variants || !item.variantId) return null;
 
-          if (!product || !product.variants || !item.variantId) {
-            console.error("Product or variant not found", {
-              productId: item.productid,
+            const variant = product.variants.find(
+              (v) => v._id.toString() === item.variantId.toString()
+            );
+            if (!variant) return null;
+
+            const finalPrice = variant.finalPrice || variant.salePrice || variant.regularPrice;
+            const totalPrice = finalPrice * item.quantity;
+            console.log(typeof finalPrice)
+
+            return {
+              _id: item._id,
+              productid: product,
               variantId: item.variantId,
-            });
-            return null;
-          }
+              quantity: item.quantity,
+              finalPrice,
+              totalPrice,
+              variant,
+              isOutOfStock: variant.quantity === 0 || product.isBlocked,
+              isLowStock: variant.quantity > 0 && variant.quantity <= 5,
+              canIncreaseQuantity: item.quantity < variant.quantity,
+              remainingStock: variant.quantity,
+              stockLeft: variant.quantity - item.quantity,
+            };
+          })
+          .filter((item) => item !== null);
 
-          const variant = product.variants.find(
-            (v) => v._id.toString() === item.variantId.toString()
-          );
-
-          if (!variant) {
-            console.error("Variant not found for variantId:", item.variantId);
-            return null;
-          }
-
-          const salePrice = variant.salePrice;
-          const totalPrice = salePrice * item.quantity;
-
-          return {
-            _id: item._id,
-            productid: product,
-            variantId: item.variantId,
-            quantity: item.quantity,
-            salePrice: salePrice,
-            totalPrice: totalPrice, 
-            variant: variant,
-            isOutOfStock: variant.quantity === 0||product.isBlocked===true,
-            isLowStock: variant.quantity > 0 && variant.quantity <= 5,
-            canIncreaseQuantity: item.quantity < variant.quantity,
-            remainingStock: variant.quantity,
-            stockLeft: variant.quantity - item.quantity,
-          };
-        })
-        .filter((item) => item !== null);
     }
 
     const inStockItems = processedCartItems.filter((item) => {
@@ -69,7 +59,7 @@ const managecart = async (req, res) => {
     let inStockQuantity = 0;
 
     inStockItems.forEach((item) => {
-      inStockSubtotal += item.salePrice * item.quantity; 
+      inStockSubtotal += item.finalPrice * item.quantity; 
       inStockQuantity += item.quantity;
     });
 
@@ -107,6 +97,7 @@ const addCart = async (req, res) => {
     const productId = req.params.id;
     const quantityToAdd = parseInt(req.body.quantity) || 1;
     const variantId = req.body.variantId;
+    console.log(variantId)
 
 
 
@@ -124,7 +115,7 @@ const addCart = async (req, res) => {
     }
 
     const availableStock = variant.quantity;
-    const price = variant.salePrice;
+    const price = variant.finalPrice;
     const totalPriceToAdd = price * quantityToAdd;
 
     let cart = await Cart.findOne({ userId: user });
@@ -163,14 +154,15 @@ const addCart = async (req, res) => {
         productid: productId,
         variantId,
         quantity: quantityToAdd,
-        salePrice: price,
-        totalPrice: totalPriceToAdd,
+        // salePrice: price,
+        // totalPrice: totalPriceToAdd,
       });
     }
 
     await cart.save();
 
     return res.status(200).json({
+      success:true,
       message: 'Product added to cart successfully!',
       cartItemCount: cart.items.length,
     });
@@ -237,7 +229,7 @@ const updateCartQuantity = async (req, res) => {
 
     // Update quantity and total price
     cartItem.quantity = quantity;
-    cartItem.totalPrice = quantity * variant.salePrice;
+    cartItem.totalPrice = quantity * variant.finalPrice;
     
 
     await cart.save();
@@ -250,7 +242,7 @@ const updateCartQuantity = async (req, res) => {
       );
 
       if (itemVariant && itemVariant.quantity >= 1) {
-        updatedCartTotal += item.quantity * itemVariant.salePrice;
+        updatedCartTotal += item.quantity * itemVariant.finalPrice;
       }
     });
 

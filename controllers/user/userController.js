@@ -4,11 +4,18 @@ const Product = require('../../model/productSchema');
 const Cart = require('../../model/cartSchema');
 const Review = require('../../model/reviewschema');
 const Wishlist = require('../../model/wishlistSchema');
+const Coupon = require('../../model/couponSchema')
 const nodemailer =  require('nodemailer')
 const env = require('dotenv').config();
 const bcrypt = require("bcrypt");
 const { getIO } = require('../../config/socket'); //for getting socket IO
 
+
+// function creating new referral code
+const generateReferralCode = (name) => {
+  const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
+  return `${name.slice(0,3).toUpperCase()}${randomStr}`;
+};
 
 //loading error page
 const pageNotFound = async (req,res)=>{
@@ -54,8 +61,10 @@ const loadHomepage = async (req, res) => {
 
 const loadSignuppage = async (req,res)=>{
     try {
+        const referralCode = req.query.ref || null;
+        console.log(referralCode)
         
-        return res.render('signUp');
+        return res.render('signUp',{referralCode});
     } catch (error) {
         console.log('Home page not found');
         res.status(500).send('Server error')
@@ -105,7 +114,7 @@ const signup = async (req, res) => {
  
     
     try {
-        const { name, phone, email, password } = req.body;
+        const { name, phone, email, password , referral } = req.body;
 
         const findUser = await User.findOne({
             $or: [{ email }, { phone }]
@@ -141,7 +150,7 @@ const signup = async (req, res) => {
         }
 
         req.session.userOtp = otp;
-        req.session.userData = { name, phone, email, password }; 
+        req.session.userData = { name, phone, email, password , referral}; 
 
         
         console.log("OTP sent", otp);
@@ -201,18 +210,50 @@ const otp = async (req,res)=>{
         
         if(otp===req.session.userOtp){
             const user = req.session.userData
+            console.log(user)
             const passwordHash = await securePassword(user.password)
+
+            let referredByUser = null;
+
+            // Check if a referral code was entered at signup
+            if (user.referral) {
+              referredByUser = await User.findOne({ referralCode: user.referral });
+            }
 
             const saveUserData = new User({
                 name:user.name,
                 email:user.email,
                 phone:user.phone,
-                password:passwordHash
+                password:passwordHash,
+                referralCode: generateReferralCode(user.name),
+                referredBy: referredByUser ? referredByUser._id : null
             })
 
             // saving user in user collection
             await saveUserData.save();
             req.session.user = saveUserData;
+
+            if (referredByUser) {
+              const shortId = referredByUser._id.toString().slice(-4);
+              const datePart = Date.now().toString().slice(-5);
+              const referralCoupon = new Coupon({
+                name: `REF-${shortId}-${datePart}`,
+                description: `Referral reward for inviting ${saveUserData.name}`,
+                startOn: new Date(),
+                expireOn: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                offerPrice: 200, 
+                minimumPrice: 1000, 
+                usageLimit: 1, 
+                assignedTo: referredByUser._id, 
+            });
+
+            await referralCoupon.save();
+
+            // For storing reffered user detail in referredByUser
+            referredByUser.referredUsers = referredByUser.referredUsers || [];
+            referredByUser.referredUsers.push(saveUserData._id);
+            await referredByUser.save();
+          }
 
             const io = getIO();
             
@@ -386,12 +427,10 @@ const loadShoppage = async (req, res) => {
   const filterProduct = async (req, res) => {
     try {
         
-        const { category,price,color,sortBy,search,page = 1 } = req.body;
+        let { category,discount,price,color,sortBy,search,page = 1 } = req.body;
         const user = req.session.userId || req.session.user?._id
         const userData = await User.findOne({_id:user,isBlocked:false});
-        
-        
-  
+        discount = Number(discount)
         
         const limit = 8; // number of products per page
         const skip = (page - 1) * limit;
@@ -424,7 +463,7 @@ const loadShoppage = async (req, res) => {
             filters.category = { $in: listedCategoryIds };
           }
 
-        if (price || color) {
+        if (price || color||discount) {
             const variantFilter = {};
             // Price filter inside variants array
             if (price) {
@@ -442,6 +481,11 @@ const loadShoppage = async (req, res) => {
               } else if (color) {
                 variantFilter.color = color;
               }
+
+            // Dicount filter
+            if (discount && discount > 0) {
+              variantFilter.offerPercentage = { $gte: discount };
+            }
 
             // Apply $elemMatch to combine price and color filters
             if (Object.keys(variantFilter).length > 0) {

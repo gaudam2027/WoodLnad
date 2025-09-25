@@ -163,16 +163,14 @@
       font-size: 13px;
     }
   }
-.custom-toast {
-  font-size: 0.85rem;
-  padding: 8px 12px;
-  min-width: 220px;
-  max-width: 620px;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-
+  .custom-toast {
+    font-size: 0.85rem;
+    padding: 8px 12px;
+    min-width: 220px;
+    max-width: 620px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
 </style>
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 py-10 select-none">
@@ -196,11 +194,19 @@
   <!-- Top Section -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-20 mb-16">
     <!-- Left: Image Section -->
-    <div class="w-full">
+    <div class="w-full relative">
+      <!-- Offer Badge -->
+      <% if (selectedVariant.offerPercentage > 0) { %>
+        <div class="absolute top-2 left-2 z-10">
+          <span class="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+            <%= selectedVariant.offerPercentage %>% OFF
+          </span>
+        </div>
+      <% } %>
       <!-- Main Image -->
       <div id="imageZoom" class="border rounded-lg overflow-hidden"
-        style="--url: url('/uploads/product-images/<%= product.images[0] %>'); --zoom-x: 0%; --zoom-y: 0%; --display: none">
-        <img id="mainImage" src="/uploads/product-images/<%= product.images[0] %>" 
+           style="--url: url('/Uploads/product-images/<%= product.images[0] %>'); --zoom-x: 0%; --zoom-y: 0%; --display: none">
+        <img id="mainImage" src="/Uploads/product-images/<%= product.images[0] %>" 
              class="w-full h-[300px] md:h-[350px] lg:h-[400px] object-cover" alt="Main Product Image">
       </div>
       
@@ -208,9 +214,9 @@
       <div class="flex gap-3 mt-4 flex-wrap mb-6">
         <% product.images.forEach((image, index) => { %>
           <img
-            src="/uploads/product-images/<%= image %>"
+            src="/Uploads/product-images/<%= image %>"
             class="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded cursor-pointer border hover:border-blue-500 transition"
-            onclick="changeMainImage('/uploads/product-images/<%= image %>')"
+            onclick="changeMainImage('/Uploads/product-images/<%= image %>')"
             alt="Thumbnail <%= index + 1 %>">
         <% }) %>
       </div>
@@ -219,17 +225,10 @@
     <!-- Right: Product Details -->
     <div class="flex flex-col space-y-6">
       <div class="space-y-6">
-        <!-- Title & Offer -->
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-          <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 tracking-tight break-words">
-            <%= product.productName %>
-          </h1>
-          <% if (product.offer) { %>
-            <span class="bg-red-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
-              <%= product.offer %> OFF
-            </span>
-          <% } %>
-        </div>
+        <!-- Title -->
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 tracking-tight break-words">
+          <%= product.productName %>
+        </h1>
 
         <% 
           const fullStars = Math.floor(averageRating);
@@ -252,13 +251,27 @@
         </div>
 
         <!-- Price Section -->
-        <div class="flex flex-wrap items-center gap-4 mt-4">
-          <span id="salePrice" class="text-xl sm:text-2xl text-gray-600 font-semibold">
-            Price: ₹ <span id="currentSalePrice"><%= selectedVariant.salePrice.toLocaleString('en-IN') %></span>
-          </span>
-          <span id="regularPrice" class="text-gray-500 line-through text-base">
-            ₹ <span id="currentRegularPrice"><%= selectedVariant.regularPrice.toLocaleString('en-IN') %></span>
-          </span>
+        <div class="flex flex-col gap-2 mt-4">
+          <% if (selectedVariant.offerPercentage > 0) { %>
+            <!-- With Offer -->
+            <div class="flex items-center gap-2 mb-1 min-h-[24px]">
+              <p id="salePrice" class="text-xl sm:text-2xl font-bold text-red-600">
+                ₹<span id="currentSalePrice"><%= selectedVariant.finalPrice.toLocaleString('en-IN') %></span>
+              </p>
+              <p id="regularPrice" class="text-base text-gray-500 line-through">
+                ₹<span id="currentRegularPrice"><%= selectedVariant.salePrice.toLocaleString('en-IN') %></span>
+              </p>
+            </div>
+            <p class="text-xs text-green-600 font-semibold min-h-[16px]">
+              You save ₹<%= (selectedVariant.salePrice- selectedVariant.finalPrice).toLocaleString('en-IN') %>
+            </p>
+          <% } else { %>
+            <!-- Without Offer -->
+            <p id="salePrice" class="text-xl sm:text-2xl font-bold text-gray-900 min-h-[24px]">
+              ₹<span id="currentSalePrice"><%= selectedVariant.salePrice.toLocaleString('en-IN') %></span>
+            </p>
+            <p class="text-xs text-green-600 min-h-[16px]"></p> <!-- Placeholder for alignment -->
+          <% } %>
         </div>
 
         <!-- Color Selection -->
@@ -276,8 +289,9 @@
                 <%= variant.remainingStock === 0 ? 'variant-disabled' : '' %>"
               title="<%= variant.remainingStock === 0 ? 'Out of Stock' : 'Select color ' + variant.color %>"
               data-variant-id="<%= variant._id %>"
-              data-sale-price="<%= variant.salePrice %>"
+              data-sale-price="<%= variant.finalPrice %>"
               data-regular-price="<%= variant.regularPrice %>"
+              data-offer-percentage="<%= variant.offerPercentage %>"
               data-remaining-stock="<%= variant.remainingStock %>"
               data-original-quantity="<%= variant.originalQuantity %>"
               data-color="<%= variant.color %>"
@@ -504,7 +518,7 @@
       <% if (reviews && reviews.length > 0) { %>
         <% reviews.forEach(review => { %>
           <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
-            <div class="flex items-start gap-4">
+            <div class="flex items-start emperor gap-4">
               <!-- User Avatar -->
               <div class="flex-shrink-0">
                 <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
@@ -609,13 +623,45 @@
   <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
     <% relatedProducts.forEach(prod => { %>
       <div class="bg-white rounded-lg shadow hover:shadow-lg transition">
-        <a href="/shopDetails?id=<%= prod._id %>">
-          <img src="/uploads/product-images/<%= prod.images[0] %>" alt="<%= prod.productName %>" 
-               class="h-44 w-full object-cover rounded-t-lg">
-        </a>
-        <div class="p-4">
-          <h3 class="font-semibold text-gray-800 text-md line-clamp-2 mb-1"><%= prod.productName %></h3>
-          <p class="text-sm text-gray-700">₹ <%= prod.variants[0].salePrice.toLocaleString("en-IN") %></p>
+        <div class="relative">
+          <a href="/shopDetails?id=<%= prod._id %>">
+            <img src="/Uploads/product-images/<%= prod.images[0] %>" alt="<%= prod.productName %>" 
+                 class="h-44 w-full object-cover rounded-t-lg">
+          </a>
+          <% if (prod.variants[0].offerPercentage > 0) { %>
+            <div class="absolute top-2 left-2 z-10">
+              <span class="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                <%= prod.variants[0].offerPercentage %>% OFF
+              </span>
+            </div>
+          <% } %>
+        </div>
+        <div class="p-4 flex flex-col h-[120px]">
+          <h3 class="font-semibold text-gray-800 text-md line-clamp-2 mb-1 h-[48px] overflow-hidden">
+            <%= prod.productName %>
+          </h3>
+          <div class="mt-auto">
+            <% if (prod.variants[0].offerPercentage > 0) { %>
+              <!-- With Offer -->
+              <div class="flex items-center gap-2 mb-1 min-h-[24px]">
+                <p class="text-md font-bold text-red-600">
+                  ₹<%= prod.variants[0].finalPrice.toLocaleString('en-IN') %>
+                </p>
+                <p class="text-sm text-gray-500 line-through">
+                  ₹<%= prod.variants[0].salePrice.toLocaleString('en-IN') %>
+                </p>
+              </div>
+              <p class="text-xs text-green-600 font-semibold min-h-[16px]">
+                You save ₹<%= (prod.variants[0].salePrice - prod.variants[0].finalPrice).toLocaleString('en-IN') %>
+              </p>
+            <% } else { %>
+              <!-- Without Offer -->
+              <p class="text-md font-bold text-gray-900 min-h-[24px]">
+                ₹<%= prod.variants[0].salePrice.toLocaleString('en-IN') %>
+              </p>
+              <p class="text-xs text-green-600 min-h-[16px]"></p> <!-- Placeholder for alignment -->
+            <% } %>
+          </div>
         </div>
       </div>
     <% }) %>
@@ -647,22 +693,73 @@ document.addEventListener('DOMContentLoaded', function() {
   const quantityMessage = document.getElementById('quantityMessage');
   const selectedVariantIdInput = document.getElementById('selectedVariantId');
 
+
   // Find variant by ID
   function findVariantById(variantId) {
-    return productVariants.find(variant => variant._id === variantId);
+    const variant = productVariants.find(variant => variant._id === variantId);
+    if (!variant) {
+      console.error('Variant not found for ID:', variantId);
+    }
+    return variant;
   }
 
   // Update UI based on current variant
   function updateVariantUI(variantId) {
     const variant = findVariantById(variantId);
     if (!variant) return;
-    
-    const remainingStock = variant.remainingStock;
-    console.log('Updating variant UI:', { variantId, remainingStock, variant });
 
-    // Update prices
-    document.getElementById('currentSalePrice').textContent = variant.salePrice.toLocaleString('en-IN');
-    document.getElementById('currentRegularPrice').textContent = variant.regularPrice.toLocaleString('en-IN');
+    const remainingStock = variant.remainingStock;
+
+    // Update price section HTML
+    const priceSection = document.querySelector('.flex.flex-col.gap-2.mt-4');
+    if (!priceSection) {
+      console.error('Price section not found in DOM');
+      return;
+    }
+    if (variant.offerPercentage > 0) {
+      priceSection.innerHTML = `
+        <div class="flex items-center gap-2 mb-1 min-h-[24px]">
+          <p id="salePrice" class="text-xl sm:text-2xl font-bold text-red-600">
+            ₹<span id="currentSalePrice">${variant.finalPrice.toLocaleString('en-IN')}</span>
+          </p>
+          <p id="regularPrice" class="text-base text-gray-500 line-through">
+            ₹<span id="currentRegularPrice">${variant.salePrice.toLocaleString('en-IN')}</span>
+          </p>
+        </div>
+        <p class="text-xs text-green-600 font-semibold min-h-[16px]">
+          You save ₹${(variant.salePrice - variant.finalPrice).toLocaleString('en-IN')}
+        </p>
+      `;
+    } else {
+      priceSection.innerHTML = `
+        <p id="salePrice" class="text-xl sm:text-2xl font-bold text-gray-900 min-h-[24px]">
+          ₹<span id="currentSalePrice">${variant.salePrice.toLocaleString('en-IN')}</span>
+        </p>
+        <p class="text-xs text-green-600 min-h-[16px]"></p>
+      `;
+    }
+
+    // Update offer badge
+    const imageSection = document.querySelector('.w-full.relative');
+    if (!imageSection) {
+      console.error('Image section not found in DOM');
+      return;
+    }
+    let offerBadge = imageSection.querySelector('.absolute.top-2.left-2');
+    if (variant.offerPercentage > 0) {
+      if (!offerBadge) {
+        offerBadge = document.createElement('div');
+        offerBadge.className = 'absolute top-2 left-2 z-10';
+        imageSection.prepend(offerBadge);
+      }
+      offerBadge.innerHTML = `
+        <span class="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+          ${variant.offerPercentage}% OFF
+        </span>
+      `;
+    } else if (offerBadge) {
+      offerBadge.remove();
+    }
 
     // Update stock status
     updateStockStatus(remainingStock);
@@ -671,13 +768,19 @@ document.addEventListener('DOMContentLoaded', function() {
     updateQuantityControls(remainingStock);
 
     // Update selected variant ID
-    selectedVariantIdInput.value = variantId;
+    if (selectedVariantIdInput) {
+      selectedVariantIdInput.value = variantId;
+    } else {
+      console.error('selectedVariantIdInput not found in DOM');
+    }
     currentVariantId = variantId;
 
     // Update wishlist link with current variant ID
     const wishlistLink = document.querySelector('.add-to-wishlist-link');
     if (wishlistLink) {
       wishlistLink.setAttribute('data-variant-id', variantId);
+    } else {
+      console.error('Wishlist link not found in DOM');
     }
 
     // Reset quantity to 1
@@ -686,11 +789,17 @@ document.addEventListener('DOMContentLoaded', function() {
       quantityDisplay.value = currentQuantity;
       quantityDisplay.setAttribute('data-max', remainingStock);
     }
-    if (quantityInput) quantityInput.value = currentQuantity;
+    if (quantityInput) {
+      quantityInput.value = currentQuantity;
+    }
   }
 
   // Update stock status message
   function updateStockStatus(remainingStock) {
+    if (!stockStatus) {
+      console.error('Stock status element not found');
+      return;
+    }
     stockStatus.className = 'stock-message';
     
     if (remainingStock === 0) {
@@ -722,9 +831,11 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       
       // Update add to cart button
-      addToCartBtn.disabled = true;
-      addToCartBtn.className = 'px-6 py-2 rounded-lg transition shadow flex items-center gap-2 w-full sm:w-auto bg-gray-400 text-gray-600 cursor-not-allowed';
-      addToCartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Out of Stock';
+      if (addToCartBtn) {
+        addToCartBtn.disabled = true;
+        addToCartBtn.className = 'px-6 py-2 rounded-lg transition shadow flex items-center gap-2 w-full sm:w-auto bg-gray-400 text-gray-600 cursor-not-allowed';
+        addToCartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Out of Stock';
+      }
     } else {
       // Enable quantity controls
       if (decreaseBtn) decreaseBtn.disabled = false;
@@ -738,14 +849,20 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       
       // Update add to cart button
-      addToCartBtn.disabled = false;
-      addToCartBtn.className = 'px-6 py-2 rounded-lg transition shadow flex items-center gap-2 w-full sm:w-auto bg-gray-800 text-white hover:bg-gray-600';
-      addToCartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Add to Cart';
+      if (addToCartBtn) {
+        addToCartBtn.disabled = false;
+        addToCartBtn.className = 'px-6 py-2 rounded-lg transition shadow flex items-center gap-2 w-full sm:w-auto bg-gray-800 text-white hover:bg-gray-600';
+        addToCartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Add to Cart';
+      }
     }
   }
 
   // Show quantity message
   function showQuantityMessage(message, type = 'error') {
+    if (!quantityMessage) {
+      console.error('Quantity message element not found');
+      return;
+    }
     quantityMessage.textContent = message;
     quantityMessage.className = `text-sm mt-2 ${type === 'error' ? 'text-red-500' : 'text-yellow-500'}`;
     quantityMessage.classList.remove('hidden');
@@ -761,7 +878,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!target || target.dataset.disabled === 'true') return;
 
     const variantId = target.getAttribute('data-variant-id');
-    
     // Update visual selection
     document.querySelectorAll('.variant-color').forEach(span => {
       span.classList.remove('border-blue-600', 'bg-blue-100');
@@ -801,159 +917,151 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Main Image Zoom
   const imageZoom = document.getElementById('imageZoom');
-  imageZoom.addEventListener('mousemove', (event) => {
-    imageZoom.style.setProperty('--display', 'block');
-    let pointer = {
-      x: (event.offsetX * 100) / imageZoom.offsetWidth,
-      y: (event.offsetY * 100) / imageZoom.offsetHeight
-    }
-    imageZoom.style.setProperty('--zoom-x', pointer.x + '%');
-    imageZoom.style.setProperty('--zoom-y', pointer.y + '%');
-  });
+  if (imageZoom) {
+    imageZoom.addEventListener('mousemove', (event) => {
+      imageZoom.style.setProperty('--display', 'block');
+      let pointer = {
+        x: (event.offsetX * 100) / imageZoom.offsetWidth,
+        y: (event.offsetY * 100) / imageZoom.offsetHeight
+      }
+      imageZoom.style.setProperty('--zoom-x', pointer.x + '%');
+      imageZoom.style.setProperty('--zoom-y', pointer.y + '%');
+    });
 
-  imageZoom.addEventListener('mouseleave', () => {
-    imageZoom.style.setProperty('--display', 'none');
-  });
+    imageZoom.addEventListener('mouseleave', () => {
+      imageZoom.style.setProperty('--display', 'none');
+    });
+  }
 
   // Change main image and update zoom background
   window.changeMainImage = function(src) {
     const mainImg = document.getElementById('mainImage');
-    mainImg.src = src;
-    imageZoom.style.setProperty('--url', `url(${src})`);
+    if (mainImg) {
+      mainImg.src = src;
+      imageZoom.style.setProperty('--url', `url(${src})`);
+    }
   }
 
   // Add to Cart form submission
   const form = document.getElementById('addToCartForm');
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    
-    const variant = findVariantById(currentVariantId);
-    if (!variant || variant.remainingStock === 0) {
-      showQuantityMessage('This variant is currently out of stock', 'error');
-      return;
-    }
-
-    if (currentQuantity > variant.remainingStock) {
-      showQuantityMessage(`Only ${variant.remainingStock} items available`, 'error');
-      return;
-    }
-   
-
-    
-    try {
-      const response = await fetch(`/cart/${productId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          quantity: currentQuantity,
-          variantId: currentVariantId 
-        })
-      });
-
-      const result = await response.json();
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
 
+      const variant = findVariantById(currentVariantId);
+      if (!variant || variant.remainingStock === 0) {
+        showQuantityMessage('This variant is currently out of stock', 'error');
+        return;
+      }
 
-      
-      if (response.ok) {
-      Swal.fire({
-      toast: true,
-      position: 'top-end',
-      background: 'rgba(55, 65, 81, 0.7)',
-      color: '#fff',
-      showConfirmButton: false,
-      timer: 2500, // Will reset after animation is ready
-      timerProgressBar: true,
-      html: `
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <dotlottie-wc 
-            id="dotlottie-toast" 
-            src="https://lottie.host/1ab73faf-3e61-4263-ae9b-f00c4b9d9d18/8dR4YXcTvc.lottie" 
-            style="width: 65px; height: 65px;" 
-            autoplay 
-            loop 
-            speed="1">
-          </dotlottie-wc>
-          <span style="font-size: 0.9rem;">Product added to cart successfully!</span>
-        </div>
-      `,
-      didOpen: () => {
-        const toast = Swal.getPopup();
-        const animation = document.getElementById('dotlottie-toast');
+      if (currentQuantity > variant.remainingStock) {
+        showQuantityMessage(`Only ${variant.remainingStock} items available`, 'error');
+        return;
+      }
 
-        // Pause the timer initially
-        Swal.stopTimer();
-
-        // Wait until animation is fully loaded
-        animation.addEventListener('ready', () => {
-          Swal.resumeTimer(); // Start timer only after Lottie is ready
+      try {
+        const response = await fetch(`/cart/${productId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            quantity: currentQuantity,
+            variantId: currentVariantId 
+          })
         });
-      },
-      customClass: {
-        popup: 'custom-toast'
+
+        const result = await response.json();
+        
+        if (response.ok) {
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            background: 'rgba(55, 65, 81, 0.7)',
+            color: '#fff',
+            showConfirmButton: false,
+            timer: 2500,
+            timerProgressBar: true,
+            html: `
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <dotlottie-wc 
+                  id="dotlottie-toast" 
+                  src="https://lottie.host/1ab73faf-3e61-4263-ae9b-f00c4b9d9d18/8dR4YXcTvc.lottie" 
+                  style="width: 65px; height: 65px;" 
+                  autocomplete 
+                  loop 
+                  speed="1">
+                </dotlottie-wc>
+                <span style="font-size: 0.9rem;">Product added to cart successfully!</span>
+              </div>
+            `,
+            didOpen: () => {
+              const toast = Swal.getPopup();
+              const animation = document.getElementById('dotlottie-toast');
+              Swal.stopTimer();
+              animation.addEventListener('ready', () => {
+                Swal.resumeTimer();
+              });
+            },
+            customClass: {
+              popup: 'custom-toast'
+            }
+          });
+          
+          // Update the remaining stock locally
+          const variantIndex = productVariants.findIndex(v => v._id === currentVariantId);
+          if (variantIndex !== -1) {
+            productVariants[variantIndex].remainingStock -= currentQuantity;
+            updateVariantUI(currentVariantId);
+          }
+          
+          setTimeout(() => window.location.reload(), 2000);
+        } else if (!result.user) {
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            background: 'rgba(185, 28, 28, 0.7)',
+            color: '#fff',
+            showConfirmButton: false,
+            timer: 2500,
+            timerProgressBar: true,
+            html: `
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <dotlottie-wc 
+                  id="dotlottie-error-toast" 
+                  src="https://lottie.host/a26f082c-2164-451e-92a7-c41802b39fdb/hve9YGahrz.lottie"
+                  style="width: 45px; height: 45px;" 
+                  autocomplete 
+                  loop 
+                  speed="1">
+                </dotlottie-wc>
+                <span style="font-size: 0.9rem; font-weight: 500;">${result.message}</span>
+              </div>
+            `,
+            didOpen: () => {
+              const animation = document.getElementById('dotlottie-error-toast');
+            },
+            customClass: {
+              popup: 'custom-toast'
+            }
+          });
+        } else {
+          showQuantityMessage(result.message, 'error');
+        }
+      } catch (err) {
+        console.error('Add to cart error:', err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: 'An unexpected error occurred.',
+        });
       }
     });
-        
-        // Update the remaining stock locally
-        const variantIndex = productVariants.findIndex(v => v._id === currentVariantId);
-        if (variantIndex !== -1) {
-          productVariants[variantIndex].remainingStock -= currentQuantity;
-          updateVariantUI(currentVariantId);
-        }
-        
-        setTimeout(() => window.location.reload(), 2000);
-      } else if (!result.user) {
-   Swal.fire({
-    toast: true,
-    position: 'top-end',
-    background: 'rgba(185, 28, 28, 0.7)', // Tailwind Red-700 with transparency
-    color: '#fff',
-    showConfirmButton: false,
-    timer: 2500,
-    timerProgressBar: true,
-    html: `
-      <div style="display: flex; align-items: center; gap: 10px;">
-        <dotlottie-wc 
-          id="dotlottie-error-toast" 
-          src="https://lottie.host/a26f082c-2164-451e-92a7-c41802b39fdb/hve9YGahrz.lottie"
-          style="width: 45px; height: 45px;" 
-          autoplay 
-          loop 
-          speed="1">
-        </dotlottie-wc>
-        <span style="font-size: 0.9rem; font-weight: 500;">${result.message}</span>
-      </div>
-    `,
-    didOpen: () => {
-      const animation = document.getElementById('dotlottie-error-toast');
-    },
-    customClass: {
-      popup: 'custom-toast'
-    }
-  });
-
-  // Optional reload
-   //setTimeout(() => window.location.reload(), 2800);
-
-      } else {
-        showQuantityMessage(result.message, 'error');
-      }
-    } catch (err) {
-      console.error(err);
-      Swal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: 'An unexpected error occurred.',
-      });
-    }
-  });
+  }
 
   // Socket stock update listener
   const socket = io();
   socket.on('stock-update', ({ productId: updatedProductId, variantId, remainingStock }) => {
     if (updatedProductId === productId) {
-      console.log('Stock update received:', { variantId, remainingStock });
       
       // Update the variant data
       const variantIndex = productVariants.findIndex(v => v._id === variantId);
@@ -997,7 +1105,7 @@ document.addEventListener('DOMContentLoaded', function() {
     link.addEventListener('click', async (e) => {
       e.preventDefault();
       const productId = link.getAttribute('data-product-id');
-      const variantId = currentVariantId; // Use the current selected variant ID
+      const variantId = currentVariantId;
 
       try {
         const response = await fetch('/wishlist', {
@@ -1005,7 +1113,7 @@ document.addEventListener('DOMContentLoaded', function() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             productId,
-            variantId // Include the variant ID in the request
+            variantId 
           })
         });
 
@@ -1031,7 +1139,7 @@ document.addEventListener('DOMContentLoaded', function() {
           });
         }
       } catch (err) {
-        console.error(err);
+        console.error('Wishlist error:', err);
         Swal.fire({
           icon: 'error',
           title: 'Oops...',
@@ -1146,8 +1254,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const data = await response.json();
 
         if (response.ok && data.reviews.length > 0) {
-          // Add new reviews to the page (you'll need to implement this)
-          // For now, just reload the page
           window.location.reload();
         } else {
           this.style.display = 'none';
@@ -1166,25 +1272,20 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('[data-action="helpful"]').forEach(button => {
     button.addEventListener('click', async function() {
       const reviewId = this.dataset.reviewId;
-      // Implement helpful functionality
-      console.log('Mark review as helpful:', reviewId);
     });
   });
 
   // Toast notification function
   function showToast(message, type = 'info') {
-    // Remove existing toast if any
     const existingToast = document.getElementById('toast-notification');
     if (existingToast) {
       existingToast.remove();
     }
 
-    // Create toast element
     const toast = document.createElement('div');
     toast.id = 'toast-notification';
     toast.className = `toast-notification toast-${type}`;
     
-    // Toast content
     const iconMap = {
       success: 'fas fa-check-circle',
       error: 'fas fa-exclamation-circle',
@@ -1202,15 +1303,12 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
     
-    // Add to page
     document.body.appendChild(toast);
     
-    // Show toast with animation
     setTimeout(() => {
       toast.classList.add('toast-show');
     }, 100);
     
-    // Auto hide after 4 seconds
     setTimeout(() => {
       closeToast();
     }, 4000);
@@ -1227,7 +1325,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Initialize UI on page load
-  console.log('Page loaded, initializing UI with variant:', currentVariantId);
   updateVariantUI(currentVariantId);
 });
 </script>

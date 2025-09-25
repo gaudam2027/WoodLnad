@@ -11,7 +11,6 @@ const managewishlist =async(req,res)=>{
       .populate({path: 'products.productId',populate: {path: 'category',model: 'Category'}
   });
 
-      console.log(wishlist)
     if (!wishlist || wishlist.products.length === 0) {
       return res.render('wishlist', {user:userData,wishlistItems: [] });
     }
@@ -19,23 +18,18 @@ const managewishlist =async(req,res)=>{
     // Flatten to pass to EJS
      const wishlistItems = wishlist.products.map(item => {
       const product = item.productId;
-      const variantIndex = item.variantIndex || 0;
-      const variant = product.variants?.[variantIndex];
+      const variantId = item.variantId;
+
+      const variant = product.variants?.find(v => v._id.toString() === variantId?.toString());
+      console.log('v',variant)
 
       return {
-        id: product._id,
-        name: product.productName,
-        description: product.description,
-        price: variant?.salePrice,
-        variantName: variant?.name,
-        variantIndex,
-        images: product.images,
-        category: product.category,
+        product,
+        variant,
         addedOn: item.addedOn
       };
     });
 
-    console.log(wishlistItems)
     res.render('wishlist', {user:userData,wishlistItems });
   } catch (err) {
     console.error('Error fetching wishlist:', err);
@@ -45,7 +39,8 @@ const managewishlist =async(req,res)=>{
 
 const addToWishlist = async (req, res) => {
   const userId = req.session.userId || req.session.user?._id;
-  const { productId, variantIndex } = req.body;
+  const { productId, variantId } = req.body;
+  console.log(variantId)
 
   try {
     let wishlist = await Wishlist.findOne({ userId });
@@ -53,13 +48,13 @@ const addToWishlist = async (req, res) => {
     if (!wishlist) {
       wishlist = new Wishlist({
         userId,
-        products: [{ productId, variantIndex }],
+        products: [{ productId, variantId  }],
       });
     } else {
       const alreadyExists = wishlist.products.some(
         (p) =>
           p.productId.toString() === productId &&
-          (p.variantIndex ?? null) === (variantIndex ?? null)
+          p.variantId.toString() === variantId
       );
 
       if (alreadyExists) {
@@ -68,7 +63,7 @@ const addToWishlist = async (req, res) => {
           .json({ success: false, message: 'Product already in wishlist' });
       }
 
-      wishlist.products.push({ productId, variantIndex });
+      wishlist.products.push({ productId, variantId });
     }
 
     await wishlist.save();
@@ -82,8 +77,9 @@ const addToWishlist = async (req, res) => {
 };
 
 const removeFromWishlist = async (req, res) => {
-  const userId = req.session.user?._id;
-  const { productId, variantIndex } = req.body;
+  const userId = req.session.userId || req.session.user?._id;
+  const { productId, variantId } = req.body;
+  console.log(userId)
 
   try {
     const wishlist = await Wishlist.findOne({ userId });
@@ -94,7 +90,10 @@ const removeFromWishlist = async (req, res) => {
     const originalLength = wishlist.products.length;
 
     wishlist.products = wishlist.products.filter(
-      p => !(p.productId.toString() === productId && (p.variantIndex ?? 0) === (variantIndex ?? 0))
+      p => !(
+        p.productId.toString() === productId &&
+        p.variantId.toString() === variantId
+      )
     );
 
     if (wishlist.products.length === originalLength) {

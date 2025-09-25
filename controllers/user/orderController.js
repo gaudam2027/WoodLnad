@@ -1,6 +1,8 @@
 const User = require('../../model/userSchema');
 const Product = require('../../model/productSchema');
 const Order = require('../../model/orderSchema');
+const Wallet = require('../../model/walletSchema')
+const {calculateRefundAmount} = require('../../helpers/cuponDiscoundRefund')
 const { getIO } = require('../../config/socket'); //for getting socket IO
 
 
@@ -43,6 +45,8 @@ const loadOrderpage = async (req, res) => {
       paymentMethod: order.paymentMethod,
       shippingAddress: order.shippingAddress,
       finalAmount: order.finalAmount,
+      couponCode: order.couponCode || null,
+      couponDiscount: order.couponDiscount || 0,
       cancelReasonTitle: order.cancellationReasonTitle,
       cancelReason: order.cancellationReason,
       returnReasonTitle: order.returnReasonTitle,
@@ -127,19 +131,19 @@ const orderDetails = async (req, res) => {
       return res.status(404).render('404', { message: 'Order not found' });
     }
 
-    let discountAmount = 0;
-    for (const item of order.orderitems) {
-      const product = item.product;
-      const variant = product?.variants?.find(v => v._id.toString() === item.variantId.toString());
-      if (variant?.offerPrice) {
-        discountAmount += variant.offerPrice;
-      }
-    }
+    // let discountAmount = 0;
+    // for (const item of order.orderitems) {
+    //   const product = item.product;
+    //   const variant = product?.variants?.find(v => v._id.toString() === item.variantId.toString());
+    //   if (variant?.offerPrice) {
+    //     discountAmount += variant.offerPrice;
+    //   }
+    // }
 
-    order.discountAmount = discountAmount;
-    order.finalAmount = order.totalPrice - discountAmount;
-    order.taxAmount = order.finalAmount * (2 / 100);
-    order.finalAmount += order.taxAmount;
+    let couponDiscount = order.couponDiscount||0
+    order.finalAmount = order.totalPrice - couponDiscount;
+    // order.taxAmount = order.finalAmount * (2 / 100);
+    // order.finalAmount += order.taxAmount;
 
     const cancelReasons = [
       'Ordered by mistake',
@@ -168,84 +172,9 @@ const orderDetails = async (req, res) => {
   }
 };
 
-
-
-// const cancelOrReturnOrderItem = async (req, res) => {
-//   try {
-//     const orderItemId = req.params.id;
-//     const { actionType, reasonTitle, customReason } = req.body;
-//     // console.log(orderItemId)
-//     // console.log(actionType)
-    
-
-//     const order = await Order.findOne({ 'orderitems._id': orderItemId });
-//     if (!order) {
-//       return res.status(404).json({ success: false, message: 'Order not found' });
-//     }
-
-//     const item = order.orderitems.id(orderItemId);
-//     if (!item) {
-//       return res.status(404).json({ success: false, message: 'Order item not found' });
-//     }
-
-//     // Apply status changes
-//     if (actionType === 'cancel') {
-      
-//       item.status = 'Cancelled';
-//       item.cancellationReasonTitle = reasonTitle;
-//       item.cancellationReason = customReason || 'none';
-//     } else if (actionType === 'return') {
-//       item.status = 'Return Request';
-//       item.cancellationReasonTitle = reasonTitle;
-//       item.cancellationReason = customReason || 'none';
-//     } else {
-//       return res.status(400).json({ success: false, message: 'Invalid action type' });
-//     }
-
-//     await order.save();
-
-//     // Get the variant index from the item
-//     const variantIndex = item.variantIndex;
-//     const variantPath = `variants.${variantIndex}.quantity`;
-
-//     if(actionType === 'cancel'){
-//       const productId = item.product;
-//       const variantId = item.variantId;
-//       // Update the stock of the correct variant
-//       const product = await Product.findOneAndUpdate(
-//         { _id: productId, 'variants._id': variantId },
-//         { $inc: { 'variants.$.quantity': item.quantity } },
-//         { new: true }
-//       );
-      
-//       const updatedVariant = product?.variants.find(v => v._id.toString() === variantId.toString());
-//       const updatedStock = updatedVariant?.quantity || 0;
-      
-//       // Emit updated stock info
-//       const io = getIO();
-//       io.emit('stock-update', {
-//         productId: item.product.toString(),
-//         variantId: variantId.toString(),
-//         remainingStock: updatedStock,
-//       });
-//     }
-    
-
-//     res.json({
-//       success: true,
-//       message: `${actionType === 'cancel' ? 'Cancellation' : 'Return'} successful`,
-//     });
-
-//   } catch (error) {
-//     console.error("Cancel/Return error:", error);
-//     res.status(500).json({ success: false, message: 'Server error' });
-//   }
-// };
-
 const handleOrderOrItemAction = async (req, res) => {
   try {
     const { orderId, itemId, action, type, reasonTitle, reason } = req.body;
-    console.log(orderId, itemId, action, type, reasonTitle, reason);
 
     if (!orderId || !action || !type || !reason) {
       return res.status(400).json({ success: false, message: 'Missing required data' });
@@ -254,8 +183,9 @@ const handleOrderOrItemAction = async (req, res) => {
     const order = await Order.findById(orderId);
     if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
 
+    let refundAmount = 0;
+
     if (type === 'order') {
-      // Prevent duplicate action
       if (order.orderStatus === 'Cancelled' || order.orderStatus === 'Return Request') {
         return res.status(400).json({ success: false, message: 'Order already processed' });
       }
@@ -271,7 +201,10 @@ const handleOrderOrItemAction = async (req, res) => {
             item.cancellationReasonTitle = reasonTitle;
             item.cancellationReason = reason;
 
-            // Update product stock
+            if (order.paymentStatus === 'paid') {
+              refundAmount += calculateRefundAmount(order, [item]);
+            }
+
             await Product.findOneAndUpdate(
               { _id: item.product, 'variants._id': item.variantId },
               { $inc: { 'variants.$.quantity': item.quantity } }
@@ -298,7 +231,6 @@ const handleOrderOrItemAction = async (req, res) => {
       }
 
     } else if (type === 'item') {
-      // Find and update only the selected item
       const item = order.orderitems.id(itemId);
       if (!item) {
         return res.status(404).json({ success: false, message: 'Item not found in order' });
@@ -309,7 +241,10 @@ const handleOrderOrItemAction = async (req, res) => {
         item.cancellationReasonTitle = reasonTitle;
         item.cancellationReason = reason;
 
-        // Update stock for cancelled item
+        if (order.paymentStatus === 'paid') {
+          refundAmount = calculateRefundAmount(order, [item]);
+        }
+
         await Product.findOneAndUpdate(
           { _id: item.product, 'variants._id': item.variantId },
           { $inc: { 'variants.$.quantity': item.quantity } }
@@ -325,7 +260,6 @@ const handleOrderOrItemAction = async (req, res) => {
         item.returnReason = reason;
       }
 
-      // Auto-update overall order status if all items share same status
       const allCancelled = order.orderitems.every(i => i.status === 'Cancelled');
       const allReturnRequested = order.orderitems.every(i => i.status === 'Return Request');
 
@@ -337,6 +271,24 @@ const handleOrderOrItemAction = async (req, res) => {
           order.returnReason = reason;
         }
       }
+    }
+
+    // Refund to Wallet
+    if (refundAmount > 0) {
+      let wallet = await Wallet.findOne({ user: order.user });
+      if (!wallet) {
+        wallet = new Wallet({ user: order.user, balance: 0, transactions: [] });
+      }
+
+      wallet.balance += refundAmount;
+      wallet.transactions.push({
+        type: 'credit',
+        amount: refundAmount,
+        description: `Order/Item Cancel Refund`,
+        reference: order._id.toString(),
+      });
+
+      await wallet.save();
     }
 
     await order.save();
@@ -355,13 +307,18 @@ const handleOrderOrItemAction = async (req, res) => {
       });
     }
 
-    res.json({ success: true, message: `${action === 'cancel' ? 'Cancellation' : 'Return'} successful` });
+    res.json({
+      success: true,
+      message: `${action === 'cancel' ? 'Cancellation' : 'Return'} successful`,
+      refund: refundAmount > 0 ? `₹${refundAmount} refunded to wallet` : undefined
+    });
 
   } catch (error) {
     console.error('Action handler error:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
+
 
 
 

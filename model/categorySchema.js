@@ -18,10 +18,6 @@ const categorySchema = new Schema({
         default: true
     },
 
-    categoryOffer:{
-        type: Number,
-        default: 0
-    },
 
     createdAt: {
         type:Date,

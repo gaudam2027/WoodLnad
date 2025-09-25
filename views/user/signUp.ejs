@@ -3,255 +3,536 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign Up</title>
+  <title>Sign Up - Woodland</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="./css/signUp.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-</head>
-<body class="flex flex-col min-h-screen bg-gray-900">
+  
+  <style>
+    /* Custom responsive styles for small mobile */
+    @media (max-width: 425px) {
+      .mobile-compact {
+        max-width: 280px !important;
+        padding: 16px !important;
+      }
+      .mobile-compact h2 {
+        font-size: 1.25rem !important;
+        margin-bottom: 4px !important;
+      }
+      .mobile-compact p {
+        font-size: 0.75rem !important;
+        margin-bottom: 16px !important;
+      }
+      .mobile-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+      }
+      .mobile-input {
+        padding: 8px 10px !important;
+        font-size: 0.75rem !important;
+      }
+      .mobile-label {
+        font-size: 0.625rem !important;
+        margin-bottom: 4px !important;
+      }
+      .mobile-error {
+        font-size: 0.625rem !important;
+        height: 12px !important;
+        margin-top: 2px !important;
+      }
+      .mobile-btn {
+        padding: 10px 12px !important;
+        font-size: 0.75rem !important;
+      }
+      .mobile-checkbox {
+        margin-bottom: 12px !important;
+      }
+      .mobile-checkbox label {
+        font-size: 0.625rem !important;
+      }
+      .mobile-login-link {
+        font-size: 0.625rem !important;
+        margin-top: 12px !important;
+        padding-top: 12px !important;
+      }
+    }
 
-    <!-- Content Wrapper -->
-    
-    <!-- Navigation -->
-    <nav class="absolute top-0 left-0 w-full bg-white shadow-md  flex justify-center items-center z-20">
+    @media (max-width: 320px) {
+      .mobile-compact {
+        max-width: 260px !important;
+        padding: 12px !important;
+      }
+      .mobile-grid {
+        gap: 8px !important;
+      }
+      .mobile-input {
+        padding: 6px 8px !important;
+        font-size: 0.7rem !important;
+      }
+    }
+
+    /* 18:9 Aspect Ratio Optimization (2160×1080) */
+    @media (min-aspect-ratio: 18/9) {
+      .wide-screen-container {
+        max-width: 650px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+      }
+      .wide-screen-container .mobile-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 16px !important;
+        max-width: 100% !important;
+      }
+      .wide-screen-container h2 {
+        font-size: 2rem !important;
+        margin-bottom: 8px !important;
+      }
+      .wide-screen-container p {
+        font-size: 1rem !important;
+        margin-bottom: 24px !important;
+      }
+      .wide-screen-container .mobile-input {
+        padding: 12px 16px !important;
+        font-size: 0.875rem !important;
+      }
+      .wide-screen-container .mobile-label {
+        font-size: 0.75rem !important;
+        margin-bottom: 6px !important;
+      }
+      .wide-screen-container .mobile-btn {
+        padding: 12px 20px !important;
+        font-size: 0.875rem !important;
+      }
+      .wide-screen-container .mobile-error {
+        font-size: 0.75rem !important;
+        height: 16px !important;
+        margin-top: 4px !important;
+      }
+    }
+
+    /* Ultra-wide screens (even wider than 18:9) */
+    @media (min-aspect-ratio: 21/9) {
+      .wide-screen-container {
+        max-width: 750px !important;
+        padding-left: 32px !important;
+        padding-right: 32px !important;
+      }
+    }
+
+    /* Landscape tablet optimization */
+    @media (min-width: 768px) and (max-height: 600px) {
+      .wide-screen-container {
+        max-width: 700px !important;
+        padding-top: 20px !important;
+        padding-bottom: 20px !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gray-900 flex flex-col overflow-hidden">
+
+    <!-- Navigation - Keep Original -->
+    <nav class="absolute top-0 left-0 w-full bg-white shadow-md flex justify-center items-center z-20">
         <a href="/">
-        <div class="text-2xl font-bold text-gray-800 flex items-center" style="font-family: 'Raleway', sans-serif;">
+            <div class="text-2xl font-bold text-gray-800 flex items-center" style="font-family: 'Raleway', sans-serif;">
                 <img src="./images/logo.png" class="logo bgImg" alt="logo">
                 <div class="pl-2">WOODLAND</div>
             </div>
         </a>
     </nav>
-    <div class="flex-grow relative flex flex-col items-center">
+
+    <!-- Main Content -->
+    <div class="flex-1 relative flex items-center justify-center px-2 sm:px-4 pt-16">
 
         <!-- Background Image with Overlay -->
-        <div class="absolute inset-0 bg-cover  bg-center" style="background-image: url('/images/signUpBg.jpg');">
-            <div class="absolute inset-0 bg-black bg-opacity-70"></div>
+        <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('/images/signUpBg.jpg');">
+            <div class="absolute inset-0 bg-black bg-opacity-50"></div>
         </div>
 
-        <!-- Sign-Up Form -->
-<div class="relative z-10 bg-gray-200 p-6 rounded-[15px] shadow-md max-w-sm w-full opacity-90 mt-[80px]">
-    <h2 class="text-xl font-bold text-center text-gray-800">Create an Account</h2>
-    <div id="server-message" class="hidden text-sm text-red-800 bg-red-100 border border-red-400 px-4 py-2 rounded-md text-center font-semibold mb-3"></div>
+        <!-- Wide Screen Optimized Form Container -->
+        <div class="wide-screen-container mobile-compact relative z-10 bg-white bg-opacity-20 backdrop-blur-md p-6 sm:p-8 rounded-2xl shadow-2xl w-full max-w-4xl mx-auto border border-white border-opacity-30">
+            
+            <!-- Header -->
+            <div class="text-center mb-4 sm:mb-6">
+                <h2 class="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-1 sm:mb-2" style="font-family: 'Raleway', sans-serif;">
+                    Join Woodland
+                </h2>
+                <p class="text-xs sm:text-sm text-gray-200">Create your account in seconds</p>
+            </div>
 
-    <form id="signupform" class="mt-3">
-        <div class="mb-3">
-            <label class="block text-sm font-medium text-gray-600">Full Name</label>
-            <input id="name" type="text" name="name" required 
-                class="w-full px-3 py-1.5 border border-gray-400 rounded-md focus:ring-2 focus:ring-gray-400 focus:outline-none">
-            <div id="error1" class="text-sm text-red-600 mt-1 ml-1"></div>
-        </div>
-        <div class="mb-3">
-            <label class="block text-sm font-medium text-gray-600">Email</label>
-            <input id="email" type="email" name="email" required 
-                class="w-full px-3 py-1.5 border border-gray-400 rounded-md focus:ring-2 focus:ring-gray-400 focus:outline-none">
-            <div id="error2" class="text-sm text-red-600 mt-1 ml-1"></div>
-        </div>
-        <div class="mb-3">
-            <label class="block text-sm font-medium text-gray-600">Phone Number</label>
-            <input id="phone" type="tel" name="phone" required 
-                class="w-full px-3 py-1.5 border border-gray-400 rounded-md focus:ring-2 focus:ring-gray-400 focus:outline-none">
-            <div id="error3" class="text-sm text-red-600 mt-1 ml-1"></div>
-        </div>
-        <div class="mb-3">
-            <label class="block text-sm font-medium text-gray-600">Password</label>
-            <input id="password" type="password" name="password" required 
-                class="w-full px-3 py-1.5 border border-gray-400 rounded-md focus:ring-2 focus:ring-gray-400 focus:outline-none">
-            <div id="error4" class="text-sm text-red-600 mt-1 ml-1"></div>
-        </div>
-        <div class="mb-3">
-            <label class="block text-sm font-medium text-gray-600">Re-enter Password</label>
-            <input id="confirm-password" type="password" name="confirm-password" required 
-                class="w-full px-3 py-1.5 border border-gray-400 rounded-md focus:ring-2 focus:ring-gray-400 focus:outline-none">
-            <div id="error5" class="text-sm text-red-600 mt-1 ml-1"></div>
-        </div>
-        <button type="submit" class="w-[60%] mx-auto block bg-gray-800 text-white py-1.5 rounded-md hover:bg-gray-700">
-            Sign Up
-        </button>
-        <div class="mt-4 text-center">
-            <p class="text-xs text-gray-600">Or sign up with</p>
-        </div>
-        <div class="flex flex-col items-center justify-center">
-            <a href="/auth/google" class="flex items-center justify-center bg-red-500 text-white py-1.5 px-5 rounded-md w-[60%] hover:bg-red-600 mt-3">
-              <i class="fab fa-google mr-2"></i> Google
-            </a>
-            <button class="flex items-center justify-center bg-blue-600 text-white py-1.5 px-5 rounded-md w-[60%] hover:bg-blue-700 mt-3">
-              <i class="fab fa-facebook-f mr-2"></i> Facebook
-            </button>
-        </div>
-        <p class="mt-3 text-center text-xs text-gray-600">
-            Already have an account? 
-            <a href="/signIn" class="text-gray-800 font-semibold hover:underline">Log In</a>
-        </p>
-    </form>
-</div>
+            <!-- Success/Error Messages -->
+            <div id="server-message" class="hidden text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-center font-medium mb-3 sm:mb-4">
+            </div>
 
-<div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center hidden">
-    <div class="text-white text-lg font-semibold pointer-events-auto">
-      <i class="fas fa-spinner fa-spin mr-2"></i> Processing, please wait...
+            <!-- Sign Up Form -->
+            <form id="signupform">
+                
+                <!-- Input Grid: Responsive Layout -->
+                <div class="mobile-grid grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
+                    
+                    <!-- Full Name -->
+                    <div class="group">
+                        <label class="mobile-label block text-xs font-bold text-white mb-1 sm:mb-2 uppercase tracking-wide">
+                            <i class="fas fa-user mr-1 text-gray-300 text-xs"></i>
+                            <span class="hidden sm:inline">Full </span>Name
+                        </label>
+                        <input id="name" type="text" name="name" required 
+                            placeholder="John Doe"
+                            class="mobile-input w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-white bg-opacity-90 border-2 border-gray-300 rounded-lg focus:border-gray-600 focus:outline-none focus:bg-opacity-100 transition-all duration-200 group-hover:bg-opacity-100 text-xs sm:text-sm">
+                        <div id="error1" class="mobile-error text-xs text-red-300 mt-1 h-3 sm:h-4 font-medium"></div>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="group">
+                        <label class="mobile-label block text-xs font-bold text-white mb-1 sm:mb-2 uppercase tracking-wide">
+                            <i class="fas fa-envelope mr-1 text-gray-300 text-xs"></i>Email
+                        </label>
+                        <input id="email" type="email" name="email" required 
+                            placeholder="john@email.com"
+                            class="mobile-input w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-white bg-opacity-90 border-2 border-gray-300 rounded-lg focus:border-gray-600 focus:outline-none focus:bg-opacity-100 transition-all duration-200 group-hover:bg-opacity-100 text-xs sm:text-sm">
+                        <div id="error2" class="mobile-error text-xs text-red-300 mt-1 h-3 sm:h-4 font-medium"></div>
+                    </div>
+
+                    <!-- Phone -->
+                    <div class="group">
+                        <label class="mobile-label block text-xs font-bold text-white mb-1 sm:mb-2 uppercase tracking-wide">
+                            <i class="fas fa-phone mr-1 text-gray-300 text-xs"></i>Phone
+                        </label>
+                        <input id="phone" type="tel" name="phone" required 
+                            placeholder="1234567890"
+                            class="mobile-input w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-white bg-opacity-90 border-2 border-gray-300 rounded-lg focus:border-gray-600 focus:outline-none focus:bg-opacity-100 transition-all duration-200 group-hover:bg-opacity-100 text-xs sm:text-sm">
+                        <div id="error3" class="mobile-error text-xs text-red-300 mt-1 h-3 sm:h-4 font-medium"></div>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="group">
+                        <label class="mobile-label block text-xs font-bold text-white mb-1 sm:mb-2 uppercase tracking-wide">
+                            <i class="fas fa-lock mr-1 text-gray-300 text-xs"></i>Password
+                            <button type="button" id="toggle-password" class="ml-1 text-xs text-gray-300 hover:text-white">
+                                <i class="fas fa-eye text-xs"></i>
+                            </button>
+                        </label>
+                        <input id="password" type="password" name="password" required 
+                            placeholder="8+ chars"
+                            class="mobile-input w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-white bg-opacity-90 border-2 border-gray-300 rounded-lg focus:border-gray-600 focus:outline-none focus:bg-opacity-100 transition-all duration-200 group-hover:bg-opacity-100 text-xs sm:text-sm">
+                        <div id="error4" class="mobile-error text-xs text-red-300 mt-1 h-3 sm:h-4 font-medium"></div>
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div class="group">
+                        <label class="mobile-label block text-xs font-bold text-white mb-1 sm:mb-2 uppercase tracking-wide">
+                            <i class="fas fa-lock mr-1 text-gray-300 text-xs"></i>Confirm
+                            <button type="button" id="toggle-confirm-password" class="ml-1 text-xs text-gray-300 hover:text-white">
+                                <i class="fas fa-eye text-xs"></i>
+                            </button>
+                        </label>
+                        <input id="confirm-password" type="password" name="confirm-password" required 
+                            placeholder="Re-enter"
+                            class="mobile-input w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-white bg-opacity-90 border-2 border-gray-300 rounded-lg focus:border-gray-600 focus:outline-none focus:bg-opacity-100 transition-all duration-200 group-hover:bg-opacity-100 text-xs sm:text-sm">
+                        <div id="error5" class="mobile-error text-xs text-red-300 mt-1 h-3 sm:h-4 font-medium"></div>
+                    </div>
+
+                    <!-- Referral Code -->
+                    <div class="group">
+                        <label class="mobile-label block text-xs font-bold text-white mb-1 sm:mb-2 uppercase tracking-wide">
+                            <i class="fas fa-gift mr-1 text-gray-300 text-xs"></i>Referral 
+                            <span class="text-gray-300 text-xs font-normal">(Opt)</span>
+                        </label>
+                        <input id="referral" type="text" name="referral" 
+                            placeholder="Code"
+                            value="<%= referralCode %>" 
+                            class="mobile-input w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-white bg-opacity-90 border-2 border-gray-300 rounded-lg focus:border-gray-600 focus:outline-none focus:bg-opacity-100 transition-all duration-200 group-hover:bg-opacity-100 text-xs sm:text-sm">
+                        <div class="mobile-error text-xs text-green-300 mt-1 h-3 sm:h-4 font-medium" id="referral-status"></div>
+                    </div>
+                </div>
+
+                <!-- Terms & Conditions -->
+                <div class="mobile-checkbox flex items-start mb-4 sm:mb-6">
+                    <input type="checkbox" id="terms" required class="mt-0.5 mr-2 w-3 h-3 sm:w-4 sm:h-4 text-gray-600 bg-white bg-opacity-90 border-2 border-gray-300 rounded focus:ring-gray-500">
+                    <label for="terms" class="text-xs sm:text-sm text-white leading-tight">
+                        I agree to the <a href="#" class="text-blue-300 hover:text-blue-200 underline">Terms</a> 
+                        and <a href="#" class="text-blue-300 hover:text-blue-200 underline">Privacy Policy</a>
+                    </label>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
+                    <!-- Sign Up Button -->
+                    <button type="submit" 
+                        class="mobile-btn sm:col-span-2 bg-gray-800 bg-opacity-90 text-white py-2 sm:py-3 px-4 sm:px-6 rounded-lg hover:bg-opacity-100 font-semibold transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-sm text-sm sm:text-base">
+                        <i class="fas fa-user-plus mr-1 sm:mr-2 text-xs sm:text-sm"></i>Create Account
+                    </button>
+
+                    <!-- Google Sign In -->
+                    <a href="/auth/google" 
+                        class="mobile-btn flex items-center justify-center bg-red-500 bg-opacity-90 text-white py-2 sm:py-3 px-4 sm:px-6 rounded-lg hover:bg-opacity-100 font-medium transition-all duration-200 transform hover:scale-[1.02] backdrop-blur-sm text-sm sm:text-base">
+                        <i class="fab fa-google mr-1 sm:mr-2 text-xs sm:text-sm"></i>Google
+                    </a>
+                </div>
+
+                <!-- Login Link -->
+                <div class="mobile-login-link text-center mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-white border-opacity-30">
+                    <p class="text-xs sm:text-sm text-gray-200">
+                        Have an account? 
+                        <a href="/signIn" class="text-blue-300 font-semibold hover:text-blue-200 underline">
+                            Sign In
+                        </a>
+                    </p>
+                </div>
+            </form>
+        </div>
     </div>
-  </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center hidden">
+        <div class="bg-white rounded-xl p-4 sm:p-6 text-center shadow-2xl max-w-xs sm:max-w-sm mx-4">
+            <div class="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-gray-800 mx-auto mb-3 sm:mb-4"></div>
+            <p class="text-gray-800 font-semibold text-sm sm:text-lg" id="loading-title">Creating Account...</p>
+            <p class="text-gray-600 text-xs sm:text-sm mt-1" id="loading-message">Please wait</p>
+        </div>
+    </div>
 
-<script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Form elements
+        const elements = {
+            name: document.getElementById("name"),
+            email: document.getElementById("email"),
+            phone: document.getElementById("phone"),
+            referral: document.getElementById("referral"),
+            password: document.getElementById("password"),
+            confirmPassword: document.getElementById("confirm-password"),
+            terms: document.getElementById("terms"),
+            form: document.getElementById("signupform"),
+            togglePassword: document.getElementById("toggle-password"),
+            toggleConfirmPassword: document.getElementById("toggle-confirm-password")
+        };
 
-    const nameid = document.getElementById("name");
-    const emailid = document.getElementById("email");
-    const phoneid = document.getElementById("phone");
-    const passid = document.getElementById("password");
-    const cPassid = document.getElementById("confirm-password");
-    const error1 = document.getElementById("error1");
-    const error2 = document.getElementById("error2");
-    const error3 = document.getElementById("error3");
-    const error4 = document.getElementById("error4");
-    const error5 = document.getElementById("error5");
-    const signupform = document.getElementById("signupform")
-    const serverMsg = document.getElementById("server-message");
+        // Error elements
+        const errors = {
+            error1: document.getElementById("error1"),
+            error2: document.getElementById("error2"),
+            error3: document.getElementById("error3"),
+            error4: document.getElementById("error4"),
+            error5: document.getElementById("error5")
+        };
 
-    function nameValidateChecking(e){
+        // Message elements
+        const messages = {
+            server: document.getElementById("server-message"),
+            referralStatus: document.getElementById("referral-status")
+        };
 
-        const nameval = nameid.value;
-        const namePattern = /^[A-Za-z\s]+$/;
+        // Loading elements
+        const loading = {
+            overlay: document.getElementById("loading-overlay"),
+            title: document.getElementById("loading-title"),
+            message: document.getElementById("loading-message")
+        };
 
-        if(nameval.trim()===""){
-            error1.style.display = "block";
-            error1.innerHTML = "Please enter a valid name";
-        }else if(!namePattern.test(nameval)){
-            error1.style.display = "block";
-            error1.innerHTML = "Name can only contain alphabets and spaces";
-        }else{
-            error1.style.display = "none";
-            error1.innerHTML = "";
-        }
-    }
+        // Password toggles
+        elements.togglePassword.addEventListener('click', function() {
+            togglePasswordVisibility(elements.password, this);
+        });
 
-    function emailValidateChecking(e){
+        elements.toggleConfirmPassword.addEventListener('click', function() {
+            togglePasswordVisibility(elements.confirmPassword, this);
+        });
 
-        const emailval = emailid.value;
-        const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,4}$/;
-
-        if(!emailPattern.test(emailval)){
-            error2.style.display = "block";
-            error2.innerHTML = "Invalid email format";
-        }else{
-            error2.style.display = "none";
-            error2.innerHTML = "";
-        }
-    }
-
-    function phoneValidateChecking(e){
-
-        const phoneval = phoneid.value;
-        const repeatedDigitsPattern = /^(\d)\1{9}$/;
-
-        if(phoneval.trim()===""){
-            error3.style.display = "block";
-            error3.innerHTML = "Plese enter the phone No.";
-        }else if(phoneval.length!==10){
-            error3.style.display = "block";
-            error3.innerHTML = "Enter 10-digits phone No.";
-        }else if(repeatedDigitsPattern.test(phoneval)) {
-            error3.style.display = "block";
-            error3.innerHTML = "Phone number cannot have all identical digits.";
-        }
-        else{
-            error3.style.display = "none";
-            error3.innerHTML = "";
-        }
-    }
-
-    function passValidateChecking(e){
-
-        const passval = passid.value;
-        const cpassval = cPassid.value;
-        const alpha = /[a-zA-Z]/;
-        const digit = /\d/;
-
-        if(passval.length<8){
-            error4.style.display = "block";
-            error4.innerHTML = "Should contain atleast 8 characters";
-        }else if(!alpha.test(passval)||!digit.test(passval)){
-            error4.style.display = "block";
-            error4.innerHTML = "Should contain alphabets and numbers";
-        }else{
-            error4.style.display = "none";
-            error4.innerHTML = "";
+        function togglePasswordVisibility(passwordField, toggleButton) {
+            const icon = toggleButton.querySelector('i');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
         }
 
-        if(passval!==cpassval){
-            error5.style.display = "block";
-            error5.innerHTML = "Passwords deosn't match";
-        }else{
-            error5.style.display = "none";
-            error5.innerHTML = "";
+        // Referral code validation
+        elements.referral.addEventListener('blur', function() {
+            const code = this.value.trim();
+            if (code) {
+                setTimeout(() => {
+                    messages.referralStatus.textContent = '✓ Valid';
+                }, 500);
+            } else {
+                messages.referralStatus.textContent = '';
+            }
+        });
+
+        // Validation functions
+        function validateName() {
+            const name = elements.name.value.trim();
+            const pattern = /^[A-Za-z\s]+$/;
+            
+            if (!name) {
+                showError('error1', 'Required');
+                return false;
+            } else if (!pattern.test(name)) {
+                showError('error1', 'Letters only');
+                return false;
+            } else if (name.length < 2) {
+                showError('error1', 'Too short');
+                return false;
+            }
+            
+            hideError('error1');
+            return true;
         }
 
-        
-    }
+        function validateEmail() {
+            const email = elements.email.value.trim();
+            const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            
+            if (!pattern.test(email)) {
+                showError('error2', 'Invalid email');
+                return false;
+            }
+            
+            hideError('error2');
+            return true;
+        }
 
+        function validatePhone() {
+            const phone = elements.phone.value.trim();
+            const repeatedDigitsPattern = /^(\d)\1{9}$/;
+            
+            if (phone.length !== 10 || !/^\d+$/.test(phone)) {
+                showError('error3', 'Invalid phone');
+                return false;
+            } else if (repeatedDigitsPattern.test(phone)) {
+                showError('error3', 'Invalid digits');
+                return false;
+            }
+            
+            hideError('error3');
+            return true;
+        }
 
+        function validatePassword() {
+            const password = elements.password.value;
+            const alpha = /[a-zA-Z]/;
+            const digit = /\d/;
+            
+            if (password.length < 8) {
+                showError('error4', 'Min 8 chars');
+                return false;
+            } else if (!alpha.test(password) || !digit.test(password)) {
+                showError('error4', 'Letters + numbers');
+                return false;
+            }
+            
+            hideError('error4');
+            return true;
+        }
 
-    document.addEventListener("DOMContentLoaded",function(){
-        signupform.addEventListener("submit",function(e){
+        function validateConfirmPassword() {
+            const password = elements.password.value;
+            const confirmPassword = elements.confirmPassword.value;
+            
+            if (password !== confirmPassword) {
+                showError('error5', 'No match');
+                return false;
+            }
+            
+            hideError('error5');
+            return true;
+        }
+
+        // Helper functions
+        function showError(errorId, message) {
+            const errorElement = errors[errorId];
+            errorElement.textContent = message;
+        }
+
+        function hideError(errorId) {
+            const errorElement = errors[errorId];
+            errorElement.textContent = '';
+        }
+
+        function showMessage(type, message) {
+            const messageElement = messages.server;
+            messageElement.textContent = message;
+            messageElement.className = `text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-center font-medium mb-3 sm:mb-4 ${
+                type === 'success' ? 'text-green-800 bg-green-100 border border-green-400' : 
+                'text-red-800 bg-red-100 border border-red-400'
+            }`;
+            messageElement.classList.remove('hidden');
+            
+            setTimeout(() => messageElement.classList.add('hidden'), 5000);
+        }
+
+        function showLoading(title, message) {
+            loading.title.textContent = title;
+            loading.message.textContent = message;
+            loading.overlay.classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            loading.overlay.classList.add('hidden');
+        }
+
+        // Form submission
+        elements.form.addEventListener('submit', function(e) {
             e.preventDefault();
 
-            nameValidateChecking();
-            emailValidateChecking();
-            phoneValidateChecking();
-            passValidateChecking();
+            const isValid = validateName() && validateEmail() && validatePhone() && 
+                           validatePassword() && validateConfirmPassword() && elements.terms.checked;
 
-            if(
-                !nameid||!emailid||!phoneid||!passid||!error1||!error2||!error3||!error4||!error5||!signupform
-            ){
-                console.error('One or more elements not found');
+            if (!isValid) {
+                if (!elements.terms.checked) {
+                    showMessage('error', 'Accept terms first');
+                }
                 return;
             }
 
-            if(
-                error1.innerHTML||error2.innerHTML||error3.innerHTML||error4.innerHTML||error5.innerHTML
-            ){
-                return;
-            }
             const formData = {
-                name: nameid.value,
-                email: emailid.value,
-                phone: phoneid.value,
-                password: passid.value,
+                name: elements.name.value.trim(),
+                email: elements.email.value.trim(),
+                phone: elements.phone.value.trim(),
+                password: elements.password.value,
+                referral: elements.referral.value.trim() || null
             };
 
-            const overlay = document.getElementById("loading-overlay");
-            overlay.classList.remove("hidden");
-
+            showLoading('Creating Account...', 'Please wait');
 
             $.ajax({
                 url: "/signUp",
                 type: "POST",
                 contentType: "application/json",
                 data: JSON.stringify(formData),
-                success: function (data) {
-                    overlay.classList.add("hidden");
-
+                success: function(data) {
+                    hideLoading();
                     if (data.success) {
-                        window.location.href = data.redirectUrl;
+                        showMessage('success', 'Account created!');
+                        setTimeout(() => {
+                            window.location.href = data.redirectUrl;
+                        }, 1500);
                     } else {
-                        serverMsg.textContent = data.message;
-                        serverMsg.style.display = "block";
+                        showMessage('error', data.message);
                     }
                 },
-                error: function () {
-                    overlay.classList.add("hidden");
-
-                    serverMsg.textContent = "Server error. Please try again.";
-                    serverMsg.style.display = "block";
+                error: function() {
+                    hideLoading();
+                    showMessage('error', 'Server error. Try again.');
                 }
             });
         });
-    });
-</script>
 
-
+        // Real-time validation
+        elements.name.addEventListener('blur', validateName);
+        elements.email.addEventListener('blur', validateEmail);
+        elements.phone.addEventListener('blur', validatePhone);
+        elements.password.addEventListener('keyup', validatePassword);
+        elements.confirmPassword.addEventListener('keyup', validateConfirmPassword);
+    </script>
 </body>
 </html>
-
-

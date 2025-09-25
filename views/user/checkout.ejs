@@ -22,6 +22,71 @@
   .card {
     @apply bg-white p-6 rounded-lg shadow-md;
   }
+  .coupon-scroll {
+    max-height: 150px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db #f3f4f6;
+  }
+  .coupon-scroll::-webkit-scrollbar {
+    width: 8px;
+  }
+  .coupon-scroll::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 4px;
+  }
+  .coupon-scroll::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
+  }
+  .coupon-scroll::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+  }
+  
+  /* Simplified horizontal coupon scrolling styles */
+  .coupon-horizontal-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db #f9fafb;
+    padding-bottom: 8px;
+  }
+  .coupon-horizontal-scroll::-webkit-scrollbar {
+    height: 6px;
+  }
+  .coupon-horizontal-scroll::-webkit-scrollbar-track {
+    background: #f9fafb;
+    border-radius: 3px;
+  }
+  .coupon-horizontal-scroll::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+  }
+  .coupon-horizontal-scroll::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+  }
+  
+  /* Simplified coupon card design - smaller, normal colors, compact */
+  .coupon-card {
+    min-width: 200px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+  }
+  
+  .coupon-card:hover {
+    border-color: #9ca3af;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  /* Lighter background for selected coupon */
+  .coupon-card.selected {
+    background: #f0f9ff;
+    border-color: #3b82f6;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+  }
 </style>
 
 <div class="min-h-screen bg-gray-50 py-8">
@@ -88,7 +153,7 @@
               <% if (userAddress?.address.length > 1) { %>
                 <button type="button" onclick="showAllAddresses()" class="flex items-center gap-2 text-gray-700 hover:text-gray-900 text-sm font-medium">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                   </svg>
                   Choose Different Address (<%= userAddress.address.length %> available)
                 </button>
@@ -126,7 +191,7 @@
           <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-semibold text-gray-800">Payment Method</h2>
             <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v6a3 3 0 003 3z"/>
             </svg>
           </div>
           
@@ -136,7 +201,7 @@
               <div class="ml-3 flex items-center gap-3">
                 <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
                   <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2-2H8a2 2 0 00-2 2v8a2 2 0 002 2h9a2 2 0 002-2V9a2 2 0 00-2-2z"/>
                   </svg>
                 </div>
                 <div>
@@ -193,16 +258,16 @@
             <div class="flex justify-between items-start p-3 bg-gray-50 rounded-lg">
               <div class="flex-1">
                 <h4 class="font-medium text-gray-800 text-sm"><%= item.productid.productName %></h4>
-                <%if(variant.color){%>
+                <% if (variant.color) { %>
+                  <p class="text-xs text-gray-600 mt-1">
+                    Color: <%= variant.color %>
+                  </p>
+                <% } %>
                 <p class="text-xs text-gray-600 mt-1">
-                  Color: <%= variant.color %>
-                </p>
-                <%} %>
-                <p class="text-xs text-gray-600 mt-1">
-                  Qty: <%= item.quantity %> × ₹<%= item.salePrice %>
+                  Qty: <%= item.quantity %> × ₹<%= item.finalPrice.toLocaleString('en-IN') %>
                 </p>
               </div>
-              <p class="font-semibold text-gray-800">₹<%= item.totalPrice %></p>
+              <p class="font-semibold text-gray-800">₹<%= item.totalPrice.toLocaleString('en-IN') %></p>
             </div>
           <% }) %>
         </div>
@@ -211,49 +276,96 @@
         <div class="border-t border-gray-200 pt-4 space-y-3">
           <div class="flex justify-between text-sm">
             <span class="text-gray-600">Subtotal:</span>
-            <span class="text-gray-800">₹<%= totalPrice %></span>
+            <span class="text-gray-800">₹<%= totalPrice.toLocaleString('en-IN') %></span>
           </div>
           <div class="flex justify-between text-sm">
             <span class="text-gray-600">Delivery:</span>
-            <span class="text-gray-800"><%= deliveryCharge === 0 ? "Free" : "₹" + deliveryCharge %></span>
+            <span class="text-gray-800"><%= deliveryCharge === 0 ? "Free" : "₹" + deliveryCharge.toLocaleString('en-IN') %></span>
           </div>
           <div class="flex justify-between text-sm text-green-600">
             <span>Discount:</span>
-            <span>- ₹<%= discount %></span>
+            <span id="discountAmount">- ₹<%= discount.toLocaleString('en-IN') %></span>
           </div>
           <div class="border-t border-gray-200 pt-3">
             <div class="flex justify-between text-lg font-semibold">
               <span class="text-gray-800">Total:</span>
-              <span class="text-gray-800">₹<%= finalAmount %></span>
+              <span class="text-gray-800" id="finalTotal">₹<%= finalAmount.toLocaleString('en-IN') %></span>
             </div>
           </div>
         </div>
 
-        <!-- Coupon -->
-        <form id="applyCouponForm" method="POST" action="/checkout/apply-coupon" class="mt-6">
-          <div class="flex gap-2">
-            <input type="text" name="couponCode" placeholder="Enter Coupon Code" class="input flex-1 text-sm">
-            <button type="submit" class="btn-primary text-sm whitespace-nowrap">
-              Apply
-            </button>
+        <!-- Coupons Section -->
+        <% if (coupons && coupons.length > 0) { %>
+          <div class="mt-6">
+            <!-- Simplified coupon section with compact design -->
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-sm font-semibold text-gray-800">Available Coupons</h3>
+              <span class="text-xs text-gray-500">Click to apply</span>
+            </div>
+            
+            <div class="coupon-horizontal-scroll">
+              <div class="flex gap-3" style="width: max-content;">
+                <% coupons.forEach(coupon => { %>
+                  <!-- Compact coupon card with normal styling -->
+                  <div class="coupon-card rounded-lg p-3 border relative" 
+                       onclick="selectCoupon('<%= coupon._id %>', '<%= coupon.name %>', this)"
+                       data-coupon-id="<%= coupon._id %>"
+                       data-coupon-name="<%= coupon.name %>">
+                    
+                    <!-- Simple selected indicator -->
+                    <div class="absolute top-2 right-2 w-4 h-4 bg-blue-500 rounded-full items-center justify-center hidden selected-indicator">
+                      <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                      </svg>
+                    </div>
+                    
+                    <!-- Simplified coupon content layout -->
+                    <div class="flex items-center justify-between">
+                      <div class="flex-1">
+                        <h4 class="font-semibold text-gray-800 text-sm mb-1"><%= coupon.name %></h4>
+                        <p class="text-xs text-gray-600 mb-2">
+                          <%= coupon.description || `Save ${coupon.discountType === 'percentage' ? coupon.discount + '%' : '₹' + coupon.offerPrice.toLocaleString('en-IN')} on your order` %>
+                        </p>
+                        <div class="text-xs text-gray-500">
+                          <% if (coupon.minimumPrice) { %>
+                            Min: ₹<%= coupon.minimumPrice.toLocaleString('en-IN') %>
+                          <% } else { %>
+                            No minimum
+                          <% } %>
+                        </div>
+                      </div>
+                      
+                      <!-- Simple discount display -->
+                      <div class="text-right ml-3">
+                        <div class="text-lg font-bold text-gray-800">
+                          <%= coupon.discountType === 'percentage' ? coupon.discount + '%' : '₹' + coupon.offerPrice.toLocaleString('en-IN') %>
+                        </div>
+                        <div class="text-xs text-gray-500">OFF</div>
+                      </div>
+                    </div>
+                  </div>
+                <% }) %>
+              </div>
+            </div>
+            
+            <!-- Hidden input to store selected coupon ID -->
+            <input type="hidden" id="selectedCouponId" name="selectedCouponId" value="">
+            <input type="hidden" id="selectedCouponName" name="selectedCouponName" value="">
           </div>
-        </form>
+        <% } %>
 
         <!-- Place Order Button -->
         <button id="placeOrderBtn" type="submit" form="checkout-form"
-        class="w-full mt-6 py-3 px-4 text-base font-semibold rounded-lg shadow-sm transition 
-              bg-purple-100 text-blue-900 hover:bg-purple-200 
-              <%= userAddress?.address.length > 0 ? '' : 'opacity-50 cursor-not-allowed' %>"
-        <%= userAddress?.address.length > 0 ? '' : 'disabled' %>>
-        
-        <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        Place Order
-      </button>
+                class="w-full mt-6 py-3 px-4 text-base font-semibold rounded-lg shadow-sm transition 
+                       bg-purple-100 text-blue-900 hover:bg-purple-200 
+                       <%= userAddress?.address.length > 0 ? '' : 'opacity-50 cursor-not-allowed' %>">
+          <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Place Order
+        </button>
 
-        
         <% if (userAddress?.address.length === 0) { %>
           <p class="text-center text-sm text-gray-500 mt-2">Please add an address to place your order</p>
         <% } %>
@@ -298,7 +410,6 @@
 <!-- Add/Edit Address Modal -->
 <div id="addressModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
   <div class="bg-white w-full max-w-2xl max-h-[90vh] rounded-lg shadow-lg relative flex flex-col">
-
     <!-- Close Button -->
     <button onclick="closeModal()" class="absolute top-2 right-2 text-gray-600 hover:text-red-500 text-xl">&times;</button>
 
@@ -333,7 +444,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium">State</label>
-            <input id="state" type="text" name="state" class="w-full border rounded px-3 py-2" placeholder="State">
+            <input id="state" type="text" class="w-full border rounded px-3 py-2" name="state" placeholder="State">
           </div>
           <div class="md:col-span-2">
             <label class="block text-sm font-medium">Full Address</label>
@@ -373,12 +484,8 @@
       <button type="button" onclick="closeModal()" class="bg-gray-500 text-white px-4 py-2 rounded mr-2 hover:bg-gray-600">Cancel</button>
       <button type="submit" form="addressForm" id="submitBtn" class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-900">Save Address</button>
     </div>
-
   </div>
 </div>
-
-
-
 
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -387,9 +494,43 @@
 <script>
   let isEditMode = false;
   let editingAddressIndex = null;
-  
-  
+  let selectedCouponId = null;
+  let selectedCouponName = null;
 
+  const originalSubtotal = <%= totalPrice %>;
+  const deliveryCharge = <%= deliveryCharge %>;
+  const originalDiscount = <%= discount %>;
+  const couponsData = <%- JSON.stringify(coupons || []) %>;
+  
+  function updatePricingSummary(selectedCoupon = null) {
+    let discountAmount = originalDiscount;
+    
+    if (selectedCoupon) {
+      if (selectedCoupon.discountType === 'percentage') {
+        // Calculate percentage discount
+        discountAmount = Math.round((originalSubtotal * selectedCoupon.discount) / 100);
+        
+        // Apply maximum discount limit if exists
+        if (selectedCoupon.maximumDiscountAmount && discountAmount > selectedCoupon.maximumDiscountAmount) {
+          discountAmount = selectedCoupon.maximumDiscountAmount;
+        }
+      } else {
+        // Fixed amount discount
+        discountAmount = selectedCoupon.offerPrice;
+      }
+      
+      // Ensure discount doesn't exceed subtotal
+      if (discountAmount > originalSubtotal) {
+        discountAmount = originalSubtotal;
+      }
+    }
+    
+    const finalTotal = originalSubtotal + deliveryCharge - discountAmount;
+    
+    // Update the display
+    document.getElementById('discountAmount').textContent = `- ₹${discountAmount.toLocaleString('en-IN')}`;
+    document.getElementById('finalTotal').textContent = `₹${finalTotal.toLocaleString('en-IN')}`;
+  }
 
   function openModal(editMode = false) {
     isEditMode = editMode;
@@ -407,7 +548,6 @@
   }
 
   const addresses = <%- JSON.stringify(userAddress?.address || []) %>;
-  
 
   function showAllAddresses() {
     document.getElementById('allAddressesPopup').classList.remove('hidden');
@@ -461,36 +601,98 @@
     attachEditListeners();
   }
 
-  function attachEditListeners() {
-    document.querySelectorAll('.editAddressBtn').forEach(btn => {
-      btn.addEventListener('click', function () {
-        const index = parseInt(this.dataset.index);
-        const addr = addresses[index];
-        if (!addr) return;
-
-        editingAddressIndex = index;
-        
-        // Populate form with existing data
-        document.getElementById('editingAddressId').value = addr._id ;
-        document.getElementById('title').value = addr.title;
-        document.getElementById('city').value = addr.city;
-        document.getElementById('state').value = addr.state;
-        document.getElementById('address').value = addr.address;
-        document.getElementById('landmark').value = addr.landmark;
-        document.getElementById('pincode').value = addr.pincode;
-        document.getElementById('phone').value = addr.phone;
-        document.getElementById('altPhone').value = addr.altPhone || '';
-        document.getElementById('email').value = addr.email;
-
-        // Set address type radio button
-        const addressTypeInputs = document.querySelectorAll('input[name="addressType"]');
-        addressTypeInputs.forEach(input => {
-          input.checked = input.value === addr.addressType;
-        });
-
-        openModal(true);
-      });
+  function selectCoupon(couponId, couponName, element) {
+    // Check if this coupon is already selected (deselection)
+    if (element.classList.contains('selected')) {
+      // Deselect the coupon
+      element.classList.remove('selected');
+      element.querySelector('.selected-indicator').classList.add('hidden');
+      
+      // Clear selected coupon data
+      selectedCouponId = null;
+      selectedCouponName = null;
+      
+      // Clear hidden inputs
+      document.getElementById('selectedCouponId').value = '';
+      document.getElementById('selectedCouponName').value = '';
+      
+      updatePricingSummary(null);
+      
+      // Show deselection message
+      showToast('Coupon removed', 'info');
+      return;
+    }
+    
+    // Remove selected class from all coupons
+    document.querySelectorAll('.coupon-card').forEach(card => {
+      card.classList.remove('selected');
+      card.querySelector('.selected-indicator').classList.add('hidden');
     });
+    
+    // Add selected class to clicked coupon
+    element.classList.add('selected');
+    element.querySelector('.selected-indicator').classList.remove('hidden');
+    
+    // Store selected coupon data
+    selectedCouponId = couponId;
+    selectedCouponName = couponName;
+    
+    // Update hidden inputs
+    document.getElementById('selectedCouponId').value = couponId;
+    document.getElementById('selectedCouponName').value = couponName;
+    
+    const selectedCouponData = couponsData.find(coupon => coupon._id === couponId);
+    if (selectedCouponData) {
+      // Check minimum purchase requirement
+      if (selectedCouponData.minimumPurchaseAmount && originalSubtotal < selectedCouponData.minimumPurchaseAmount) {
+        // Deselect if minimum not met
+        element.classList.remove('selected');
+        element.querySelector('.selected-indicator').classList.add('hidden');
+        selectedCouponId = null;
+        selectedCouponName = null;
+        document.getElementById('selectedCouponId').value = '';
+        document.getElementById('selectedCouponName').value = '';
+        
+        showToast(`Minimum purchase of ₹${selectedCouponData.minimumPurchaseAmount.toLocaleString('en-IN')} required for this coupon`, 'error');
+        return;
+      }
+      
+      updatePricingSummary(selectedCouponData);
+    }
+    
+    // Show success message
+    showToast(`Coupon "${couponName}" applied!`, 'success');
+  }
+
+  function showToast(message, type = 'success') {
+    const bgColor = type === 'success' ? 'bg-green-500' : type === 'info' ? 'bg-blue-500' : type === 'error' ? 'bg-red-500' : 'bg-gray-500';
+    const icon = type === 'success' ? 
+      `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+      </svg>` : 
+      `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+      </svg>`;
+    
+    const toast = document.createElement('div');
+    toast.className = `fixed top-4 right-4 ${bgColor} text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-all duration-300`;
+    toast.innerHTML = `
+      <div class="flex items-center gap-2">
+        ${icon}
+        <span>${message}</span>
+      </div>
+    `;
+    document.body.appendChild(toast);
+    
+    // Remove toast after 3 seconds
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      setTimeout(() => {
+        if (document.body.contains(toast)) {
+          document.body.removeChild(toast);
+        }
+      }, 300);
+    }, 3000);
   }
 
   // Place Order
@@ -518,7 +720,7 @@
     }
 
     const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value;
-    const online = ['UPI','Card']
+    const online = ['UPI', 'Card'];
     if (!paymentMethod) {
       Swal.fire({
         icon: 'warning',
@@ -531,7 +733,8 @@
 
     const payload = {
       addressId: selectedAddressId,
-      paymentMethod
+      paymentMethod,
+      couponId: selectedCouponId || null // Send selected coupon ID to backend
     };
 
     fetch('/checkout', {
@@ -550,7 +753,6 @@
         });
         return;
       }
-      console.log('data')
 
       if (paymentMethod === 'COD') {
         // COD order placed successfully
@@ -562,7 +764,6 @@
         }).then(() => {
           window.location.href = `/order-success?orderId=${data.orderId}`;
         });
-
       } else if (online.includes(paymentMethod)) {
         // Razorpay flow
         const options = {
@@ -582,13 +783,14 @@
                 ...response,
                 paymentMethod,
                 addressId: selectedAddressId,
-                finalAmount: data.finalAmount
+                finalAmount: data.finalAmount,
+                couponId: selectedCouponId || null // Include coupon ID in verification
               })
             })
             .then(res => res.json())
             .then(verifyData => {
               if (verifyData.success) {
-                  window.location.href = `/order-success?orderId=${verifyData.orderId}`;
+                window.location.href = `/order-success?orderId=${verifyData.orderId}`;
               } else {
                 Swal.fire({
                   icon: 'error',
@@ -625,7 +827,7 @@
         confirmButtonColor: '#374151'
       });
     });
-  }); 
+  });
 
   // Address Form Submission Handling
   document.getElementById('addressForm').addEventListener('submit', async function (e) {
@@ -703,7 +905,6 @@
           if (firstError) {
             firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
-
         } else {
           Swal.fire({
             icon: 'error',
@@ -728,6 +929,38 @@
   document.addEventListener('DOMContentLoaded', () => {
     attachEditListeners();
   });
+
+  function attachEditListeners() {
+    document.querySelectorAll('.editAddressBtn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const index = parseInt(this.dataset.index);
+        const addr = addresses[index];
+        if (!addr) return;
+
+        editingAddressIndex = index;
+        
+        // Populate form with existing data
+        document.getElementById('editingAddressId').value = addr._id;
+        document.getElementById('title').value = addr.title;
+        document.getElementById('city').value = addr.city;
+        document.getElementById('state').value = addr.state;
+        document.getElementById('address').value = addr.address;
+        document.getElementById('landmark').value = addr.landmark;
+        document.getElementById('pincode').value = addr.pincode;
+        document.getElementById('phone').value = addr.phone;
+        document.getElementById('altPhone').value = addr.altPhone || '';
+        document.getElementById('email').value = addr.email;
+
+        // Set address type radio button
+        const addressTypeInputs = document.querySelectorAll('input[name="addressType"]');
+        addressTypeInputs.forEach(input => {
+          input.checked = input.value === addr.addressType;
+        });
+
+        openModal(true);
+      });
+    });
+  }
 </script>
 
 <%- include('../../views/partials/user/footer') %>

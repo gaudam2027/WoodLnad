@@ -1,7 +1,13 @@
 const User = require('../../model/userSchema');
+const Product  = require('../../model/productSchema');
+const Order  = require('../../model/orderSchema');
+const {getDashboardData,getLedgerBook} = require('../../helpers/dashboardHelper');
+const {generateLedgerPDF} = require('../../helpers/Ledger-Book Format/PDF_Format')
+const {generateLedgerExcel} = require('../../helpers/Ledger-Book Format/Excel_Format')
+const {generateLedgerCSV} = require('../../helpers/Ledger-Book Format/CSV_Format')
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-
+const e = require('express');
 
 
 //load signin page
@@ -45,17 +51,68 @@ const signin = async (req, res) => {
 
 
 //load dashboard
-const loadDashboard = async (req,res)=>{
-    try {
-        console.log('here');
-        
-        res.render('dashboard')
+const loadDashboard = async (req, res) => {
+  try {
+    const filter = req.query.filter || "monthly";
 
-    } catch (error) {
-        res.redirect('pageerror')
+    const { revenueData, bestProducts, bestCategories } = await getDashboardData(filter);
+
+    // Other data
+    const recentOrders = await Order.find({})
+      .sort({ createdOn: -1 })
+      .limit(10)
+      .populate("user", "name email")
+      .populate("orderitems.product", "productName images");
+
+    const totalUsers = await User.countDocuments();
+
+    res.render("dashboard", {
+      filter,
+      revenueData,
+      bestProducts,
+      bestCategories,
+      recentOrders,
+      totalUsers
+    });
+  } catch (error) {
+    console.log(error);
+    res.redirect("pageerror");
+  }
+};
+
+// for fetching filtered data
+const getDashboardStats = async (req, res) => {
+  try {
+    const filter = req.query.filter || "yearly";
+    const { revenueData, bestProducts, bestCategories } = await getDashboardData(filter);
+    res.json({ revenueData, bestProducts, bestCategories });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch data" });
+  }
+};
+
+const downloadLedger = async (req, res) => {
+  try {
+    const { filter = "yearly", format = "pdf" } = req.body;
+
+    const ledgerData = await getLedgerBook(filter);
+    
+    switch (format.toLowerCase()) {
+      case "pdf":
+        return generateLedgerPDF(ledgerData, filter, res);
+      case "excel":
+        return generateLedgerExcel(ledgerData, filter, res);
+      case "csv":
+        return generateLedgerCSV(ledgerData, filter, res);
+      default:
+        return res.status(400).json({ error: "Invalid format requested" });
     }
 
-}
+  } catch (error) {
+    console.error("Ledger download error:", error);
+    res.status(500).send("Server Error");
+  }
+};
 
 const loadForgotPassword = async (req,res)=>{
     const { email } = req.body;
@@ -89,6 +146,8 @@ module.exports = {
     loadSignin,
     signin,
     loadDashboard,
+    getDashboardStats,
+    downloadLedger,
     loadForgotPassword,
     logout
 }

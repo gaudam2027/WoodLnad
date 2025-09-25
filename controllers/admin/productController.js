@@ -1,59 +1,84 @@
 const Product = require('../../model/productSchema');
 const Category = require('../../model/categorySchema');
-const User = require('../../model/userSchema');
+const Offer = require('../../model/offerSchema')
 const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 
 
-const productsPage = async(req,res)=>{
+const productsPage = async (req, res) => {
     try {
-
         let search = req.query.search || "";
         let page = parseInt(req.query.page) || 1;
         let limit = 4;
+
         // all product for (total count,active product,with offers,etc)
-        const allProduct = await Product.find({}) 
+        const allProduct = await Product.find({});
 
         const products = await Product.find({
-            $or:[
-
-                {productName:{$regex:new RegExp(".*"+search+".*","i")}}
+            $or: [
+                { productName: { $regex: new RegExp(".*" + search + ".*", "i") } }
             ]
-            
         })
-        .sort({createdAt:-1})
-        .limit(limit*1)
-        .skip((page - 1) * limit) 
-        .populate('category')
+        .sort({ createdAt: -1 })
+        .limit(limit * 1)
+        .skip((page - 1) * limit)
+        .populate("category")
         .lean()
         .exec();
 
         const count = await Product.find({
-            $or:[
-                {productName:{$regex:new RegExp(".*"+search+".*","i")}}
-            ],
+            $or: [
+                { productName: { $regex: new RegExp(".*" + search + ".*", "i") } }
+            ]
         }).countDocuments();
 
         const totalPages = Math.ceil(count / limit);
-        const category = await Category.find({isListed:true});
+        const category = await Category.find({ isListed: true });
+
+        // ✅ fetch active offers for these products
+        const productIds = products.map(p => p._id);
+
+        const offers = await Offer.find({
+            type: "Product",
+            targetId: { $in: productIds },
+            status: "active"
+        });
+
+        // group offers by product
+        const offersByProduct = {};
+        productIds.forEach(id => (offersByProduct[id] = []));
         
+        offers.forEach(offer => {
+            const productId = offer.targetId.toString();
+            offersByProduct[productId].push({
+                offerName: offer.offerName,
+                startDate: offer.startDate,
+                endDate: offer.endDate,
+                isListed: offer.isListed
+            });
+        });
 
-        if(category){
-
-            res.render('products',{allProduct,products:products,cat:category,searchQuery:search,totalPages:totalPages,currentPage:page})
-        }else {
+        if (category) {
+            res.render("products", {
+                allProduct,
+                products,
+                cat: category,
+                searchQuery: search,
+                totalPages,
+                currentPage: page,
+                offersByProduct // ✅ pass to view
+            });
+        } else {
             res.render("page-404");
         }
 
-
-        
     } catch (error) {
-
-        res.redirect('/pageerror')
-        
+        console.log(error);
+        res.redirect("/pageerror");
     }
-}
+};
+
 
 
 const productAddPage = async(req,res)=>{

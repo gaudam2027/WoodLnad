@@ -1,14 +1,154 @@
-<!-- footer.ejs -->
+    </main>
+  </div>
 
-<footer class="mt-auto bg-white border-2 text-gray-600 text-center py-4 shadow-md z-10">
+  <!-- Footer -->
+  <footer class="admin-footer bg-white border-t-2 border-gray-200 text-gray-600 text-center flex items-center justify-center shadow-md">
     <p class="text-sm">&copy; <%= new Date().getFullYear() %> WOODLAND Admin. All rights reserved.</p>
   </footer>
-  <script src="/js/dashboard.js"></script>
-  <script src="/js/header.js"></script>
-  
 
-  
+  <script>
+    // FIXED Mobile menu functionality
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const sidebar = document.getElementById('sidebar');
+    const mobileOverlay = document.getElementById('mobileOverlay');
+    const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+    const profileBtn = document.getElementById('profileBtn');
+    const profileDropdown = document.getElementById('profileDropdown');
 
-  </body>
-  </html>
+    // Toggle mobile menu - FIXED
+    function toggleMobileMenu() {
+      const isOpen = sidebar.classList.contains('mobile-open');
+      
+      if (isOpen) {
+        closeMobileMenu();
+      } else {
+        openMobileMenu();
+      }
+    }
+
+    function openMobileMenu() {
+      console.log('Opening mobile menu'); // Debug log
+      sidebar.classList.add('mobile-open');
+      mobileOverlay.classList.remove('hidden');
+      mobileMenuBtn.classList.add('menu-btn-open');
+      document.body.style.overflow = 'hidden';
+      
+      // Force sidebar to be visible
+      sidebar.style.visibility = 'visible';
+      sidebar.style.display = 'block';
+    }
+
+    function closeMobileMenu() {
+      console.log('Closing mobile menu'); // Debug log
+      sidebar.classList.remove('mobile-open');
+      mobileOverlay.classList.add('hidden');
+      mobileMenuBtn.classList.remove('menu-btn-open');
+      document.body.style.overflow = '';
+    }
+
+    // Event listeners - FIXED
+    if (mobileMenuBtn) {
+      mobileMenuBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('Mobile menu button clicked'); // Debug log
+        toggleMobileMenu();
+      });
+    }
+
+    if (closeSidebarBtn) {
+      closeSidebarBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeMobileMenu();
+      });
+    }
+
+    if (mobileOverlay) {
+      mobileOverlay.addEventListener('click', function(e) {
+        e.preventDefault();
+        closeMobileMenu();
+      });
+    }
+
+    // Close mobile menu on window resize to desktop
+    window.addEventListener('resize', () => {
+      if (window.innerWidth >= 1024) {
+        closeMobileMenu();
+      }
+    });
+
+    // Profile dropdown functionality
+    if (profileBtn) {
+      profileBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        profileDropdown.classList.toggle('hidden');
+      });
+    }
+
+    // Close profile dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (profileDropdown && !profileBtn?.contains(e.target) && !profileDropdown?.contains(e.target)) {
+        profileDropdown.classList.add('hidden');
+      }
+    });
+
+    // Active sidebar link detection
+    function setActiveLink() {
+      const currentPath = window.location.pathname;
+      const sidebarLinks = document.querySelectorAll('.sidebar-link');
+      
+      sidebarLinks.forEach(link => {
+        link.classList.remove('sidebar-link-active');
+        const href = link.getAttribute('href');
+        
+        // Check if current path matches the link
+        if (currentPath === href || 
+            (href !== '/admin' && currentPath.startsWith(href)) ||
+            (href === '/admin' && currentPath === '/admin')) {
+          link.classList.add('sidebar-link-active');
+        }
+      });
+    }
+
+    // Set active link on page load
+    document.addEventListener('DOMContentLoaded', setActiveLink);
+
+    // Handle smooth transitions for sidebar links
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+      link.addEventListener('click', function(e) {
+        // Close mobile menu when clicking a link on mobile
+        if (window.innerWidth < 1024) {
+          setTimeout(() => {
+            closeMobileMenu();
+          }, 150);
+        }
+      });
+    });
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeMobileMenu();
+        if (profileDropdown) {
+          profileDropdown.classList.add('hidden');
+        }
+      }
+    });
+
+    // Debug function to check sidebar state
+    function debugSidebar() {
+      console.log('Sidebar classes:', sidebar.className);
+      console.log('Sidebar visibility:', window.getComputedStyle(sidebar).visibility);
+      console.log('Sidebar display:', window.getComputedStyle(sidebar).display);
+      console.log('Sidebar transform:', window.getComputedStyle(sidebar).transform);
+    }
+
+    // Uncomment for debugging
+    // window.debugSidebar = debugSidebar;
+  </script>
   
+  <!-- <script src="/js/dashboard.js"></script> -->
+  <!-- <script src="/js/header.js"></script> -->
+</body>
+</html>

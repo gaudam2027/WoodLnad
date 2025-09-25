@@ -102,7 +102,7 @@ const orderSchema = new mongoose.Schema({
             required: true
           },
 
-          discount: {                //dicount for products need to be shifted
+          couponDiscount: {
             type: Number,
             default: 0
           },
@@ -157,7 +157,7 @@ const orderSchema = new mongoose.Schema({
           paymentMethod: {
             type: String,
             required: true,
-            enum: ['COD', 'UPI', 'Card', 'Wallet'] 
+            enum: ['COD', 'UPI', 'Card', 'Wallet']
           },
           paymentStatus: {
             type: String,
@@ -177,6 +177,9 @@ const orderSchema = new mongoose.Schema({
           couponApplied: {
             type: Boolean,
             default: false
+          },
+          couponCode: {
+            type: String,
           }
       });
 

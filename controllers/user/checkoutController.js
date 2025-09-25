@@ -3,6 +3,7 @@ const Product = require('../../model/productSchema');
 const Cart = require('../../model/cartSchema');
 const Address = require('../../model/addressSchema');
 const Order = require('../../model/orderSchema');
+const Coupon = require('../../model/couponSchema');
 const razorpay = require('../../config/razorpay');
 const crypto = require("crypto");
 const { getIO } = require('../../config/socket'); //for getting socket IO
@@ -11,9 +12,6 @@ const { getIO } = require('../../config/socket'); //for getting socket IO
 const loadCheckoutPage = async (req, res) => {
   try {
     const userId = req.session.userId || req.session.user?._id;
-    // if (!userId) {
-    //   return res.redirect('/login'); 
-    // }
 
     // Fetch user and ensure not blocked
     const userData = await User.findOne({ _id: userId, isBlocked: false });
@@ -59,15 +57,15 @@ const loadCheckoutPage = async (req, res) => {
           return null;
         }
 
-        const salePrice = variant.salePrice;
-        const totalPrice = salePrice * item.quantity;
+        const finalPrice = variant.finalPrice;
+        const totalPrice = finalPrice * item.quantity;
 
         return {
           _id: item._id,
           productid: product,
           variantId: item.variantId,
           quantity: item.quantity,
-          salePrice: salePrice,
+          finalPrice: finalPrice,
           totalPrice: totalPrice,
           variant: variant,
           isOutOfStock: variant.quantity === 0||product.isBlocked===true,
@@ -87,17 +85,42 @@ const loadCheckoutPage = async (req, res) => {
     })
 
 
-    // Calculate totals for in-stock items only
+    // Calculate totals for in-stock items
     let inStockSubtotal = 0
     let inStockQuantity = 0
     inStockItems.forEach((item) => {
-      const variantPrice = item.variant?.salePrice || 0;
+      const variantPrice = item.variant?.finalPrice || 0;
       inStockSubtotal += variantPrice * item.quantity;
       inStockQuantity += item.quantity;
     });
     if(inStockItems<1){
       return res.redirect('/cart');
     }
+
+    // Fetch All Available coupons for user
+    const now = new Date();
+
+    // Find coupons that are active and listed
+    let coupons = await Coupon.find({
+      startOn: { $lte: now },
+      expireOn: { $gte: now },
+      isList: true,
+      minimumPrice: { $lte: inStockSubtotal },
+      $or: [
+        { assignedTo: null }, // general coupons (global coupon)
+        { assignedTo: userId } // coupons assigned to this user
+      ]
+    });
+
+    // Filter based on per-user usage
+    coupons = coupons.filter(coupon => {
+      const userUsage = coupon.usedBy.find(u => u.user.toString() === userId.toString());
+      if (!userUsage) return true; // never used
+      return userUsage.count < coupon.usageLimit; // within limit
+    });
+    
+    
+
 
     // Calculate charges based on in-stock items only
     const inStockDeliveryCharge = inStockSubtotal >= 5000 ? 0 : 70
@@ -114,6 +137,7 @@ const loadCheckoutPage = async (req, res) => {
       deliveryCharge:inStockDeliveryCharge,
       discount:inStockDiscount,
       finalAmount:inStockFinalAmount,
+      coupons
     });
 
   } catch (error) {
@@ -129,7 +153,7 @@ const loadCheckoutPage = async (req, res) => {
 const handleCOD = async (req, res) => {
   try {
     const userId = req.session.userId || req.session.user?._id;
-    const { addressId } = req.body;
+    const { addressId,couponId } = req.body;
 
     const userData = await User.findOne({ _id: userId, isBlocked: false });
     const cart = await Cart.findOne({ userId }).populate('items.productid');
@@ -161,14 +185,14 @@ const handleCOD = async (req, res) => {
       );
 
       if (variant && variant.quantity >= item.quantity) {
-        const salePrice = variant.salePrice; // Or regular price if no sale
+        const finalPrice = variant.finalPrice;
         const quantity = item.quantity;
-        const totalPrice = salePrice * quantity;
+        const totalPrice = finalPrice * quantity;
 
         inStockItems.push({
           ...item.toObject(),
           variant,
-          salePrice,
+          finalPrice,
           totalPrice
         });
       }
@@ -185,8 +209,43 @@ const handleCOD = async (req, res) => {
     });
 
     const deliveryCharge = totalPrice >= 5000 ? 0 : 70;
-    const discount = 0;
-    const finalAmount = totalPrice + deliveryCharge - discount;
+
+
+    let couponDiscount = 0;
+    let couponApplied = false;
+    let couponCode = null;
+
+    // Coupon Handling
+    if (couponId) {
+      const coupon = await Coupon.findById(couponId);
+      const now = new Date();
+
+      if (
+        coupon &&
+        coupon.startOn <= now &&
+        coupon.expireOn >= now &&
+        coupon.isList &&
+        coupon.minimumPrice <= totalPrice
+      ) {
+        // Check user usage
+        const userUsage = coupon.usedBy.find(u => u.user.toString() === userId.toString());
+        if (!userUsage || userUsage.count < coupon.usageLimit) {
+          couponDiscount = coupon.offerPrice;
+          couponApplied = true;
+          couponCode = coupon.name;
+
+          // update coupon usage
+          if (!userUsage) {
+            coupon.usedBy.push({ user: userId, count: 1 });
+          } else {
+            userUsage.count += 1;
+          }
+          await coupon.save();
+        }
+      }
+    }
+
+    const finalAmount = totalPrice + deliveryCharge - couponDiscount;
 
     // Create the order using only in-stock items
     const order = new Order({
@@ -195,14 +254,15 @@ const handleCOD = async (req, res) => {
         product: item.productid._id,
         variantId: item.variantId,
         quantity: item.quantity,
-        price: item.salePrice,
+        price: item.finalPrice,
       })),
       totalPrice,
-      discount,
+      couponDiscount,
       finalAmount,
       shippingAddress: { ...selectedAddress },
       paymentMethod: 'COD',
-      couponApplied: false,
+      couponApplied,
+      couponCode
     });
 
     const updatedOrder = await order.save();
@@ -254,7 +314,7 @@ const handleCOD = async (req, res) => {
 const handleOnlinePaymentInit = async (req, res) => {
   try {
     const userId = req.session.userId || req.session.user?._id;
-    const { addressId } = req.body;
+    const { addressId,couponId } = req.body;
 
     const userData = await User.findOne({ _id: userId, isBlocked: false });
     const cart = await Cart.findOne({ userId }).populate('items.productid');
@@ -297,14 +357,38 @@ const handleOnlinePaymentInit = async (req, res) => {
     // Calculate totals
     let totalPrice = 0;
     inStockItems.forEach(item => {
-      const price = item.variant.salePrice;
+      const price = item.variant.finalPrice;
       totalPrice += price * item.quantity;
     });
-    
+
 
     const deliveryCharge = totalPrice >= 5000 ? 0 : 70;
-    const discount = 0;
-    const finalAmount = totalPrice + deliveryCharge - discount;
+
+
+    // Coupon of a specific user
+    let couponDiscount = 0;
+    let couponApplied = false;
+    let couponCode = null;
+
+    if (couponId) {
+      const coupon = await Coupon.findById(couponId);
+      const now = new Date();
+
+      if (
+        coupon &&
+        coupon.startOn <= now &&
+        coupon.expireOn >= now &&
+        coupon.isList &&
+        coupon.minimumPrice <= totalPrice
+      ) {
+        couponDiscount = coupon.offerPrice;
+        couponApplied = true;
+        couponCode = coupon.name;
+      }
+    }
+
+
+    let finalAmount = totalPrice + deliveryCharge - couponDiscount;
     
 
     // Create Razorpay order
@@ -354,6 +438,7 @@ const verifyPayment = async (req, res) => {
       razorpay_signature,
       addressId,
       paymentMethod,
+      couponId,
       finalAmount
     } = req.body;
 
@@ -406,13 +491,47 @@ const verifyPayment = async (req, res) => {
     // Calculate total from in-stock items
     let totalPrice = 0;
     inStockItems.forEach(item => {
-      totalPrice += item.totalPrice;
+      const price = item.variant.finalPrice;
+      totalPrice += price * item.quantity;
     });
 
     const deliveryCharge = totalPrice >= 5000 ? 0 : 70;
-    const discount = 0;
-    const finalAmountCalculated = totalPrice + deliveryCharge - discount;
-    console.log(finalAmountCalculated,finalAmount)
+
+    // Coupon of a specific user
+    let couponDiscount = 0;
+    let couponApplied = false;
+    let couponCode = null;
+
+    if (couponId) {
+      const coupon = await Coupon.findById(couponId);
+      const now = new Date();
+
+      if (
+        coupon &&
+        coupon.startOn <= now &&
+        coupon.expireOn >= now &&
+        coupon.isList &&
+        coupon.minimumPrice <= totalPrice
+      ) {
+        const userUsage = coupon.usedBy.find(u => u.user.toString() === userId.toString());
+        if (!userUsage || userUsage.count < coupon.usageLimit) {
+          couponDiscount = coupon.offerPrice;
+          couponApplied = true;
+          couponCode = coupon.name;
+
+          // If User never used create one or add to the existing
+          if (!userUsage) {
+            coupon.usedBy.push({ user: userId, count: 1 });
+          } else {
+            userUsage.count += 1;
+          }
+          await coupon.save();
+        }
+      }
+    }
+
+    const finalAmountCalculated = totalPrice + deliveryCharge - couponDiscount;
+    console.log(finalAmountCalculated)
 
     if (finalAmountCalculated !== finalAmount) {
       return res.json({ success: false, message: "Final amount mismatch" });
@@ -425,16 +544,18 @@ const verifyPayment = async (req, res) => {
         product: item.productid._id,
         variantId: item.variantId,
         quantity: item.quantity,
-        price: item.salePrice
+        price: item.variant.finalPrice
       })),
       totalPrice,
-      discount,
-      finalAmount,
+      couponDiscount,
+      finalAmount:finalAmountCalculated,
       shippingAddress: { ...selectedAddress },
       paymentMethod,
+      paymentStatus:'paid',
       razorpayOrderId: razorpay_order_id,
       razorpayPaymentId: razorpay_payment_id,
-      couponApplied: false
+      couponApplied,
+      couponCode
     });
 
     const updatedOrder = await order.save();

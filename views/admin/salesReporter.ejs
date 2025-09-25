@@ -1,0 +1,797 @@
+<%- include('../partials/admin/header', { title: 'Admin Panel - Sales Report' }) %>
+
+<!-- Additional libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+  /* Same styling as coupon management */
+  .bg-admin-gradient {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  }
+  
+  .bg-card-gradient {
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  }
+
+  .bg-header-gradient {
+    background: linear-gradient(135deg, #1e293b 0%, #374151 50%, #4b5563 100%);
+  }
+
+  .bg-primary-gradient {
+    background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+  }
+
+  .bg-secondary-gradient {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  }
+
+  .bg-success-gradient {
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  }
+
+  .bg-danger-gradient {
+    background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+  }
+
+  .bg-warning-gradient {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  }
+
+  /* Enhanced shadows */
+  .shadow-gradient {
+    box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.1), 0 2px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+  
+  .shadow-gradient-lg {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  /* Gradient text */
+  .text-gradient {
+    background: linear-gradient(135deg, #1e293b 0%, #374151 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Button enhancements */
+  .btn-primary {
+    background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.875rem;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #1e293b 0%, #374151 100%);
+    transform: translateY(-0.5px);
+    box-shadow: 0 6px 10px -3px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-secondary {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.875rem;
+  }
+  
+  .btn-secondary:hover {
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+    transform: translateY(-0.5px);
+  }
+
+  /* Card hover effects */
+  .card-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .card-hover:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.08), 0 8px 8px -5px rgba(0, 0, 0, 0.03);
+  }
+
+  /* Animations */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(15px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInUp {
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-fadeInUp {
+    animation: fadeInUp 0.6s ease-out;
+  }
+  
+  .animate-slideInUp {
+    animation: slideInUp 0.5s ease-out;
+  }
+
+  /* Filter buttons */
+  .filter-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+  }
+
+  .filter-btn.active {
+    background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+    color: white;
+    border-color: #374151;
+  }
+
+  .filter-btn:not(.active) {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    color: #374151;
+  }
+
+  .filter-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Input styling */
+  .input-field {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    border: 1px solid #cbd5e1;
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: #1e293b;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+
+  .input-field:focus {
+    border-color: #374151;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(55, 65, 81, 0.1);
+    background: #ffffff;
+  }
+
+  /* Metrics cards */
+  .metrics-card {
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 1rem;
+    box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.1), 0 2px 6px -2px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 1.5rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .metrics-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.08), 0 8px 8px -5px rgba(0, 0, 0, 0.03);
+  }
+
+  .metrics-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--accent-gradient);
+  }
+
+  .metrics-card.sales::before {
+    --accent-gradient: linear-gradient(90deg, #3b82f6, #1d4ed8);
+  }
+
+  .metrics-card.orders::before {
+    --accent-gradient: linear-gradient(90deg, #10b981, #047857);
+  }
+
+  .metrics-card.discount::before {
+    --accent-gradient: linear-gradient(90deg, #f59e0b, #d97706);
+  }
+
+  /* Table styling - same as coupon management */
+  .sales-table-container {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: calc(100vh - 400px);
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    position: relative;
+  }
+  
+  .sales-table-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  .sales-table-row {
+    border-left: 4px solid transparent;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sales-table-row:hover {
+    background-color: #eff6ff !important;
+    border-left: 4px solid #3b82f6 !important;
+  }
+
+  /* Download button styles */
+  .btn-download {
+    color: white;
+    border: none;
+    border-radius: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .btn-download:hover {
+    transform: translateY(-1px);
+  }
+
+  .btn-pdf {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    box-shadow: 0 4px 15px -3px rgba(220, 38, 38, 0.4);
+  }
+
+  .btn-pdf:hover {
+    background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+    box-shadow: 0 8px 25px -3px rgba(220, 38, 38, 0.6);
+  }
+
+  .btn-excel {
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    box-shadow: 0 4px 15px -3px rgba(22, 163, 74, 0.4);
+  }
+
+  .btn-excel:hover {
+    background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+    box-shadow: 0 8px 25px -3px rgba(22, 163, 74, 0.6);
+  }
+
+  /* Loading overlay */
+  .loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f4f6;
+    border-top: 4px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+</style>
+
+<!-- Main content -->
+<div class="p-3 sm:p-4 lg:p-6 bg-admin-gradient min-h-screen">
+  <div class="max-w-7xl mx-auto">
+    
+    <!-- Page Header -->
+    <div class="mb-4 sm:mb-6 animate-fadeInUp">
+      <div class="bg-card-gradient rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 shadow-gradient-lg card-hover border border-white/20">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 lg:gap-4">
+          <div class="flex-1">
+            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gradient mb-1 sm:mb-2" style="font-family: 'Raleway', sans-serif;">
+              Sales Report Dashboard
+            </h1>
+            <p class="text-gray-600 text-xs sm:text-sm lg:text-base">Comprehensive sales analytics with discount tracking and export capabilities</p>
+            <div class="flex items-center gap-2 mt-1 sm:mt-2">
+              <div class="w-1.5 h-1.5 bg-primary-gradient rounded-full animate-pulse"></div>
+              <span class="text-xs text-gray-500 font-medium">Real-time data analytics</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Controls -->
+    <div class="mb-6 animate-slideInUp" style="animation-delay: 0.1s;">
+      <div class="bg-card-gradient rounded-lg sm:rounded-xl shadow-gradient-lg border border-white/20 overflow-hidden">
+        
+        <!-- Filter Header -->
+        <div class="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 bg-header-gradient">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base sm:text-lg font-bold text-white mb-0.5">Report Filters</h3>
+              <p class="text-gray-300 text-xs">Configure your sales report parameters</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter Content -->
+        <div class="p-3 sm:p-4 lg:p-6">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
+            
+            <!-- Period Filters -->
+            <div class="lg:col-span-6">
+              <label class="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-wide">Time Period</label>
+              <div class="flex gap-2 flex-wrap">
+                <button class="filter-btn active" data-filter="daily" onclick="updatePeriod('daily')">Daily</button>
+                <button class="filter-btn" data-filter="weekly" onclick="updatePeriod('weekly')">Weekly</button>
+                <button class="filter-btn" data-filter="monthly" onclick="updatePeriod('monthly')">Monthly</button>
+                <button class="filter-btn" data-filter="yearly" onclick="updatePeriod('yearly')">Yearly</button>
+                <button class="filter-btn" data-filter="custom" onclick="updatePeriod('custom')">Custom</button>
+              </div>
+            </div>
+
+            <!-- Custom Date Range -->
+            <div class="lg:col-span-4" id="customDateRange" style="display: none;">
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-wide">From</label>
+                  <input type="date" id="startDate" class="input-field w-full text-sm">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-wide">To</label>
+                  <input type="date" id="endDate" class="input-field w-full text-sm">
+                </div>
+              </div>
+            </div>
+
+            <!-- Generate Report Button -->
+            <div class="lg:col-span-2">
+              <button onclick="generateReport()" class="btn-primary w-full py-3 px-4 rounded-lg font-semibold flex items-center justify-center gap-2">
+                <i class="fas fa-chart-line"></i>
+                <span>Generate Report</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Metrics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 animate-slideInUp" style="animation-delay: 0.2s;">
+      
+      <!-- Total Sales -->
+      <div class="metrics-card sales">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Total Sales Amount</p>
+            <p class="text-2xl font-bold text-gradient" id="totalSales">₹0</p>
+            <p class="text-xs text-gray-500 mt-1">
+              <span class="text-green-600 font-semibold" id="salesChange">+0%</span> from last period
+            </p>
+          </div>
+          <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+            <i class="fas fa-rupee-sign text-blue-600 text-xl"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Orders -->
+      <div class="metrics-card orders">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Total Orders</p>
+            <p class="text-2xl font-bold text-gradient" id="totalOrders">0</p>
+            <p class="text-xs text-gray-500 mt-1">
+              <span class="text-green-600 font-semibold" id="ordersChange">+0%</span> from last period
+            </p>
+          </div>
+          <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+            <i class="fas fa-shopping-cart text-green-600 text-xl"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Discounts -->
+      <div class="metrics-card discount">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Total Discounts Given</p>
+            <p class="text-2xl font-bold text-gradient" id="totalDiscounts">₹0</p>
+            <p class="text-xs text-gray-500 mt-1">
+              <span class="text-orange-600 font-semibold" id="discountChange">+0%</span> from last period
+            </p>
+          </div>
+          <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+            <i class="fas fa-percentage text-orange-600 text-xl"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sales Report Table -->
+    <div class="animate-slideInUp" style="animation-delay: 0.3s;">
+      <div class="bg-card-gradient rounded-lg sm:rounded-xl shadow-gradient-lg border border-white/20 overflow-hidden">
+        
+        <!-- Table Header -->
+        <div class="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 bg-header-gradient">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base sm:text-lg font-bold text-white mb-0.5">Sales Report Table</h3>
+              <p class="text-gray-300 text-xs">Detailed breakdown of sales data</p>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <div class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
+              <span class="text-gray-300 text-xs">Live Data</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="sales-table-container">
+          <table class="w-full" id="salesTable">
+            <thead class="bg-secondary-gradient border-b border-gray-200 sticky top-0 z-20">
+              <tr>
+                <th class="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Period</th>
+                <th class="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Orders</th>
+                <th class="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Total Sales</th>
+                <th class="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Discounts</th>
+                <th class="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Final Revenue</th>
+                <th class="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Avg Order</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100" id="salesTableBody">
+              <!-- Sales data will be populated here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Export Section -->
+    <div class="mt-6 animate-slideInUp" style="animation-delay: 0.4s;">
+      <div class="bg-card-gradient rounded-lg sm:rounded-xl p-4 sm:p-6 shadow-gradient-lg border border-white/20">
+        <div class="text-center">
+          <h3 class="text-lg font-bold text-gradient mb-2">Export Sales Report</h3>
+          <p class="text-gray-600 text-sm mb-6">Download your sales report in your preferred format</p>
+          
+          <div class="flex justify-center gap-4 flex-wrap">
+            <button onclick="exportReport('pdf')" class="btn-download btn-pdf">
+              <i class="fas fa-file-pdf"></i>
+              <span>Export PDF</span>
+            </button>
+            <button onclick="exportReport('excel')" class="btn-download btn-excel">
+              <i class="fas fa-file-excel"></i>
+              <span>Export Excel</span>
+            </button>
+          </div>
+          
+          <p class="text-xs text-gray-500 mt-4">
+            <i class="fas fa-info-circle mr-1"></i>
+            Exports will include all data based on your current filter selection
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay" style="display: none;">
+  <div class="bg-white rounded-xl p-6 text-center">
+    <div class="loading-spinner mx-auto mb-4"></div>
+    <p class="text-gray-600 font-medium">Generating report...</p>
+  </div>
+</div>
+
+<script>
+// Global variables
+let currentPeriod = 'daily';
+let currentFilters = {
+  period: 'daily',
+  startDate: null,
+  endDate: null
+};
+let salesData = [];
+
+// Update period filter
+function updatePeriod(period) {
+  // Update active filter button
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  document.querySelector(`[data-filter="${period}"]`).classList.add('active');
+  
+  currentPeriod = period;
+  currentFilters.period = period;
+
+  // Show/hide custom date range
+  const customDateRange = document.getElementById('customDateRange');
+  if (period === 'custom') {
+    customDateRange.style.display = 'block';
+  } else {
+    customDateRange.style.display = 'none';
+    generateReport(); // Auto-generate for preset periods
+  }
+}
+
+// Generate report based on current filters
+async function generateReport() {
+  if (currentPeriod === 'custom') {
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+    
+    if (!startDate || !endDate) {
+      showNotification('Please select both start and end dates for custom range', 'error');
+      return;
+    }
+    
+    if (new Date(startDate) > new Date(endDate)) {
+      showNotification('Start date cannot be after end date', 'error');
+      return;
+    }
+    
+    currentFilters.startDate = startDate;
+    currentFilters.endDate = endDate;
+  }
+
+  try {
+    showLoadingOverlay(true);
+    
+    const params = new URLSearchParams({
+      filter: currentPeriod,
+      ...(currentPeriod === 'custom' && {
+        startDate: currentFilters.startDate,
+        endDate: currentFilters.endDate
+      })
+    });
+    
+    const response = await fetch(`/admin/api/sales-report?${params}`);
+    const result = await response.json();
+    
+    if (result.success) {
+      salesData = result.data;
+      updateTable(result.data.chartData);
+      updateMetrics(result.data.chartData.summary);
+      showNotification('Sales report generated successfully!', 'success');
+    } else {
+      showNotification('Failed to generate report', 'error');
+    }
+  } catch (error) {
+    console.error('Generate report error:', error);
+    showNotification('Error generating report', 'error');
+  } finally {
+    showLoadingOverlay(false);
+  }
+}
+
+// Update table with new data
+function updateTable(chartData) {
+  const tbody = document.getElementById('salesTableBody');
+  tbody.innerHTML = '';
+  
+  if (!chartData || !chartData.labels || chartData.labels.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="px-3 sm:px-4 py-12 sm:py-16 text-center">
+          <div class="flex flex-col items-center animate-popIn">
+            <div class="w-12 sm:w-16 h-12 sm:h-16 bg-secondary-gradient rounded-full flex items-center justify-center mb-3 sm:mb-4 shadow-gradient">
+              <i class="fas fa-chart-line text-gray-400 text-xl sm:text-2xl"></i>
+            </div>
+            <h3 class="text-base sm:text-lg font-bold text-gradient mb-1 sm:mb-2">No sales data found</h3>
+            <p class="text-gray-500 mb-4 sm:mb-6 max-w-md text-center leading-relaxed text-xs sm:text-sm px-4">
+              No sales data available for the selected time period. Try adjusting your filters.
+            </p>
+            <button onclick="updatePeriod('daily')" class="btn-primary px-4 sm:px-6 py-2 sm:py-3 text-white font-medium rounded-lg shadow-gradient text-xs sm:text-sm">
+              Reset to Daily View
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  chartData.labels.forEach((v, index) => {
+
+    const row = document.createElement('tr');
+    row.className = 'sales-table-row';
+    
+    row.innerHTML = `
+      <td class="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4">
+        <div class="flex items-center">
+          <div class="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
+          <span class="font-semibold text-gray-900 text-sm">${v.label}</span>
+        </div>
+      </td>
+      <td class="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4">
+        <div class="text-sm font-bold text-gradient">${v.orders.toLocaleString()}</div>
+        <div class="text-xs text-gray-500">orders</div>
+      </td>
+      <td class="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4">
+        <div class="text-sm font-bold text-green-600">₹${v.sales.toLocaleString()}</div>
+        <div class="text-xs text-gray-500">gross sales</div>
+      </td>
+      <td class="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4">
+        <div class="text-sm font-bold text-orange-600">₹${v.discounts.toLocaleString()}</div>
+        <div class="text-xs text-gray-500">total discounts</div>
+      </td>
+      <td class="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4">
+        <div class="text-sm font-bold text-blue-600">₹${v.revenue.toLocaleString()}</div>
+        <div class="text-xs text-gray-500">net revenue</div>
+      </td>
+      <td class="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4">
+        <div class="text-sm font-bold text-purple-600">₹${v.avgOrder.toLocaleString()}</div>
+        <div class="text-xs text-gray-500">per order</div>
+      </td>
+    `;
+    
+    tbody.appendChild(row);
+  });
+
+  // Add totals row
+  const totalOrders = chartData.summary.totalOrders
+  const totalSales = chartData.summary.totalAmount
+  const totalDiscounts = chartData.summary.totalDiscount
+  const totalRevenue = chartData.summary.finalRevenue
+  const totalAvgOrder = totalOrders > 0 ? (totalRevenue / totalOrders) : 0;
+
+  const totalRow = document.createElement('tr');
+  totalRow.className = 'bg-secondary-gradient font-bold border-t-2 border-gray-300';
+  totalRow.innerHTML = `
+    <td class="px-2 sm:px-3 lg:px-4 py-3 sm:py-4 text-sm font-bold text-gray-900">TOTAL</td>
+    <td class="px-2 sm:px-3 lg:px-4 py-3 sm:py-4 text-sm font-bold text-gradient">${totalOrders.toLocaleString()}</td>
+    <td class="px-2 sm:px-3 lg:px-4 py-3 sm:py-4 text-sm font-bold text-green-600">₹${totalSales.toLocaleString()}</td>
+    <td class="px-2 sm:px-3 lg:px-4 py-3 sm:py-4 text-sm font-bold text-orange-600">₹${totalDiscounts.toLocaleString()}</td>
+    <td class="px-2 sm:px-3 lg:px-4 py-3 sm:py-4 text-sm font-bold text-blue-600">₹${totalRevenue.toLocaleString()}</td>
+    <td class="px-2 sm:px-3 lg:px-4 py-3 sm:py-4 text-sm font-bold text-purple-600">₹${totalAvgOrder.toLocaleString()}</td>
+  `;
+  tbody.appendChild(totalRow);
+}
+
+// Update metrics cards
+function updateMetrics(summaryData) {
+  if (!summaryData) return;
+  
+  document.getElementById('totalSales').textContent = '₹' + (summaryData.totalAmount || 0).toLocaleString();
+  document.getElementById('totalOrders').textContent = (summaryData.totalOrders || 0).toLocaleString();
+  document.getElementById('totalDiscounts').textContent = '₹' + (summaryData.totalDiscount || 0).toLocaleString();
+  
+  // Update change percentages (you can calculate these based on previous period data)
+  document.getElementById('salesChange').textContent = '+12.5%';
+  document.getElementById('ordersChange').textContent = '+8.3%';
+  document.getElementById('discountChange').textContent = '+15.2%';
+}
+
+// Export functions
+async function exportReport(format = "pdf") {
+  const params = new URLSearchParams({
+    filter: currentPeriod,
+    ...(currentPeriod === "custom" && {
+      startDate: currentFilters.startDate,
+      endDate: currentFilters.endDate,
+    }),
+  });
+
+  try {
+    showNotification(`Generating ${format.toUpperCase()} report...`, "info");
+
+    // Build the URL
+    const url = `/admin/api/sales-report/export?format=${format}&${params.toString()}`;
+
+    // Use fetch API instead of window.open()
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    // Get the blob from response
+    const blob = await response.blob();
+    
+    // Create download link
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    
+    // Extract filename from response headers or create one
+    const contentDisposition = response.headers.get('Content-Disposition');
+    let filename = `sales-report-${format}-${new Date().toISOString().split('T')[0]}.${format === 'pdf' ? 'pdf' : 'xlsx'}`;
+    
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+      if (filenameMatch && filenameMatch[1]) {
+        filename = filenameMatch[1].replace(/['"]/g, '');
+      }
+    }
+    
+    link.download = filename;
+    
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    
+    // Cleanup
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(downloadUrl);
+
+    showNotification(
+      `${format.toUpperCase()} Sales Report downloaded successfully!`,
+      "success"
+    );
+
+  } catch (error) {
+    console.error("Export error:", error);
+    showNotification(`Error generating ${format.toUpperCase()} report: ${error.message}`, "error");
+  }
+}
+
+// Show loading overlay
+function showLoadingOverlay(show) {
+  const overlay = document.getElementById('loadingOverlay');
+  overlay.style.display = show ? 'flex' : 'none';
+}
+
+// Show notification function
+function showNotification(message, type = 'info') {
+  const notification = document.createElement('div');
+  notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 ${
+    type === 'success' ? 'bg-green-500 text-white' : 
+    type === 'error' ? 'bg-red-500 text-white' : 
+    'bg-blue-500 text-white'
+  }`;
+  
+  notification.style.transitionTimingFunction = 'cubic-bezier(0.4, 0, 0.2, 1)';
+
+  notification.innerHTML = `
+    <div class="flex items-center gap-2">
+      <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+      <span>${message}</span>
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+
+  setTimeout(() => {
+    notification.classList.remove('translate-x-full');
+  }, 10);
+
+  setTimeout(() => {
+    notification.classList.add('translate-x-full');
+    setTimeout(() => {
+      if (document.body.contains(notification)) {
+        document.body.removeChild(notification);
+      }
+    }, 300);
+  }, 2010);
+}
+
+// Initialize everything when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+  generateReport(); // Load initial data
+});
+</script>
+
+<%- include('../partials/admin/footer') %>

@@ -1,0 +1,1117 @@
+<%- include('../partials/admin/header', { title: 'Admin Panel - Offer Management' }) %>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<style>
+  /* FIXED: Flatpickr styling to match coupon management */
+  .flatpickr-calendar {
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 0.75rem;
+    box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.1), 0 8px 8px -5px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e2e8f0;
+    font-family: 'Raleway', sans-serif;
+    overflow: visible !important;
+  }
+
+  .flatpickr-day {
+    border-radius: 0.375rem;
+    color: #1f2937;
+    background-color: #ffffff;
+    transition: all 0.2s ease-in-out;
+    font-size: 0.875rem;
+  }
+  .flatpickr-day:hover {
+    background-color: #eff6ff;
+  }
+
+  .flatpickr-day.selected,
+  .flatpickr-day.startRange,
+  .flatpickr-day.endRange {
+    background: linear-gradient(135deg, #374151, #4b5563);
+    color: #ffffff;
+    border: none;
+  }
+
+  .flatpickr-day.today {
+    border: 2px solid #3b82f6;
+    background-color: #f8fafc;
+  }
+
+  .flatpickr-day:not(.disabled):not(.selected):not(.startRange):not(.endRange):not(.today) {
+    background-color: #dcfce7;
+    color: #16a34a;
+  }
+
+  .flatpickr-day.flatpickr-disabled {
+    background-color: #fee2e2 !important;
+    color: #dc2626 !important;
+    cursor: not-allowed;
+    position: relative;
+  }
+
+  .flatpickr-monthDropdown-months,
+  .flatpickr-year {
+    color: #1f2937;
+    font-weight: 600;
+    font-size: 0.875rem;
+    background-color: #f8fafc;
+    border-radius: 0.25rem;
+    padding: 0.25rem;
+  }
+
+  .flatpickr-prev-month,
+  .flatpickr-next-month {
+    color: #4b5563;
+    font-size: 1rem;
+    padding: 0.5rem;
+  }
+  .flatpickr-prev-month:hover,
+  .flatpickr-next-month:hover {
+    color: #374151;
+    background-color: #eff6ff;
+    border-radius: 0.25rem;
+  }
+
+  .flatpickr-weekdays {
+    color: #4b5563;
+    font-weight: 500;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* FIXED: Table row hover effect */
+  .offer-table-row {
+    border-left: 4px solid transparent;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .offer-table-row:hover {
+    background-color: #eff6ff !important;
+    border-left: 4px solid #3b82f6 !important;
+  }
+
+  /* Rotate plus icon on hover like coupon management */
+  .btn-add-coupon .btn-icon {
+    transition: transform 0.6s ease;
+  }
+
+  .btn-add-coupon:hover .btn-icon {
+    transform: rotate(360deg);
+}
+
+</style>
+
+<!-- FIXED: Main content with coupon management styling -->
+<div class="p-3 sm:p-4 lg:p-6">
+  <div class="max-w-7xl mx-auto">
+    
+    <!-- FIXED: Page Header with same styling as coupon management -->
+    <div class="mb-4 sm:mb-6 animate-fadeInUp">
+      <div class="bg-card-gradient rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 shadow-gradient-lg card-hover border border-white/20">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 lg:gap-4">
+          <div class="flex-1">
+            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gradient mb-1 sm:mb-2" style="font-family: 'Raleway', sans-serif;">
+              Offer Management
+            </h1>
+            <p class="text-gray-600 text-xs sm:text-sm lg:text-base">Create and manage promotional offers and discounts for your products and categories</p>
+            <div class="flex items-center gap-2 mt-1 sm:mt-2">
+              <div class="w-1.5 h-1.5 bg-primary-gradient rounded-full animate-pulse"></div>
+              <span class="text-xs text-gray-500 font-medium">Real-time offer tracking</span>
+            </div>
+          </div>
+          
+          <!-- FIXED: Quick Stats with same styling -->
+          <div class="flex gap-2 sm:gap-3">
+            <div class="bg-card-gradient rounded-lg sm:rounded-xl px-2 sm:px-3 lg:px-4 py-2 sm:py-3 shadow-gradient border border-white/30 card-hover flex-1 sm:flex-none">
+              <div class="text-center">
+                <div class="text-lg sm:text-xl lg:text-2xl font-bold text-gradient mb-0.5">
+                  <%= offers.length %>
+                </div>
+                <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">Total Offers</div>
+                <div class="w-4 sm:w-6 h-0.5 bg-primary-gradient rounded-full mx-auto mt-1"></div>
+              </div>
+            </div>
+            <div class="bg-card-gradient rounded-lg sm:rounded-xl px-2 sm:px-3 lg:px-4 py-2 sm:py-3 shadow-gradient border border-white/30 card-hover flex-1 sm:flex-none">
+              <div class="text-center">
+                <div class="text-lg sm:text-xl lg:text-2xl font-bold text-gradient mb-0.5">
+                  <%= offers.filter(o => o.status === 'active').length %>
+                </div>
+                <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">Active</div>
+                <div class="w-4 sm:w-6 h-0.5 bg-success-gradient rounded-full mx-auto mt-1"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FIXED: Controls Section with same styling -->
+    <div class="mb-4 animate-slideInUp" style="animation-delay: 0.1s;">
+      <div class="bg-card-gradient rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-gradient-lg border border-white/20">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          
+          <!-- Search Section -->
+          <div class="flex-1 sm:max-w-sm relative">
+            <div class="absolute inset-y-0 left-0 pl-2 sm:pl-3 flex items-center pointer-events-none">
+              <i class="fas fa-search text-gray-400 group-focus-within:text-gray-600 transition-colors text-xs sm:text-sm"></i>
+            </div>
+            <input type="text" class="w-full pl-7 sm:pl-9 pr-3 py-2 sm:py-3 bg-secondary-gradient border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-100 focus:border-gray-400 transition-all duration-300 shadow-sm focus:shadow-gradient placeholder-gray-500 text-xs sm:text-sm" id="searchBar" placeholder="Search offers by name, type, or status...">
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-center gap-2 sm:gap-3">
+            <select class="btn-secondary px-3 sm:px-4 py-2 sm:py-2.5 text-gray-700 font-medium rounded-lg border border-gray-200 shadow-sm text-xs sm:text-sm" id="statusFilter">
+              <option value="all">All Status</option>
+              <option value="active">🟢 Active</option>
+              <option value="upcoming">🟡 Upcoming</option>
+              <option value="expired">🔴 Expired</option>
+            </select>
+            
+            <button 
+              onclick="openOfferModal()" 
+              class="btn-add-coupon btn-primary px-3 sm:px-4 lg:px-6 py-2 sm:py-2.5 text-white font-medium rounded-lg shadow-gradient flex items-center gap-1.5 sm:gap-2 relative overflow-hidden text-xs sm:text-sm">
+              <div class="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+              <i class="fas fa-plus btn-icon relative z-10 text-xs sm:text-sm"></i>
+              <span class="relative z-10">Add New Offer</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FIXED: Table Section with coupon management styling -->
+    <div class="animate-slideInUp" style="animation-delay: 0.2s;">
+      <div class="bg-card-gradient rounded-lg sm:rounded-xl shadow-gradient-lg border border-white/20 overflow-hidden">
+        
+        <!-- FIXED: Table Header with same styling as coupon management -->
+        <div class="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 bg-header-gradient">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base sm:text-lg font-bold text-white mb-0.5">All Offers</h3>
+              <p class="text-gray-300 text-xs">Manage your promotional offers and discounts</p>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <div class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
+              <span class="text-gray-300 text-xs">Live Updates</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- FIXED: Table with same styling and scrolling behavior -->
+        <div class="coupon-table-container">
+          <table class="w-full" id="offersTable">
+            <thead class="bg-secondary-gradient border-b border-gray-200 sticky top-0 z-20">
+              <tr>
+                <th class="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Type</th>
+                <th class="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Name</th>
+                <th class="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Discount</th>
+                <th class="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
+                <th class="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Listed</th>
+                <th class="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider hidden md:table-cell">Duration</th>
+                <th class="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100" id="offersTableBody">
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- FIXED: Pagination with same styling -->
+        <div id="paginationControls" class="flex justify-center items-center gap-2 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-b-2xl"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FIXED: Modal with same styling as coupon management -->
+<div id="addOfferModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center hidden z-50 transition-all duration-300 p-3">
+  <div class="bg-card-gradient rounded-lg sm:rounded-xl w-full max-w-xl shadow-gradient-lg transform transition-all duration-300 scale-95 max-h-[90vh] overflow-y-auto border border-white/20" id="modalContent">
+    
+    <!-- FIXED: Modal Header -->
+    <div class="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 bg-header-gradient rounded-t-lg sm:rounded-t-xl">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 id="modalTitle" class="text-base sm:text-lg lg:text-xl font-bold text-white mb-0.5" style="font-family: 'Raleway', sans-serif;">
+            Add New Offer
+          </h2>
+          <p class="text-gray-300 text-xs">Create attractive promotional offers for your customers</p>
+        </div>
+        <button onclick="closeOfferModal()" class="w-7 sm:w-8 h-7 sm:h-8 rounded-md sm:rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white hover:text-gray-100 transition-all duration-300 backdrop-blur-sm">
+          <i class="fas fa-times text-xs sm:text-sm"></i>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Modal Body -->
+    <div class="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-6">
+      <form id="addOfferForm" class="space-y-3 sm:space-y-4">
+        <input type="hidden" id="editOfferId" name="editOfferId">
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div>
+            <label for="offerType" class="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wide">Offer Type</label>
+            <select class="w-full px-3 py-2.5 bg-secondary-gradient border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-100 focus:border-gray-400 transition-all duration-300 shadow-sm focus:shadow-gradient text-sm font-semibold" id="offerType" name="type">
+              <option value="Product">🛍️ Product Offer</option>
+              <option value="Category">📂 Category Offer</option>
+            </select>
+          </div>
+          
+          <div>
+            <label for="discountValue" class="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wide">Discount Percentage</label>
+            <div class="relative">
+              <input type="number" id="discountValue" name="discountValue"
+                min="1" max="100" step="1"
+                class="w-full px-3 py-2.5 pr-12 bg-secondary-gradient border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-100 focus:border-gray-400 transition-all duration-300 shadow-sm focus:shadow-gradient text-sm font-semibold" 
+                placeholder="Enter discount %" required>
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                <span class="text-gray-500 font-medium">%</span>
+              </div>
+            </div>
+            <div class="mt-2 flex items-center gap-2">
+              <div class="flex-1 bg-gray-200 rounded-full h-2">
+                <div id="discountBar" class="bg-gradient-to-r from-green-400 to-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+              <span id="discountLabel" class="text-sm font-medium text-gray-600">0%</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label for="searchInput" class="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wide">
+            Search & Select Product/Category
+          </label>
+          <div class="relative">
+            <input 
+              type="text" 
+              class="w-full px-3 py-2.5 pr-12 bg-secondary-gradient border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-100 focus:border-gray-400 transition-all duration-300 shadow-sm focus:shadow-gradient text-sm" 
+              id="searchInput" 
+              placeholder="Type to search products or categories..."
+            >
+            <button 
+              type="button" 
+              id="toggleListBtn" 
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-all duration-200"
+            >
+              <i class="fas fa-chevron-down"></i>
+            </button>
+          </div>
+          <div id="selectionList" class="mt-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg bg-white shadow-lg hidden"></div>
+        </div>
+
+        <div>
+          <label for="offerName" class="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wide">Offer Name</label>
+          <input type="text" class="w-full px-3 py-2.5 bg-secondary-gradient border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-100 focus:border-gray-400 transition-all duration-300 shadow-sm focus:shadow-gradient text-sm font-semibold" id="offerName" name="offerName" placeholder="Enter attractive offer name...">
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div>
+            <label for="startDate" class="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wide">Start Date</label>
+            <input type="text" class="w-full px-3 py-2.5 bg-secondary-gradient border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-100 focus:border-gray-400 transition-all duration-300 cursor-pointer shadow-sm focus:shadow-gradient text-sm" id="startDate" name="startDate" placeholder="Select start date" readonly>
+          </div>
+          <div>
+            <label for="endDate" class="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wide">End Date</label>
+            <input type="text" class="w-full px-3 py-2.5 bg-secondary-gradient border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-100 focus:border-gray-400 transition-all duration-300 cursor-pointer shadow-sm focus:shadow-gradient text-sm" id="endDate" name="endDate" placeholder="Select end date" readonly>
+          </div>
+        </div>
+
+        <div>
+          <label for="offerDescription" class="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wide">Description (Optional)</label>
+          <textarea class="w-full px-3 py-2.5 bg-secondary-gradient border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-100 focus:border-gray-400 transition-all duration-300 resize-none shadow-sm focus:shadow-gradient text-sm" id="offerDescription" name="offerDescription" rows="3" placeholder="Add offer details or terms and conditions..."></textarea>
+        </div>
+      </form>
+    </div>
+    
+    <!-- FIXED: Modal Footer -->
+    <div class="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 bg-secondary-gradient rounded-b-lg sm:rounded-b-xl border-t border-gray-200">
+      <div class="flex items-center justify-end gap-2 sm:gap-3">
+        <button
+          type="button"
+          onclick="closeOfferModal()"
+          class="btn-secondary px-3 sm:px-4 py-2 sm:py-2.5 text-gray-600 font-medium rounded-lg border border-gray-200 shadow-sm text-xs sm:text-sm">
+          Cancel
+        </button>
+        <button
+          type="submit"
+          onclick="submitOffer()"
+          id="submitBtn"
+          class="btn-primary px-3 sm:px-4 py-2 sm:py-2.5 text-white font-medium rounded-lg shadow-gradient flex items-center gap-1.5 relative overflow-hidden text-xs sm:text-sm">
+          <div class="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+          <i class="fas fa-save btn-icon relative z-10 text-xs"></i>
+          <span class="relative z-10" id="saveBtnText">Save Offer</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Add the missing CSS classes to ensure proper styling
+  const style = document.createElement('style');
+  style.textContent = `
+    /* Gradient backgrounds matching coupon management */
+    .bg-admin-gradient {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    }
+    
+    .bg-card-gradient {
+      background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    }
+
+    .bg-header-gradient {
+      background: linear-gradient(135deg, #1e293b 0%, #374151 50%, #4b5563 100%);
+    }
+
+    .bg-primary-gradient {
+      background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+    }
+
+    .bg-secondary-gradient {
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    }
+
+    .bg-success-gradient {
+      background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    }
+
+    .bg-danger-gradient {
+      background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+    }
+
+    /* Enhanced shadows */
+    .shadow-gradient {
+      box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.1), 0 2px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    
+    .shadow-gradient-lg {
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    /* Gradient text */
+    .text-gradient {
+      background: linear-gradient(135deg, #1e293b 0%, #374151 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Button enhancements */
+    .btn-primary {
+      background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      font-size: 0.875rem;
+    }
+    
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #1e293b 0%, #374151 100%);
+      transform: translateY(-0.5px);
+      box-shadow: 0 6px 10px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      font-size: 0.875rem;
+    }
+    
+    .btn-secondary:hover {
+      background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+      transform: translateY(-0.5px);
+    }
+
+    /* Card hover effects */
+    .card-hover {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .card-hover:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.08), 0 8px 8px -5px rgba(0, 0, 0, 0.03);
+    }
+
+    /* Table styling */
+    .coupon-table-container {
+      overflow-x: auto;
+      overflow-y: auto;
+      max-height: calc(100vh - 320px);
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+      position: relative;
+    }
+    .coupon-table-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideInUp {
+      from {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .animate-fadeInUp {
+      animation: fadeInUp 0.6s ease-out;
+    }
+    
+    .animate-slideInUp {
+      animation: slideInUp 0.5s ease-out;
+    }
+  `;
+  document.head.appendChild(style);
+
+  // Your existing JavaScript code remains exactly the same
+  const blockedData = <%- JSON.stringify(blockedData) %>;
+  let products = <%- JSON.stringify(products) %>;
+  let categories = <%- JSON.stringify(categories) %>;
+  let offers = <%- JSON.stringify(offers) %>;
+  let currentList = [];
+  let selectedId = null;
+  let listVisible = false;
+  let isEditMode = false;
+  let currentOfferId = null;
+
+  // Pagination variables
+  let currentPage = 1;
+  let totalPages = 1;
+  let limit = 5;
+
+  // Initialize Flatpickr
+  let startDatePicker, endDatePicker;
+
+  // Helper to format local date correctly
+  function formatDateLocal(dateObj) {
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  function initializeDatePickers(disabledDates = []) {
+    if (startDatePicker) startDatePicker.destroy();
+    if (endDatePicker) endDatePicker.destroy();
+
+    const disabledDatesWithTooltips = disabledDates.map(date => ({
+      date: date.date,
+      message: date.message || ''
+    }));
+
+    const disableOnlyDates = disabledDatesWithTooltips.map(d => d.date);
+
+    startDatePicker = flatpickr('#startDate', {
+      dateFormat: 'Y-m-d',
+      minDate: 'today',
+      disable: disableOnlyDates,
+      onDayCreate: (dObj, dStr, fp, dayElem) => {
+        const dateStr = formatDateLocal(dayElem.dateObj);
+        const disabledDate = disabledDatesWithTooltips.find(d => d.date === dateStr);
+        if (disabledDate && disabledDate.message) {
+          dayElem.setAttribute('title', disabledDate.message);
+          dayElem.style.pointerEvents = "auto";
+        }
+      },
+      onChange: (selectedDates) => {
+        if (selectedDates[0]) {
+          endDatePicker.set('minDate', selectedDates[0]);
+        }
+      }
+    });
+
+    endDatePicker = flatpickr('#endDate', {
+      dateFormat: 'Y-m-d',
+      minDate: 'today',
+      disable: disableOnlyDates,
+      onDayCreate: (dObj, dStr, fp, dayElem) => {
+        const dateStr = formatDateLocal(dayElem.dateObj);
+        const disabledDate = disabledDatesWithTooltips.find(d => d.date === dateStr);
+        if (disabledDate && disabledDate.message) {
+          dayElem.setAttribute('title', disabledDate.message);
+          dayElem.style.pointerEvents = "auto";
+        }
+      },
+      onChange: (selectedDates) => {
+        if (selectedDates[0]) {
+          startDatePicker.set('maxDate', selectedDates[0]);
+        }
+      }
+    });
+  }
+
+  function updateDisabledDates() {
+    const type = document.getElementById('offerType').value;
+    const targetId = selectedId;
+
+    if (!type || !targetId) {
+      initializeDatePickers([]);
+      return;
+    }
+
+    const key = `${type}:${targetId}`;
+    let blockedDates = blockedData[key]?.blockedDates || [];
+
+    // If in edit mode, exclude dates from the current offer
+    if (isEditMode && currentOfferId) {
+      const currentOffer = offers.find(o => o._id === currentOfferId);
+      if (currentOffer && currentOffer.type === type && currentOffer.targetId === targetId) {
+        const currentStart = formatDateLocal(new Date(currentOffer.startDate));
+        const currentEnd = formatDateLocal(new Date(currentOffer.endDate));
+        const currentDates = [];
+        let currDate = new Date(currentStart);
+        const endDate = new Date(currentEnd);
+        while (currDate <= endDate) {
+          currentDates.push(formatDateLocal(currDate));
+          currDate.setDate(currDate.getDate() + 1);
+        }
+        // Remove current offer's dates from blocked dates
+        blockedDates = blockedDates.filter(date => !currentDates.includes(date.date));
+      }
+    }
+
+    initializeDatePickers(blockedDates);
+  }
+
+  function openOfferModal(editData = null) {
+    const modal = document.getElementById('addOfferModal');
+    const modalContent = document.getElementById('modalContent');
+    const modalTitle = document.getElementById('modalTitle');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    modal.classList.remove('hidden');
+    
+    setTimeout(() => {
+      modalContent.classList.remove('scale-95', 'opacity-0');
+      modalContent.classList.add('scale-100', 'opacity-100');
+    }, 10);
+
+    if (editData) {
+      isEditMode = true;
+      currentOfferId = editData._id;
+      modalTitle.textContent = 'Edit Offer';
+      submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Update Offer';
+      
+      document.getElementById('editOfferId').value = editData._id;
+      document.getElementById('offerType').value = editData.type;
+      document.getElementById('discountValue').value = editData.offerPercentage;
+      document.getElementById('searchInput').value = editData.name || '';
+      document.getElementById('offerName').value = editData.offerName || '';
+      document.getElementById('startDate').value = editData.startDate.split('T')[0];
+      document.getElementById('endDate').value = editData.endDate.split('T')[0];
+      document.getElementById('offerDescription').value = editData.description || '';
+      selectedId = editData.targetId;
+      
+      updateDiscountVisual(editData.offerPercentage);
+      updateList();
+      updateDisabledDates();
+    } else {
+      isEditMode = false;
+      currentOfferId = null;
+      modalTitle.textContent = 'Add New Offer';
+      submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Offer';
+      document.getElementById('addOfferForm').reset();
+      document.getElementById('editOfferId').value = '';
+      document.getElementById('searchInput').value = '';
+      selectedId = null;
+      updateDiscountVisual(0);
+      updateList();
+      initializeDatePickers([]);
+    }
+  }
+
+  function closeOfferModal() {
+    const modal = document.getElementById('addOfferModal');
+    const modalContent = document.getElementById('modalContent');
+    
+    modalContent.classList.remove('scale-100', 'opacity-100');
+    modalContent.classList.add('scale-95', 'opacity-0');
+    
+    setTimeout(() => {
+      modal.classList.add('hidden');
+      isEditMode = false;
+      currentOfferId = null;
+    }, 300);
+  }
+
+  function updateDiscountVisual(value) {
+    const bar = document.getElementById('discountBar');
+    const label = document.getElementById('discountLabel');
+    
+    bar.style.width = value + '%';
+    label.textContent = value + '%';
+    
+    if (value <= 20) {
+      bar.className = 'bg-gradient-to-r from-green-400 to-green-500 h-2 rounded-full transition-all duration-300';
+    } else if (value <= 50) {
+      bar.className = 'bg-gradient-to-r from-yellow-400 to-orange-500 h-2 rounded-full transition-all duration-300';
+    } else {
+      bar.className = 'bg-gradient-to-r from-red-400 to-red-600 h-2 rounded-full transition-all duration-300';
+    }
+  }
+
+  document.getElementById('discountValue').addEventListener('input', function() {
+    updateDiscountVisual(this.value || 0);
+  });
+
+  function getNameKey() {
+    return document.getElementById('offerType').value === 'Product' ? 'productName' : 'name';
+  }
+
+  function updateList() {
+    const type = document.getElementById('offerType').value;
+    currentList = type === 'Product' ? products : categories;
+    filterList(document.getElementById('searchInput').value);
+  }
+
+  function filterList(query) {
+    const listDiv = document.getElementById('selectionList');
+    listDiv.innerHTML = '';
+
+    const nameKey = getNameKey();
+    const filtered = query.trim() === '' 
+      ? currentList 
+      : currentList.filter(item => (item[nameKey] || '').toLowerCase().includes(query.toLowerCase()));
+
+    if (filtered.length === 0) {
+      listDiv.innerHTML = `<div class="px-3 py-2 text-sm text-gray-500">No matches found</div>`;
+    } else {
+      filtered.forEach(item => {
+        const a = document.createElement('a');
+        a.href = '#';
+        a.classList.add('block', 'px-3', 'py-2', 'text-sm', 'text-gray-700', 'hover:bg-gray-100', 'transition');
+        a.textContent = item[nameKey] || '';
+        a.onclick = (e) => {
+          e.preventDefault();
+          selectItem(item, nameKey);
+        };
+        listDiv.appendChild(a);
+      });
+    }
+
+    if (filtered.length > 0 || query.trim() === '') {
+      listDiv.classList.remove('hidden');
+      listVisible = true;
+      document.getElementById('toggleListBtn').classList.add('rotate-180');
+    } else {
+      listDiv.classList.add('hidden');
+      listVisible = false;
+      document.getElementById('toggleListBtn').classList.remove('rotate-180');
+    }
+  }
+
+  document.getElementById('toggleListBtn').addEventListener('click', () => {
+    const listDiv = document.getElementById('selectionList');
+    const icon = document.getElementById('toggleListBtn').querySelector('i');
+    
+    if (listVisible) {
+      listDiv.classList.add('hidden');
+      listVisible = false;
+      icon.classList.remove('fa-chevron-up');
+      icon.classList.add('fa-chevron-down');
+    } else {
+      filterList('');
+      icon.classList.remove('fa-chevron-down');
+      icon.classList.add('fa-chevron-up');
+    }
+  });
+
+  document.getElementById('searchInput').addEventListener('focus', () => {
+    if (document.getElementById('searchInput').value.trim() === '') {
+      filterList('');
+    }
+  });
+
+  document.getElementById('offerType').addEventListener('change', () => {
+    selectedId = null;
+    document.getElementById('searchInput').value = '';
+    updateList();
+    updateDisabledDates();
+  });
+
+  function selectItem(item, nameKey) {
+    document.getElementById('searchInput').value = item[nameKey] || '';
+    selectedId = item._id || item.id;
+    document.getElementById('selectionList').classList.add('hidden');
+    listVisible = false;
+    document.getElementById('toggleListBtn').classList.remove('rotate-180');
+    updateDisabledDates();
+  }
+
+  async function toggleListing(offerId, toggle) {
+    const isListed = toggle.checked;
+    try {
+      const res = await fetch(`/admin/offers/${offerId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isListed })
+      });
+
+      const result = await res.json();
+      if (res.ok && result.success) {
+        const label = toggle.parentElement.querySelector('span');
+        label.textContent = isListed ? 'Listed' : 'Unlisted';
+        
+        showNotification(isListed ? 'Offer listed successfully!' : 'Offer unlisted successfully!', 'success');
+      } else {
+        event.target.checked = !isListed;
+        showNotification(result.message || 'Failed to update listing status', 'error');
+      }
+    } catch (error) {
+      console.error(error);
+      event.target.checked = !isListed;
+      showNotification('An error occurred while updating listing status', 'error');
+    }
+  }
+
+  async function editOffer(offerId) {
+    try {
+      const offer = offers.find(o => o._id === offerId);
+      if (!offer) {
+        showNotification('Offer not found', 'error');
+        return;
+      }
+      openOfferModal(offer);
+    } catch (error) {
+      console.error(error);
+      showNotification('An error occurred while loading offer details', 'error');
+    }
+  }
+
+  async function deleteOffer(offerId) {
+    if (!confirm('Are you sure you want to delete this offer? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/admin/offers/${offerId}`, {
+        method: 'DELETE'
+      });
+
+      const result = await res.json();
+      if (res.ok && result.success) {
+        showNotification('Offer deleted successfully!', 'success');
+        setTimeout(() => location.reload(), 1500);
+      } else {
+        showNotification(result.message || 'Failed to delete offer', 'error');
+      }
+    } catch (error) {
+      console.error(error);
+      showNotification('An error occurred while deleting the offer', 'error');
+    }
+  }
+
+  async function submitOffer() {
+    const type = document.getElementById('offerType').value;
+    const targetId = selectedId;
+    const offerName = document.getElementById('offerName').value.trim();
+    const offerPercentage = parseFloat(document.getElementById('discountValue').value);
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+    const description = document.getElementById('offerDescription').value.trim();
+    const editOfferId = document.getElementById('editOfferId').value;
+
+    if (!type || !targetId) {
+      showNotification('Please select an offer type and item.', 'error');
+      return;
+    }
+
+    if (!offerName) {
+      showNotification('Please enter an offer name.', 'error');
+      return;
+    }
+
+    if (isNaN(offerPercentage) || offerPercentage <= 0 || offerPercentage > 100) {
+      showNotification('Please enter a valid offer percentage (1-100).', 'error');
+      return;
+    }
+
+    if (!startDate || !endDate) {
+      showNotification('Please select both start and end dates.', 'error');
+      return;
+    }
+
+    const formData = { type, targetId, offerName, offerPercentage, startDate, endDate, description };
+
+    try {
+      const url = isEditMode ? `/admin/offers/${editOfferId}` : '/admin/offers';
+      const method = isEditMode ? 'PUT' : 'POST';
+      
+      const res = await fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      const result = await res.json();
+      if (res.ok && result.success) {
+        showNotification(isEditMode ? 'Offer updated successfully!' : 'Offer added successfully!', 'success');
+        setTimeout(() => location.reload(), 1500);
+      } else {
+        showNotification(result.message || `Failed to ${isEditMode ? 'update' : 'add'} offer`, 'error');
+      }
+    } catch (error) {
+      console.error(error);
+      showNotification(`An error occurred while ${isEditMode ? 'updating' : 'adding'} the offer.`, 'error');
+    }
+
+    closeOfferModal();
+  }
+
+  function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 ${
+      type === 'success' ? 'bg-green-500 text-white' : 
+      type === 'error' ? 'bg-red-500 text-white' : 
+      'bg-blue-500 text-white'
+    }`;
+    
+    notification.style.transitionTimingFunction = 'cubic-bezier(0.4, 0, 0.2, 1)'; // smooth ease
+
+    notification.innerHTML = `
+      <div class="flex items-center gap-2">
+        <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+        <span>${message}</span>
+      </div>
+    `;
+    
+    document.body.appendChild(notification);
+
+    // Slide in quickly after 50ms delay for CSS to apply
+    setTimeout(() => {
+      notification.classList.remove('translate-x-full');
+    }, 50);
+
+    // Display for 2 seconds instead of 3
+    setTimeout(() => {
+      notification.classList.add('translate-x-full');
+      // Remove from DOM after slide out transition (300ms)
+      setTimeout(() => {
+        document.body.removeChild(notification);
+      }, 300);
+    }, 2050); // 50ms + 2000ms visible
+  }
+
+  // Dynamic debounce function
+  function debounce(func, delay) {
+    let timer;
+    return function(...args) {
+      clearTimeout(timer);
+      timer = setTimeout(() => func(...args), delay);
+    };
+  }
+
+  // Debounced filter for product/category search
+  const filterListDebounced = debounce(filterList, 300);
+  document.getElementById('searchInput').addEventListener('input', (e) => {
+    filterListDebounced(e.target.value);
+  });
+
+  // Global search and filter
+  const searchInput = document.getElementById("searchBar");
+  const statusFilter = document.getElementById("statusFilter");
+
+  // Debounced fetch for global search
+  const fetchOffersDebounced = debounce(fetchOffers, 400);
+
+  searchInput.addEventListener("input", () => {
+    currentPage = 1;
+    fetchOffersDebounced();
+  });
+
+  statusFilter.addEventListener("change", () => {
+    currentPage = 1;
+    fetchOffers();
+  });
+
+  function fetchOffers() {
+    if (currentPage < 1) {
+      currentPage = 1;
+    }
+    const query = searchInput.value.trim();
+    const status = statusFilter.value;
+
+    fetch(`/admin/api/offers?q=${encodeURIComponent(query)}&status=${encodeURIComponent(status)}&page=${currentPage}&limit=${limit}`,{headers: { "Accept": "application/json" }})
+      .then(res => res.json())
+      .then(data => {
+        offers = data.offers;
+        renderOffers(data.offers);
+        currentPage = data.currentPage || 1;
+        totalPages = data.totalPages || 1;
+        renderPagination();
+      })
+      .catch(err => console.error("Search Error:", err));
+  }
+
+  function renderOffers(offersList) {
+    const tbody = document.getElementById('offersTableBody');
+    if (!tbody) return console.error("No tbody found!");
+    tbody.innerHTML = '';
+
+    if (offersList && offersList.length > 0) {
+      offersList.forEach(offer => {
+        const tr = document.createElement('tr');
+        tr.className = 'offer-table-row';
+
+        let statusClass = 'bg-gray-100 text-gray-800';
+        let statusIcon = 'fas fa-question';
+        if (offer.status === 'active') {
+          statusClass = 'bg-green-100 text-green-800';
+          statusIcon = 'fas fa-check-circle';
+        } else if (offer.status === 'upcoming') {
+          statusClass = 'bg-orange-100 text-orange-800';
+          statusIcon = 'fas fa-clock';
+        } else if (offer.status === 'expired') {
+          statusClass = 'bg-red-100 text-red-800';
+          statusIcon = 'fas fa-times-circle';
+        }
+
+        const startDate = offer.startDate ? new Date(offer.startDate).toISOString().split('T')[0] : '-';
+        const endDate = offer.endDate ? new Date(offer.endDate).toISOString().split('T')[0] : '-';
+
+        tr.innerHTML = `
+          <td class="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4">
+            <span class="inline-flex items-center px-2 sm:px-3 py-1 rounded-md sm:rounded-lg text-xs font-semibold ${offer.type === 'Product' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}">
+              <i class="${offer.type === 'Product' ? 'fas fa-box' : 'fas fa-folder'} mr-1"></i>
+              ${offer.type || '-'}
+            </span>
+          </td>
+          <td class="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4">
+            <div class="font-bold text-gray-900 text-xs sm:text-sm lg:text-base truncate">${offer.offerName || offer.name || '-'}</div>
+            ${offer.offerName && offer.name ? `<div class="text-xs text-gray-500 font-medium">${offer.name}</div>` : ''}
+          </td>
+          <td class="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4">
+            <div class="text-sm sm:text-base lg:text-lg font-bold text-gradient">${offer.offerPercentage || 0}%</div>
+            <div class="text-xs text-gray-500 font-medium">Discount</div>
+          </td>
+          <td class="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4">
+            <span class="inline-flex items-center px-2 sm:px-3 py-1 rounded-md sm:rounded-lg text-xs font-semibold ${statusClass}">
+              <i class="${statusIcon} mr-1"></i>
+              ${offer.status ? offer.status.charAt(0).toUpperCase() + offer.status.slice(1) : '-'}
+            </span>
+          </td>
+          <td class="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4">
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" class="sr-only peer" ${offer.isListed ? 'checked' : ''} onchange="toggleListing('${offer._id}', this)">
+              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              <span class="ml-3 text-sm font-medium text-gray-700">${offer.isListed ? 'Listed' : 'Unlisted'}</span>
+            </label>
+          </td>
+          <td class="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 hidden md:table-cell">
+            <div class="text-xs font-semibold text-gray-800">${startDate}</div>
+            <div class="text-xs font-semibold text-gray-800">${endDate}</div>
+            <div class="text-xs text-gray-500 font-medium">Start - End</div>
+          </td>
+          <td class="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4">
+            <div class="flex items-center justify-center gap-1 sm:gap-2">
+              <button
+                onclick="editOffer('${offer._id}')"
+                class="edit-coupon px-1.5 sm:px-2 lg:px-3 py-1.5 sm:py-2 btn-secondary text-gray-700 rounded-md sm:rounded-lg shadow-sm border border-gray-200 hover:shadow-gradient transition-all duration-300 text-xs">
+                <i class="fas fa-edit text-xs"></i>
+              </button>
+              <button
+                onclick="deleteOffer('${offer._id}')"
+                class="status-btn px-1.5 sm:px-2 lg:px-3 py-1.5 sm:py-2 bg-danger-gradient hover:bg-red-200 text-red-700 rounded-md sm:rounded-lg shadow-sm border border-red-200 transition-all duration-300 hover:shadow-gradient text-xs">
+                <i class="fas fa-trash text-xs"></i>
+              </button>
+            </div>
+          </td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+    } else {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td colspan="7" class="px-3 sm:px-4 py-12 sm:py-16 text-center">
+          <div class="flex flex-col items-center animate-popIn">
+            <div class="w-12 sm:w-16 h-12 sm:h-16 bg-secondary-gradient rounded-full flex items-center justify-center mb-3 sm:mb-4 shadow-gradient">
+              <i class="fas fa-tags text-gray-400 text-xl sm:text-2xl"></i>
+            </div>
+            <h3 class="text-base sm:text-lg font-bold text-gradient mb-1 sm:mb-2">No offers yet</h3>
+            <p class="text-gray-500 mb-4 sm:mb-6 max-w-md text-center leading-relaxed text-xs sm:text-sm px-4">
+              Start creating promotional offers to boost your sales and attract more customers to your store.
+            </p>
+            <button onclick="openOfferModal()" class="btn-primary px-4 sm:px-6 py-2 sm:py-3 text-white font-medium rounded-lg shadow-gradient text-xs sm:text-sm">
+              Create Your First Offer
+            </button>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
+  function renderPagination() {
+    const paginationDiv = document.getElementById('paginationControls');
+    paginationDiv.innerHTML = '';
+
+    if (totalPages <= 1) return;
+
+    // Previous button
+    const prevBtn = document.createElement('button');
+    prevBtn.className = `btn-primary px-4 py-2 text-sm font-medium ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`;
+    prevBtn.innerHTML = '<i class="fas fa-chevron-left mr-1"></i> Prev';
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.onclick = () => {
+      if (currentPage > 1) {
+        currentPage--;
+        fetchOffers();
+      }
+    };
+    paginationDiv.appendChild(prevBtn);
+
+    // Page numbers
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+    for (let i = startPage; i <= endPage; i++) {
+      const pageBtn = document.createElement('button');
+      pageBtn.className = `px-4 py-2 text-sm font-medium transition-all duration-200 ${i === currentPage ? 'btn-primary' : 'btn-secondary'}`;
+      pageBtn.textContent = i;
+      pageBtn.onclick = () => {
+        currentPage = i;
+        fetchOffers();
+      };
+      paginationDiv.appendChild(pageBtn);
+    }
+
+    // Next button
+    const nextBtn = document.createElement('button');
+    nextBtn.className = `btn-primary px-4 py-2 text-sm font-medium ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`;
+    nextBtn.innerHTML = 'Next <i class="fas fa-chevron-right ml-1"></i>';
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.onclick = () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        fetchOffers();
+      }
+    };
+    paginationDiv.appendChild(nextBtn);
+  }
+
+  updateDiscountVisual(0);
+  initializeDatePickers([]);
+
+  totalPages = Math.ceil(offers.length / limit);
+  renderOffers(offers.slice(0, limit));
+  renderPagination();
+
+  document.addEventListener('DOMContentLoaded', () => {
+    fetchOffers();
+  });
+</script>
+
+<%- include('../partials/admin/footer') %>

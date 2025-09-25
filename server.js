@@ -11,6 +11,9 @@ const passport = require('./config/passport');
 const noCache = require('./middleware/noCache');
 const socket = require('./config/socket'); // socket.js module
 const { registerSocketEvents } = require('./sockets/index');
+const startOfferStatusCron = require('./helpers/cron job/offerStatusUpdater');
+const startOfferPriceCron = require('./helpers/cron job/startOfferPriceCron');
+
 
 // Create HTTP server
 const server = http.createServer(app);
@@ -21,11 +24,12 @@ const io = socket.init(server);
 // Initialize your socket event listeners
 registerSocketEvents(io);
 
-
-
-
 // Connect to DB
 db();
+
+// cron job
+startOfferStatusCron();
+startOfferPriceCron();
 
 // Middleware
 app.use(noCache);

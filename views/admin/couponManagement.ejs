@@ -1,290 +1,1319 @@
 <%- include('../partials/admin/header', { title: 'Admin Panel - Coupons' }) %>
 
+<!-- Flatpickr CDN -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
 <style>
-  .swal2-popup {
-    border-radius: .7rem !important; /* 16px */
+  /* Base Admin Styles */
+  .bg-admin-gradient {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   }
-  .swal2-title {
-    font-size: 20px !important;
+  
+  .bg-card-gradient {
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  }
+
+  .bg-header-gradient {
+    background: linear-gradient(135deg, #1e293b 0%, #374151 50%, #4b5563 100%);
+  }
+
+  .bg-primary-gradient {
+    background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+  }
+
+  .bg-secondary-gradient {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  }
+
+  .bg-success-gradient {
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  }
+
+  .bg-danger-gradient {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  }
+
+  .shadow-gradient {
+    box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.1), 0 2px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+  
+  .shadow-gradient-lg {
+    box-shadow: 0 8px 20px -5px rgba(0, 0, 0, 0.12), 0 4px 8px -3px rgba(0, 0, 0, 0.08);
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, #1e293b 0%, #374151 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Enhanced Animations */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slideInUp {
+    from { transform: translateY(15px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes spinPlus {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes buttonShine {
+    0% { background-position: -100% 0; }
+    100% { background-position: 100% 0; }
+  }
+
+  .animate-fadeInUp { animation: fadeInUp 0.5s ease-out; }
+  .animate-slideInUp { animation: slideInUp 0.4s ease-out; }
+  .animate-popIn { animation: popIn 0.3s ease-out; }
+
+  /* Enhanced Button Styles */
+  .btn-primary {
+    @apply bg-primary-gradient hover:shadow-gradient-lg;
+    background-color: #1e293b;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary-gradient hover:shadow-gradient;
+  }
+
+  /* Add Coupon Button with Spinning Plus */
+  .btn-add-coupon {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-add-coupon::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.6s;
+  }
+
+  .btn-add-coupon:hover::before {
+    left: 100%;
+  }
+
+  .btn-add-coupon:hover .btn-plus-icon {
+    animation: spinPlus 0.6s ease-in-out;
+  }
+
+  .btn-plus-icon {
+    transition: transform 0.3s ease;
+  }
+
+  /* Enhanced Submit Button Loading */
+  .btn-submit-loading {
+    background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%);
+    cursor: not-allowed;
+  }
+
+  .btn-submit-loading::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    animation: buttonShine 2s infinite;
+  }
+
+  /* Table Styles */
+  .table-row {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .table-row:hover {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Toggle Switch Styles */
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 24px;
+  }
+
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 24px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background: white;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  input:checked + .toggle-slider {
+    background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+  }
+
+  input:checked + .toggle-slider:before {
+    transform: translateX(24px);
+  }
+
+  .toggle-slider:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+  }
+
+  /* Enhanced Pagination Styles */
+  .pagination-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .pagination-btn {
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid #e5e7eb;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    color: #374151;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .pagination-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    transition: left 0.5s;
+  }
+
+  .pagination-btn:hover:not(:disabled):not(.active)::before {
+    left: 100%;
+  }
+
+  .pagination-btn:hover:not(:disabled):not(.active) {
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .pagination-btn.active {
+    background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+    color: white;
+    border-color: #374151;
+    box-shadow: 0 4px 12px rgba(55, 65, 81, 0.3);
+  }
+
+  .pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .pagination-info {
+    font-size: 13px;
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  /* Loading Skeleton */
+  .loading-skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading-shimmer 2s infinite;
+  }
+
+  @keyframes loading-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  /* Enhanced Loading States */
+  .table-loading {
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  /* Custom Toaster Styles */
+  .toaster-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    max-width: 400px;
+    pointer-events: none;
+  }
+
+  .toaster {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    pointer-events: auto;
+    transform: translateX(420px);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+    max-width: 380px;
+    min-width: 320px;
+  }
+
+  .toaster.show {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  .toaster-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    flex-shrink: 0;
+  }
+
+  .toaster.success .toaster-icon {
+    background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+    color: white;
+  }
+
+  .toaster.error .toaster-icon {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+  }
+
+  .toaster-content {
+    flex: 1;
+  }
+
+  .toaster-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #1f2937;
+    margin-bottom: 4px;
+  }
+
+  .toaster-message {
+    font-size: 13px;
+    color: #6b7280;
+    line-height: 1.4;
+  }
+
+  .toaster-close {
+    cursor: pointer;
+    color: #9ca3af;
+    font-size: 12px;
+    padding: 2px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+  }
+
+  .toaster-close:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #374151;
+  }
+
+  /* Enhanced Form Styles */
+  .form-input {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .form-input:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Modal Enhancements */
+  .modal-overlay {
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-content {
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .pagination-container {
+      justify-content: center;
+    }
+    
+    .toaster-container {
+      left: 16px;
+      right: 16px;
+      max-width: none;
+    }
+    
+    .toaster {
+      min-width: auto;
+      max-width: none;
+    }
+
+    .pagination-btn {
+      padding: 6px 10px;
+      font-size: 13px;
+    }
   }
 </style>
 
-<div class="flex-1 p-6">
-  <!-- Title -->
-  <h1 class="text-2xl font-semibold mb-4">Coupon Management</h1>
+<!-- Main Content -->
+<div class="min-h-screen bg-admin-gradient">
+  <div class="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
+    
+    <!-- Page Header -->
+    <div class="mb-6 sm:mb-8 animate-fadeInUp">
+      <div class="text-center sm:text-left">
+        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gradient mb-2" style="font-family: 'Raleway', sans-serif;">
+          Coupon Management
+        </h1>
+        <p class="text-gray-600 text-sm sm:text-base lg:text-lg">
+          Create and manage discount coupons to boost your sales
+        </p>
+      </div>
+    </div>
 
-  <!-- Top Controls -->
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-    <!-- Search Form -->
-    <form method="GET" action="/admin/coupons" class="flex items-center gap-2 w-full md:w-auto">
-      <input
-        type="text" 
-        name="search"
-        value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>"
-        placeholder="Search by name, min, discount..."
-        class="border px-3 py-2 rounded-md w-full md:w-64"
-      />
-      <button type="submit" class="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">Search</button>
-    </form>
+    <!-- Controls Section -->
+    <div class="mb-4 animate-slideInUp" style="animation-delay: 0.1s;">
+      <div class="bg-card-gradient rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-gradient-lg border border-white/20">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+          
+          <!-- Search and Filter Section -->
+          <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 flex-1">
+            <!-- Search Input -->
+            <div class="relative group flex-1">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i class="fas fa-search text-gray-400 text-sm"></i>
+              </div>
+              <input
+                type="text"
+                id="searchInput"
+                placeholder="Search coupons..."
+                class="w-full pl-9 pr-3 py-3 bg-secondary-gradient border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-100 focus:border-gray-400 transition-all duration-300 shadow-sm focus:shadow-gradient placeholder-gray-500 text-sm form-input"
+              />
+            </div>
 
-    <!-- Add Coupon Button -->
-    <button onclick="openCouponModal()" class="bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-500 transition font-medium">
-      Add Coupon
-    </button>
+            <!-- Filter Dropdown -->
+            <div class="relative">
+              <select 
+                id="statusFilter" 
+                class="appearance-none bg-secondary-gradient border border-gray-200 rounded-lg px-3 py-3 pr-8 focus:ring-2 focus:ring-gray-100 focus:border-gray-400 transition-all duration-300 shadow-sm text-sm font-medium text-gray-700 cursor-pointer form-input">
+                <option value="all">All Coupons</option>
+                <option value="active">Active Only</option>
+                <option value="inactive">Inactive Only</option>
+              </select>
+              <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+              </div>
+            </div>
+
+            <!-- Sort Dropdown -->
+            <div class="relative">
+              <select 
+                id="sortFilter" 
+                class="appearance-none bg-secondary-gradient border border-gray-200 rounded-lg px-3 py-3 pr-8 focus:ring-2 focus:ring-gray-100 focus:border-gray-400 transition-all duration-300 shadow-sm text-sm font-medium text-gray-700 cursor-pointer form-input">
+                <option value="desc">Newest First</option>
+                <option value="asc">Oldest First</option>
+                <option value="name-asc">Name A-Z</option>
+                <option value="name-desc">Name Z-A</option>
+                <option value="offerPrice-desc">Highest Discount</option>
+                <option value="offerPrice-asc">Lowest Discount</option>
+              </select>
+              <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                <i class="fas fa-sort text-gray-400 text-xs"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-center gap-3">
+            <button 
+              type="button" 
+              id="applyFiltersBtn"
+              class="btn-secondary px-4 py-2.5 text-gray-700 font-medium rounded-lg border border-gray-200 shadow-sm flex items-center gap-2 text-sm hover:shadow-gradient transition-all duration-300">
+              <i class="fas fa-filter text-xs"></i>
+              <span>Apply</span>
+            </button>
+            
+            <button 
+              type="button" 
+              id="clearFiltersBtn"
+              class="btn-secondary px-4 py-2.5 text-gray-700 font-medium rounded-lg border border-gray-200 shadow-sm flex items-center gap-2 text-sm hover:shadow-gradient transition-all duration-300">
+              <i class="fas fa-times text-xs"></i>
+              <span>Clear</span>
+            </button>
+            
+            <button 
+              onclick="openCouponModal()" 
+              class="btn-add-coupon btn-primary px-4 lg:px-6 py-2.5 text-white font-medium rounded-lg shadow-gradient flex items-center gap-2 relative overflow-hidden text-sm">
+              <i class="fas fa-plus text-xs btn-plus-icon"></i>
+              <span>Add Coupon</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table Section -->
+    <div class="animate-slideInUp" style="animation-delay: 0.2s;">
+      <div class="bg-card-gradient rounded-lg sm:rounded-xl shadow-gradient-lg border border-white/20 overflow-hidden">
+        
+        <!-- Table Header -->
+        <div class="px-4 lg:px-6 py-4 bg-header-gradient">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-lg font-bold text-white mb-0.5">All Coupons</h3>
+              <p class="text-gray-300 text-xs">Manage your discount campaigns</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span class="text-gray-300 text-xs" id="resultsCount">Loading...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table Content (Non-scrollable) -->
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-secondary-gradient border-b border-gray-200 sticky top-0">
+              <tr>
+                <th class="px-3 lg:px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Name</th>
+                <th class="px-3 lg:px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Discount</th>
+                <th class="px-3 lg:px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider hidden sm:table-cell">Min Purchase</th>
+                <th class="px-3 lg:px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider hidden lg:table-cell">Limit</th>
+                <th class="px-3 lg:px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider hidden lg:table-cell">Description</th>
+                <th class="px-3 lg:px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider hidden md:table-cell">Dates</th>
+                <th class="px-3 lg:px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
+                <th class="px-3 lg:px-4 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">List/Unlist</th>
+                <th class="px-3 lg:px-4 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="couponsTableBody" class="divide-y divide-gray-100">
+              <!-- Table rows will be populated by JavaScript -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Enhanced Pagination Section -->
+        <div class="px-4 lg:px-6 py-4 bg-secondary-gradient border-t border-gray-200">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <!-- Results Info -->
+            <div class="pagination-info" id="paginationInfo">
+              Loading...
+            </div>
+            
+            <!-- Enhanced Pagination Controls -->
+            <div class="pagination-container" id="paginationContainer">
+              <!-- Pagination will be populated by JavaScript -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-
-  <!-- Coupon Table -->
-  <div id="couponList" class="overflow-x-auto p-4">
-  <table class="min-w-full bg-white rounded-2xl shadow-md text-sm text-gray-700 overflow-hidden">
-    <thead>
-      <tr class="bg-gray-100 text-gray-600 text-left">
-        <th class="px-6 py-3">Name</th>
-        <th class="px-6 py-3">Discount in Price</th>
-        <th class="px-6 py-3">Min Purchase</th>
-        <th class="px-6 py-3">Starting Date</th>
-        <th class="px-6 py-3">Expiry Date</th>
-        <th class="px-6 py-3">Status</th>
-        <th class="px-6 py-3 text-center">Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% if (coupons.length === 0) { %>
-    <tr>
-      <td colspan="6" class="text-center py-6 text-gray-500 font-semibold">
-        Currently no coupons added.
-      </td>
-    </tr>
-  <% } else { %>
-    <% coupons.forEach((coupon) => { %>
-      <tr class="hover:bg-gray-50 transition">
-        <td class="px-6 py-4 hidden"><%= coupon._id %></td>
-        <td class="px-6 py-4"><%= coupon.name %></td>
-        <td class="px-6 py-4">₹<%= coupon.offerPrice %></td>
-        <td class="px-6 py-4">₹<%= coupon.minimumPrice %></td>
-        <td class="px-6 py-4"><%= new Date(coupon.startOn).toLocaleDateString() %></td>
-        <td class="px-6 py-4"><%= new Date(coupon.expireOn).toLocaleDateString() %></td>
-        <td class="px-6 py-4">
-          <% if (coupon.isList) { %>
-            <span class="inline-block px-3 py-1 text-xs font-semibold text-green-700 bg-green-100 rounded-full">Listed</span>
-          <% } else { %>
-            <span class="inline-block px-3 py-1 text-xs font-semibold text-red-700 bg-red-100 rounded-full">Unlisted</span>
-          <% } %>
-        </td>
-        <td class="px-6 py-4 flex gap-2 justify-center">
-          <button 
-            class="edit-coupon bg-gray-900 text-white px-4 py-1 rounded-md hover:bg-gray-600 transition"
-            data-id="<%= coupon._id %>"
-            data-name="<%= coupon.name %>"
-            data-offerprice="<%= coupon.offerPrice %>"
-            data-minimumprice="<%= coupon.minimumPrice %>"
-            data-startOn="<%= new Date(coupon.startOn).toISOString().split('T')[0] %>"
-            data-expireon="<%= new Date(coupon.expireOn).toISOString().split('T')[0] %>">
-            Edit
-          </button>
-
-          <% if (!coupon.isList) { %>
-            <button 
-                onclick="toggleCouponStatus('<%= coupon._id %>', true, this)" 
-                class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-400">
-                List
-            </button>
-            <% } else { %>
-            <button 
-                onclick="toggleCouponStatus('<%= coupon._id %>', false, this)" 
-                class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-400">
-                Unlist
-            </button>
-          <% } %>
-        </td>
-      </tr>
-    <% }) %>
-  <% } %>
-    </tbody>
-  </table>
 </div>
 
-</div>
+<!-- Enhanced Coupon Modal -->
+<div id="couponModal" class="fixed inset-0 bg-black bg-opacity-50 modal-overlay flex items-center justify-center p-4 z-50 hidden">
+  <div id="modalContent" class="modal-content bg-white w-full max-w-2xl transform scale-95 transition-all duration-300 rounded-2xl">
+    <form id="couponForm" onsubmit="submitCouponForm(event)">
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-gray-200 bg-header-gradient rounded-t-2xl">
+        <h2 id="couponModalTitle" class="text-xl font-bold text-white">Add New Coupon</h2>
+        <p class="text-gray-300 text-sm mt-1">Create attractive discount offers for your customers</p>
+      </div>
 
-<!-- Coupon Modal -->
-<div id="couponModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden z-50">
-  <div class="bg-white p-6 rounded-lg w-full max-w-md shadow-lg relative">
-    <h2 id="couponModalTitle" class="text-xl font-semibold mb-4">Add Coupon</h2>
+      <!-- Modal Body -->
+      <div class="px-6 py-6 space-y-6 max-h-96 overflow-y-auto">
+        <input type="hidden" id="editingCouponId" value="">
+        
+        <!-- Coupon Name -->
+        <div>
+          <label for="couponName" class="block text-sm font-bold text-gray-700 mb-2">
+            Coupon Name <span class="text-red-500">*</span>
+          </label>
+          <input 
+            type="text" 
+            id="couponName" 
+            name="name"
+            placeholder="Enter coupon name (e.g., SAVE50, NEWUSER)"
+            class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all duration-300 shadow-sm form-input"
+            required
+          >
+        </div>
 
-    <form id="couponForm">
-      <input type="hidden" id="editingCouponId" />
+        <!-- Offer Price and Minimum Price -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="couponOfferPrice" class="block text-sm font-bold text-gray-700 mb-2">
+              Discount Amount (₹) <span class="text-red-500">*</span>
+            </label>
+            <input 
+              type="number" 
+              id="couponOfferPrice" 
+              name="offerPrice"
+              placeholder="50"
+              min="1"
+              class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all duration-300 shadow-sm form-input"
+              required
+            >
+          </div>
+          
+          <div>
+            <label for="couponMinimumPrice" class="block text-sm font-bold text-gray-700 mb-2">
+              Minimum Purchase (₹) <span class="text-red-500">*</span>
+            </label>
+            <input 
+              type="number" 
+              id="couponMinimumPrice" 
+              name="minimumPrice"
+              placeholder="500"
+              min="0"
+              class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all duration-300 shadow-sm form-input"
+              required
+            >
+          </div>
+        </div>
 
-      <label>Name</label>
-      <input type="text" id="couponName" required class="w-full border px-3 py-2 rounded mb-3" />
+        <!-- Usage Limit -->
+        <div>
+          <label for="couponLimit" class="block text-sm font-bold text-gray-700 mb-2">
+            Usage Limit per User
+          </label>
+          <input 
+            type="number" 
+            id="couponLimit" 
+            name="usageLimit"
+            placeholder="Leave empty for unlimited uses"
+            min="1"
+            class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all duration-300 shadow-sm form-input"
+          >
+          <p class="text-xs text-gray-500 mt-1">Leave empty for unlimited uses per user</p>
+        </div>
 
-      <label>Discount in Price</label>
-      <input type="number" id="couponOfferPrice" required class="w-full border px-3 py-2 rounded mb-3" />
+        <!-- Description -->
+        <div>
+          <label for="couponDescription" class="block text-sm font-bold text-gray-700 mb-2">
+            Description
+          </label>
+          <textarea 
+            id="couponDescription" 
+            name="description"
+            placeholder="Brief description of the coupon offer"
+            rows="3"
+            class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all duration-300 shadow-sm resize-none form-input"
+          ></textarea>
+        </div>
 
-      <label>Min Purchase (₹)</label>
-      <input type="number" id="couponMinimumPrice" required class="w-full border px-3 py-2 rounded mb-3" />
+        <!-- Date Range -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="couponStartOn" class="block text-sm font-bold text-gray-700 mb-2">
+              Start Date <span class="text-red-500">*</span>
+            </label>
+            <input 
+              type="date" 
+              id="couponStartOn" 
+              name="startOn"
+              class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all duration-300 shadow-sm form-input"
+              required
+            >
+          </div>
+          
+          <div>
+            <label for="couponExpireOn" class="block text-sm font-bold text-gray-700 mb-2">
+              Expiry Date <span class="text-red-500">*</span>
+            </label>
+            <input 
+              type="date" 
+              id="couponExpireOn" 
+              name="expireOn"
+              class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all duration-300 shadow-sm form-input"
+              required
+            >
+          </div>
+        </div>
+      </div>
 
-      <label>Strating Date</label>
-      <input type="date" id="couponExpireOn" required class="w-full border px-3 py-2 rounded mb-4" />
-      
-      <label>Expiry Date</label>
-      <input type="date" id="couponstartOn" required class="w-full border px-3 py-2 rounded mb-4" />
-
-      <div class="flex justify-between">
-        <button type="submit" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-600">
-          Save
-        </button>
-        <button type="button" onclick="closeCouponModal()" class="text-gray-600 hover:text-black">
+      <!-- Enhanced Modal Footer -->
+      <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-2xl flex flex-col sm:flex-row gap-3 sm:justify-end">
+        <button 
+          type="button" 
+          onclick="closeCouponModal()" 
+          class="order-2 sm:order-1 px-6 py-3 bg-gray-100 text-gray-700 font-medium rounded-lg border border-gray-200 hover:bg-gray-200 transition-all duration-300 text-sm"
+          id="cancelBtn"
+        >
           Cancel
+        </button>
+        <button 
+          type="submit" 
+          id="couponSubmitBtn"
+          class="order-1 sm:order-2 px-6 py-3 btn-primary text-white font-medium rounded-lg shadow-gradient transition-all duration-300 text-sm relative overflow-hidden"
+        >
+          <span id="submitBtnText">Create Coupon</span>
+          <i id="submitBtnLoader" class="fas fa-spinner fa-spin ml-2 hidden"></i>
         </button>
       </div>
     </form>
   </div>
 </div>
-</div>
 
-<!-- sweetalert2 -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- Toaster Container -->
+<div id="toasterContainer" class="toaster-container"></div>
 
 <script>
-  // Open blank modal for adding coupon
-  function openCouponModal() {
-    document.getElementById('couponForm').reset();
-    document.getElementById('editingCouponId').value = '';
-    document.getElementById('couponModalTitle').innerText = 'Add Coupon';
-    document.getElementById('couponModal').classList.remove('hidden');
+// ==================== ENHANCED TOASTER SYSTEM ====================
+class EnhancedToaster {
+  constructor() {
+    this.container = document.getElementById('toasterContainer');
+    this.counter = 0;
   }
 
-  // Open modal and fill coupon data for editing
-  document.querySelectorAll(".edit-coupon").forEach(editBtn => {
-    editBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-
-      document.getElementById("editingCouponId").value = editBtn.dataset.id;
-      document.getElementById("couponName").value = editBtn.dataset.name;
-      document.getElementById("couponOfferPrice").value = editBtn.dataset.offerprice;
-      document.getElementById("couponMinimumPrice").value = editBtn.dataset.minimumprice;
-      document.getElementById("couponstartOn").value = editBtn.dataset.startOn;
-      document.getElementById("couponExpireOn").value = editBtn.dataset.expireon;
-
-      document.getElementById('couponModalTitle').innerText = 'Edit Coupon';
-      document.getElementById('couponModal').classList.remove('hidden');
-    });
-  });
-
-  // Close modal
-  function closeCouponModal() {
-    document.getElementById('couponModal').classList.add('hidden');
-  }
-
-  // Submit coupon form
-  document.getElementById('couponForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const id = document.getElementById('editingCouponId').value.trim();
-    const name = document.getElementById('couponName').value.trim().toUpperCase();;
-    const offerPrice = Number(document.getElementById('couponOfferPrice').value);
-    const minimumPrice = Number(document.getElementById('couponMinimumPrice').value);
-    const startOn = document.getElementById('couponstartOn').value;
-    const expireOn = document.getElementById('couponExpireOn').value;
-
-    const couponData = { name, offerPrice, minimumPrice,startOn, expireOn };
-
-
-
-    try {
-      let response;
-      if (id) {
-        // Edit (PUT)
-        response = await fetch(`/admin/coupons/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(couponData)
-        });
-      } else {
-        // Add (POST)
-        response = await fetch('/admin/coupons', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(couponData)
-        });
-      }
-
-      console.log('res', response);
-
-      const data = await response.json();
-
-      console.log('your data',data)
-      console.log('data', data);
-      if (data.success) {
-       Swal.fire({
-       title: id ? 'Coupon updated successfully!' : 'Coupon added successfully!',
-       showConfirmButton: false,
-       timer: 1500
-      });
-       closeCouponModal();
-       setTimeout(() => {
-       window.location.reload();
-      }, 1600); 
-      } else {
-         Swal.fire({
-         title: 'Failed to save coupon: ' + data.message,
-         showConfirmButton: false,
-         timer: 2000
-      });
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Something went wrong!');
-    }
-  });
-
-    //fetch for List and Unlist
-    function toggleCouponStatus(couponId, list, button) {
-     const action = list ? "list" : "unlist";
-
-  Swal.fire({
-    title: `Are you sure you want to ${action} this coupon?`,
-    showCancelButton: true,
-    confirmButtonColor: '#1f2937',
-    cancelButtonColor: '#d1d5db',
-    confirmButtonText: `Yes, ${action}`,
-    customClass: {
-      popup: 'text-center',
-    }
-  }).then((result) => {
-    if (result.isConfirmed) {
-      fetch('/admin/coupons', {
-        method: 'PATCH',
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ couponId, isList: list })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          Swal.fire({
-            title: `Coupon ${list ? 'listed' : 'unlisted'} successfully`,
-            confirmButtonColor: '#1f2937'
-          }).then(() => {
-            // Update button text, class and onclick
-            button.textContent = list ? 'Unlist' : 'List';
-            button.className = list
-              ? 'bg-red-500 text-white px-3 py-1 rounded hover:bg-red-400'
-              : 'bg-green-500 text-white px-3 py-1 rounded hover:bg-green-400';
-            button.setAttribute("onclick", `toggleCouponStatus('${couponId}', ${!list}, this)`);
-          });
-        } else {
-          Swal.fire("Error", "Failed to update coupon status", "error");
+  show(type, title, message, duration = 4000) {
+    const id = ++this.counter;
+    const toaster = document.createElement('div');
+    toaster.className = `toaster ${type}`;
+    toaster.innerHTML = `
+      <div class="toaster-icon">
+        <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : 'info'}"></i>
+      </div>
+      <div class="toaster-content">
+        <div class="toaster-title">${title}</div>
+        <div class="toaster-message">${message}</div>
+      </div>
+      <div class="toaster-close" onclick="this.parentElement.remove()">
+        <i class="fas fa-times"></i>
+      </div>
+    `;
+    
+    this.container.appendChild(toaster);
+    
+    // Show animation
+    requestAnimationFrame(() => toaster.classList.add('show'));
+    
+    // Auto remove
+    if (duration > 0) {
+      setTimeout(() => {
+        if (toaster.parentNode) {
+          toaster.remove();
         }
-      })
-      .catch(err => {
-        console.error(err);
-        Swal.fire("Error", "Something went wrong", "error");
-      });
+      }, duration);
+    }
+  }
+
+  success(title, message) { this.show('success', title, message); }
+  error(title, message) { this.show('error', title, message); }
+  info(title, message) { this.show('info', title, message); }
+}
+
+// Initialize toaster
+const toaster = new EnhancedToaster();
+
+// ==================== ENHANCED COUPON MANAGEMENT ====================
+let currentPage = 1;
+let currentData = null;
+let isLoading = false;
+
+// DOM Elements
+const searchInput = document.getElementById('searchInput');
+const statusFilter = document.getElementById('statusFilter');
+const sortFilter = document.getElementById('sortFilter');
+const applyBtn = document.getElementById('applyFiltersBtn');
+const clearBtn = document.getElementById('clearFiltersBtn');
+const tableBody = document.getElementById('couponsTableBody');
+const resultsCount = document.getElementById('resultsCount');
+const paginationInfo = document.getElementById('paginationInfo');
+const paginationContainer = document.getElementById('paginationContainer');
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  setupEventListeners();
+  loadCoupons(1);
+  initializeDatePickers();
+});
+
+// Event Listeners
+function setupEventListeners() {
+  applyBtn.addEventListener('click', () => loadCoupons(1));
+  clearBtn.addEventListener('click', clearFilters);
+  searchInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') loadCoupons(1);
+  });
+  statusFilter.addEventListener('change', () => loadCoupons(1));
+  sortFilter.addEventListener('change', () => loadCoupons(1));
+}
+
+// Enhanced Load Coupons
+async function loadCoupons(page = 1) {
+  if (isLoading) return;
+  
+  isLoading = true;
+  showLoading();
+  
+  try {
+    const params = new URLSearchParams({
+      page: page,
+      q: searchInput.value.trim(),
+      status: statusFilter.value,
+      sortBy: sortFilter.value.split(':')[0],
+      sortOrder: sortFilter.value.split(':')[1]
+    });
+    
+    const response = await fetch(`/admin/coupons/search?${params}`);
+    const data = await response.json();
+    
+    if (data.success) {
+      currentPage = page;
+      currentData = data;
+      renderTable(data.coupons);
+      renderEnhancedPagination(data);
+      updateInfo(data);
+    } else {
+      throw new Error(data.message || 'Failed to load coupons');
+    }
+  } catch (error) {
+    console.error('Error loading coupons:', error);
+    toaster.error('Load Error', 'Failed to load coupons. Please try again.');
+    showError();
+  } finally {
+    isLoading = false;
+    hideLoading();
+  }
+}
+
+// Enhanced Loading State
+function showLoading() {
+  applyBtn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i> Loading...';
+  applyBtn.disabled = true;
+  
+  // Enhanced skeleton rows
+  tableBody.innerHTML = Array(7).fill(0).map((_, index) => `
+    <tr class="table-loading" style="animation-delay: ${index * 0.1}s;">
+      <td class="px-3 lg:px-4 py-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-gray-200 rounded-lg loading-skeleton"></div>
+          <div class="flex-1">
+            <div class="h-4 bg-gray-200 rounded loading-skeleton mb-2"></div>
+            <div class="h-3 bg-gray-200 rounded loading-skeleton w-24"></div>
+          </div>
+        </div>
+      </td>
+      <td class="px-3 lg:px-4 py-4">
+        <div class="h-6 bg-gray-200 rounded loading-skeleton w-16"></div>
+      </td>
+      <td class="px-3 lg:px-4 py-4 hidden sm:table-cell">
+        <div class="h-4 bg-gray-200 rounded loading-skeleton w-20"></div>
+      </td>
+      <td class="px-3 lg:px-4 py-4 hidden lg:table-cell">
+        <div class="h-4 bg-gray-200 rounded loading-skeleton w-16"></div>
+      </td>
+      <td class="px-3 lg:px-4 py-4 hidden lg:table-cell">
+        <div class="h-4 bg-gray-200 rounded loading-skeleton w-32"></div>
+      </td>
+      <td class="px-3 lg:px-4 py-4 hidden md:table-cell">
+        <div class="h-4 bg-gray-200 rounded loading-skeleton w-24"></div>
+      </td>
+      <td class="px-3 lg:px-4 py-4 text-center">
+        <div class="h-6 bg-gray-200 rounded-full loading-skeleton w-20 mx-auto"></div>
+      </td>
+      <td class="px-3 lg:px-4 py-4 text-center">
+        <div class="w-12 h-6 bg-gray-200 rounded-full loading-skeleton mx-auto"></div>
+      </td>
+      <td class="px-3 lg:px-4 py-4 text-center">
+        <div class="w-8 h-8 bg-gray-200 rounded loading-skeleton mx-auto"></div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// Hide Loading
+function hideLoading() {
+  applyBtn.innerHTML = '<i class="fas fa-filter text-xs"></i> <span>Apply</span>';
+  applyBtn.disabled = false;
+}
+
+// Show Error
+function showError() {
+  tableBody.innerHTML = `
+    <tr>
+      <td colspan="9" class="px-4 py-12 text-center">
+        <div class="flex flex-col items-center animate-popIn">
+          <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+            <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-700 mb-2">Failed to load coupons</h3>
+          <p class="text-gray-500 mb-4">Something went wrong. Please try again.</p>
+          <button onclick="loadCoupons(currentPage)" class="btn-primary px-4 py-2 text-white rounded-lg">
+            <i class="fas fa-redo text-xs mr-2"></i>
+            Try Again
+          </button>
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+// Simplified Render Status Badge using isActive field
+function renderStatusBadge(coupon) {
+  // Use the isActive field directly from backend
+  const isActive = coupon.isActive;
+  
+  if (isActive) {
+    return `
+      <div class="status-badge active">
+        <span class="status-badge-icon"></span>
+        Active
+      </div>
+    `;
+  } else {
+    return `
+      <div class="status-badge inactive">
+        <span class="status-badge-icon"></span>
+        Inactive
+      </div>
+    `;
+  }
+}
+
+// Enhanced Table Rendering with backend isActive field
+function renderTable(coupons) {
+  if (!coupons.length) {
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="9" class="px-4 py-16 text-center">
+          <div class="flex flex-col items-center animate-popIn">
+            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+              <i class="fas fa-ticket-alt text-gray-400 text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-700 mb-2">No coupons found</h3>
+            <p class="text-gray-500 mb-6 max-w-md">
+              ${searchInput.value.trim() || statusFilter.value !== 'all' ? 
+                'Try adjusting your search terms or filters to find what you\'re looking for.' : 
+                'Get started by creating your first discount coupon to boost sales.'
+              }
+            </p>
+            <div class="flex gap-3">
+              ${searchInput.value.trim() || statusFilter.value !== 'all' ? 
+                '<button onclick="clearFilters()" class="btn-secondary px-6 py-3 text-gray-700 rounded-lg border">Clear Filters</button>' : 
+                ''
+              }
+              <button onclick="openCouponModal()" class="btn-add-coupon btn-primary px-6 py-3 text-white rounded-lg">
+                <i class="fas fa-plus text-sm mr-2 btn-plus-icon"></i>
+                Create Your First Coupon
+              </button>
+            </div>
+          </div>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tableBody.innerHTML = coupons.map((coupon, index) => {
+    return `
+      <tr class="table-row animate-popIn" style="animation-delay: ${index * 0.05}s;">
+        <td class="px-3 lg:px-4 py-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-primary-gradient rounded-lg flex items-center justify-center text-white font-bold shadow-sm">
+              ${coupon.name.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <div class="font-bold text-gray-900 text-sm">${coupon.name}</div>
+              <div class="text-xs text-gray-500 font-medium">Coupon Code</div>
+            </div>
+          </div>
+        </td>
+        <td class="px-3 lg:px-4 py-4">
+          <div class="font-bold text-gradient text-lg">₹${coupon.offerPrice.toLocaleString()}</div>
+          <div class="text-xs text-gray-500 font-medium">Discount</div>
+        </td>
+        <td class="px-3 lg:px-4 py-4 hidden sm:table-cell">
+          <div class="font-semibold text-gray-800">₹${coupon.minimumPrice.toLocaleString()}</div>
+          <div class="text-xs text-gray-500 font-medium">Minimum</div>
+        </td>
+        <td class="px-3 lg:px-4 py-4 hidden lg:table-cell">
+          <div class="font-semibold text-gray-800">${coupon.usageLimit || 'Unlimited'}</div>
+          <div class="text-xs text-gray-500 font-medium">Uses per user</div>
+        </td>
+        <td class="px-3 lg:px-4 py-4 hidden lg:table-cell">
+          <div class="text-sm text-gray-700 truncate max-w-xs" title="${coupon.description || ''}">
+            ${coupon.description || '-'}
+          </div>
+        </td>
+        <td class="px-3 lg:px-4 py-4 hidden md:table-cell">
+          <div class="text-xs">
+            <div class="font-semibold text-gray-800">${new Date(coupon.startOn).toLocaleDateString()}</div>
+            <div class="font-semibold text-gray-800">${new Date(coupon.expireOn).toLocaleDateString()}</div>
+            <div class="text-gray-500 font-medium">Start - Expiry</div>
+          </div>
+        </td>
+        <td class="px-3 lg:px-4 py-4 text-center">
+          ${renderStatusBadge(coupon)}
+        </td>
+        <td class="px-3 lg:px-4 py-4 text-center">
+          <label class="toggle-switch" title="${coupon.isList ? 'Unlist' : 'List'} Coupon">
+            <input 
+              type="checkbox" 
+              ${coupon.isList ? 'checked' : ''} 
+              onchange="toggleListStatus('${coupon._id}', this.checked, this)"
+            >
+            <span class="toggle-slider"></span>
+          </label>
+        </td>
+        <td class="px-3 lg:px-4 py-4 text-center">
+          <button
+            class="edit-btn px-3 py-2 btn-secondary text-gray-700 rounded-lg shadow-sm border hover:shadow-gradient transition-all duration-300"
+            onclick="editCoupon('${coupon._id}', '${coupon.name}', ${coupon.offerPrice}, ${coupon.minimumPrice}, '${coupon.usageLimit || ''}', '${(coupon.description || '').replace(/'/g, "\\'")}', '${new Date(coupon.startOn).toISOString().split('T')[0]}', '${new Date(coupon.expireOn).toISOString().split('T')[0]}')"
+            title="Edit Coupon">
+            <i class="fas fa-edit"></i>
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// Enhanced Pagination Rendering
+function renderEnhancedPagination(data) {
+  const { page, pages } = data;
+  
+  if (pages <= 1) {
+    paginationContainer.innerHTML = '<div class="text-sm text-gray-500 italic">All results on one page</div>';
+    return;
+  }
+  
+  let pagination = [];
+  
+  // Previous button
+  if (page > 1) {
+    pagination.push(`
+      <button class="pagination-btn" onclick="loadCoupons(${page - 1})" title="Previous Page">
+        <i class="fas fa-chevron-left text-xs mr-1"></i>
+        <span class="hidden sm:inline">Previous</span>
+      </button>
+    `);
+  }
+  
+  // Enhanced page numbers with better logic
+  let startPage = Math.max(1, page - 2);
+  let endPage = Math.min(pages, page + 2);
+  
+  // Always show first page if not in range
+  if (startPage > 1) {
+    pagination.push(`<button class="pagination-btn" onclick="loadCoupons(1)">1</button>`);
+    if (startPage > 2) {
+      pagination.push(`<span class="pagination-btn opacity-50 cursor-default">...</span>`);
+    }
+  }
+  
+  // Page numbers
+  for (let i = startPage; i <= endPage; i++) {
+    pagination.push(`
+      <button class="pagination-btn ${i === page ? 'active' : ''}" onclick="loadCoupons(${i})" ${i === page ? 'disabled' : ''}>
+        ${i}
+      </button>
+    `);
+  }
+  
+  // Always show last page if not in range
+  if (endPage < pages) {
+    if (endPage < pages - 1) {
+      pagination.push(`<span class="pagination-btn opacity-50 cursor-default">...</span>`);
+    }
+    pagination.push(`<button class="pagination-btn" onclick="loadCoupons(${pages})">${pages}</button>`);
+  }
+  
+  // Next button
+  if (page < pages) {
+    pagination.push(`
+      <button class="pagination-btn" onclick="loadCoupons(${page + 1})" title="Next Page">
+        <span class="hidden sm:inline">Next</span>
+        <i class="fas fa-chevron-right text-xs ml-1"></i>
+      </button>
+    `);
+  }
+  
+  paginationContainer.innerHTML = pagination.join('');
+}
+
+// Update Info with enhanced details
+function updateInfo(data) {
+  const { page, pages, total, limit } = data;
+  const start = (page - 1) * limit + 1;
+  const end = Math.min(page * limit, total);
+  
+  resultsCount.textContent = `${total} coupons`;
+  paginationInfo.textContent = `Showing ${start}-${end} of ${total} coupons (Page ${page} of ${pages})`;
+}
+
+// Clear Filters
+function clearFilters() {
+  searchInput.value = '';
+  statusFilter.value = 'all';
+  sortFilter.value = 'createdOn:desc';
+  loadCoupons(1);
+  toaster.info('Filters Cleared', 'All filters have been reset');
+}
+
+// Enhanced Toggle List Status (for isList field)
+async function toggleListStatus(couponId, status, element) {
+  element.disabled = true;
+  const originalStatus = element.checked;
+  
+  try {
+    const response = await fetch('/admin/coupons', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ couponId, isList: status })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      console.log(status)
+      toaster.success(
+        'List Status Updated', 
+        `Coupon has been ${status ? 'listed' : 'unlisted'} successfully`
+      );
+      // Reload the page to update any changes
+      loadCoupons(currentPage);
+    } else {
+      throw new Error(data.message || 'Failed to update coupon list status');
+    }
+  } catch (error) {
+    console.error('Toggle list status error:', error);
+    element.checked = !status; // Revert the toggle
+    toaster.error('Update Failed', 'Failed to update coupon list status. Please try again.');
+  } finally {
+    element.disabled = false;
+  }
+}
+
+// Edit Coupon
+function editCoupon(id, name, offer, minimum, limit, description, start, end) {
+  document.getElementById('editingCouponId').value = id;
+  document.getElementById('couponName').value = name;
+  document.getElementById('couponOfferPrice').value = offer;
+  document.getElementById('couponMinimumPrice').value = minimum;
+  document.getElementById('couponLimit').value = limit;
+  document.getElementById('couponDescription').value = description;
+  document.getElementById('couponStartOn').value = start;
+  document.getElementById('couponExpireOn').value = end;
+  
+  document.getElementById('couponModalTitle').textContent = 'Edit Coupon';
+  document.getElementById('submitBtnText').textContent = 'Update Coupon';
+  openModal();
+}
+
+// Modal Functions
+function openCouponModal() {
+  document.getElementById('couponForm').reset();
+  document.getElementById('editingCouponId').value = '';
+  document.getElementById('couponModalTitle').textContent = 'Add New Coupon';
+  document.getElementById('submitBtnText').textContent = 'Create Coupon';
+  
+  // Set default dates
+  const today = new Date().toISOString().split('T')[0];
+  const nextMonth = new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0];
+  document.getElementById('couponStartOn').value = today;
+  document.getElementById('couponExpireOn').value = nextMonth;
+  
+  openModal();
+}
+
+function openModal() {
+  const modal = document.getElementById('couponModal');
+  const content = document.getElementById('modalContent');
+  modal.classList.remove('hidden');
+  setTimeout(() => {
+    content.classList.remove('scale-95');
+    content.classList.add('scale-100');
+  }, 10);
+}
+
+function closeCouponModal() {
+  const modal = document.getElementById('couponModal');
+  const content = document.getElementById('modalContent');
+  content.classList.add('scale-95');
+  setTimeout(() => modal.classList.add('hidden'), 300);
+}
+
+// Enhanced Submit Form with better loading states
+async function submitCouponForm(event) {
+  event.preventDefault();
+  
+  const btn = document.getElementById('couponSubmitBtn');
+  const text = document.getElementById('submitBtnText');
+  const loader = document.getElementById('submitBtnLoader');
+  const cancelBtn = document.getElementById('cancelBtn');
+  
+  // Enhanced loading state
+  btn.disabled = true;
+  btn.classList.add('btn-submit-loading');
+  text.style.display = 'none';
+  loader.classList.remove('hidden');
+  cancelBtn.disabled = true;
+  
+  try {
+    const formData = new FormData(event.target);
+    const data = Object.fromEntries(formData.entries());
+    
+    const editingId = document.getElementById('editingCouponId').value;
+    if (editingId) data.couponId = editingId;
+    if (!data.usageLimit) data.usageLimit = null;
+    
+    // Validate dates
+    const startDate = new Date(data.startOn);
+    const endDate = new Date(data.expireOn);
+    
+    if (endDate <= startDate) {
+      throw new Error('End date must be after start date');
+    }
+    
+    if (startDate < new Date().setHours(0, 0, 0, 0)) {
+      throw new Error('Start date cannot be in the past');
+    }
+    
+    const url = editingId ? '/admin/coupons/edit' : '/admin/coupons/add';
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      closeCouponModal();
+      toaster.success(
+        editingId ? 'Coupon Updated!' : 'Coupon Created!', 
+        result.message || `Coupon has been ${editingId ? 'updated' : 'created'} successfully.`
+      );
+      loadCoupons(currentPage);
+    } else {
+      throw new Error(result.message || 'Failed to save coupon');
+    }
+  } catch (error) {
+    console.error('Form submission error:', error);
+    toaster.error(
+      'Save Failed', 
+      error.message || 'Failed to save coupon. Please check your input and try again.'
+    );
+  } finally {
+    // Reset loading state
+    btn.disabled = false;
+    btn.classList.remove('btn-submit-loading');
+    text.style.display = 'inline';
+    loader.classList.add('hidden');
+    cancelBtn.disabled = false;
+  }
+}
+
+// Enhanced Date Pickers
+function initializeDatePickers() {
+  const today = new Date().toISOString().split('T')[0];
+  
+  flatpickr("#couponStartOn", {
+    minDate: today,
+    dateFormat: "Y-m-d",
+    onChange: function(selectedDates, dateStr, instance) {
+      // Update minimum date for end date picker
+      if (selectedDates[0]) {
+        const endDatePicker = document.getElementById('couponExpireOn')._flatpickr;
+        if (endDatePicker) {
+          endDatePicker.set('minDate', selectedDates[0]);
+        }
+      }
+    }
+  });
+  
+  flatpickr("#couponExpireOn", {
+    minDate: today,
+    dateFormat: "Y-m-d",
+    onChange: function(selectedDates, dateStr, instance) {
+      // Validate that end date is after start date
+      const startDate = new Date(document.getElementById('couponStartOn').value);
+      if (selectedDates[0] && selectedDates[0] <= startDate) {
+        toaster.error('Invalid Date', 'Expiry date must be after start date');
+      }
     }
   });
 }
 
+// Enhanced Event Listeners
+document.getElementById('couponModal').addEventListener('click', (e) => {
+  if (e.target.id === 'couponModal') closeCouponModal();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !document.getElementById('couponModal').classList.contains('hidden')) {
+    closeCouponModal();
+  }
+});
 </script>
+
 
 <%- include('../partials/admin/footer') %>

@@ -3,6 +3,7 @@ const Order = require('../../model/orderSchema');
 const Product = require('../../model/productSchema');
 const Wallet = require('../../model/walletSchema');
 const { calculateOrderStatus } = require('../../helpers/orderStatusHelper');
+const {calculateRefundAmount} = require('../../helpers/cuponDiscoundRefund')
 
 
 const manageOrder = async (req, res) => {
@@ -66,6 +67,7 @@ const manageOrder = async (req, res) => {
       .populate("user", "name email phone") // populate user details
       .populate("orderitems.product", "productName images") // populate product details
       .lean()
+      
       
     // total delivery charges
     const totalDeliveryCharge = orders.reduce((sum,order)=>{
@@ -159,6 +161,7 @@ const statusUpdate = async (req, res) => {
         }
       }
 
+      if (order.orderStatus == 'Delivered') order.paymentStatus = 'paid';
       await order.save();
       return res.status(200).json({ success: true, message: 'Order and items updated' });
     }else{
@@ -184,7 +187,9 @@ const statusUpdate = async (req, res) => {
       );
     }
 
+    
     order.orderStatus = calculateOrderStatus(order.orderitems, order.orderStatus);
+
 
     await order.save();
 
@@ -200,7 +205,6 @@ const statusUpdate = async (req, res) => {
 };
 
 
-
 const verifyReturn = async (req, res) => {
   const { orderId, itemId, action } = req.body;
 
@@ -210,15 +214,21 @@ const verifyReturn = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Order not found' });
     }
 
-    const handleRefund = async (item) => {
-      const product = await Product.findById(item.product);
-      const variant = product?.variants.find(v => v._id.toString() === item.variantId?.toString());
-      if (variant) {
-        variant.quantity += item.quantity;
-        await product.save();
+    const handleRefund = async (items) => {
+      // Restock products
+      for (const item of items) {
+        const product = await Product.findById(item.product);
+        const variant = product?.variants.find(
+          v => v._id.toString() === item.variantId?.toString()
+        );
+        if (variant) {
+          variant.quantity += item.quantity;
+          await product.save();
+        }
       }
 
-      const refundAmount = item.price * item.quantity;
+      // Calculate refund using helper
+      const refundAmount = calculateRefundAmount(order, items);
 
       let wallet = await Wallet.findOne({ user: order.user._id });
       if (!wallet) {
@@ -233,8 +243,8 @@ const verifyReturn = async (req, res) => {
       wallet.transactions.push({
         type: 'credit',
         amount: refundAmount,
-        reference: `refund_${order._id}_${item._id}`,
-        description: 'Refund for returned item',
+        reference: `refund_${order._id}_${items.map(i => i._id).join('_')}`,
+        description: 'Refund for returned item(s)',
       });
 
       await wallet.save();
@@ -242,23 +252,34 @@ const verifyReturn = async (req, res) => {
 
     // === Full Order Return ===
     if (!itemId) {
-      for (const item of order.orderitems) {
-        if (item.status === 'Return Request') {
-          if (action === 'accept') {
-            item.status = 'Returned';
-            await handleRefund(item);
-          } else {
-            item.status = 'Return Rejected';
-            item.canRequestReturn = false;
-            item.updatedAt = new Date();
-          }
+      const itemsToReturn = order.orderitems.filter(i => i.status === 'Return Request');
+
+      if (itemsToReturn.length === 0) {
+        return res.json({ success: false, message: 'No items in return request' });
+      }
+
+      if (action === 'accept') {
+        for (const item of itemsToReturn) {
+          item.status = 'Returned';
+        }
+        await handleRefund(itemsToReturn);
+      } else {
+        for (const item of itemsToReturn) {
+          item.status = 'Return Rejected';
+          item.canRequestReturn = false;
+          item.updatedAt = new Date();
         }
       }
 
       order.orderStatus = calculateOrderStatus(order.orderitems, order.orderStatus);
       await order.save();
 
-      return res.json({ success: true, message: action === 'accept' ? 'Items returned and refunded' : 'Return requests rejected' });
+      return res.json({
+        success: true,
+        message: action === 'accept'
+          ? 'Items returned and refunded'
+          : 'Return requests rejected'
+      });
     }
 
     // === Single Item Return ===
@@ -273,7 +294,7 @@ const verifyReturn = async (req, res) => {
 
     if (action === 'accept') {
       item.status = 'Returned';
-      await handleRefund(item);
+      await handleRefund([item]); // pass as array
     } else {
       item.status = 'Return Rejected';
       item.canRequestReturn = false;
@@ -295,8 +316,6 @@ const verifyReturn = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
-
-
 
 
 

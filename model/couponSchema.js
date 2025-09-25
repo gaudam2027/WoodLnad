@@ -1,50 +1,71 @@
 const mongoose = require('mongoose');
-const {Schema} = mongoose;
-
+const { Schema } = mongoose;
 
 const couponSchema = new mongoose.Schema({
-    name:{
-      type: String,
-      required: true,
-      unique: true
-    },
-
-    createdOn:{
-      type: Date,
-      default: Date.now(),
-      required: true
-    },
-
-    startOn: {
-     type: Date,
-     required: true
+  name: {
+    type: String,
+    required: true,
+    unique: true
   },
 
-    expireOn:{
-      type: Date,
-      required: true
-    },
+  description: {
+    type: String,
+  },
 
-    offerPrice:{
-      type: Number,
-      required:true
-    },
+  createdOn: {
+    type: Date,
+    default: Date.now,
+    required: true
+  },
 
-    minimumPrice:{
-      type: Number,
-      required: true
-    },
+  startOn: {
+    type: Date,
+    required: true
+  },
 
-    isList:{
-      type: Boolean,
-      default: true
-    },
+  expireOn: {
+    type: Date,
+    required: true
+  },
 
-    userId:{
-      type: Schema.Types.ObjectId,
-      ref: 'User'
-    }
-})
+  offerPrice: {
+    type: Number,
+    required: true
+  },
 
-const Coupon = mongoose.model('Coupon',couponSchema);
+  minimumPrice: {
+    type: Number,
+    required: true
+  },
+
+  usageLimit: {
+    type: Number,
+    default: 2,
+  },
+
+  isList: {
+    type: Boolean,
+    default: true
+  },
+
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+
+  // New field for user-specific coupons (referrals, welcome coupons, etc.)
+  assignedTo: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    default: null // null means it's a global coupon
+  },
+
+  // You can still keep usedBy if you want usage tracking
+  usedBy: [{
+    user: { type: Schema.Types.ObjectId, ref: "User" },
+    count: { type: Number, default: 0 }
+  }]
+});
+
+const Coupon = mongoose.model("Coupon", couponSchema);
 module.exports = Coupon;

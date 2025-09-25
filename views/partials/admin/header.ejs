@@ -8,75 +8,393 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="flex flex-col min-h-screen">
+  
+  <style>
+    /* Fixed Layout Structure */
+    html, body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Raleway', sans-serif;
+    }
 
-  <!-- Admin Navigation -->
-<nav class="relative w-full bg-white shadow-md flex justify-between items-center px-6 py-3 z-20">
-  <!-- Logo Section -->
-  <div class="text-2xl font-bold text-gray-800 flex items-center" style="font-family: 'Raleway', sans-serif;">
-    <img src="/images/logo.png" class="h-10 w-auto object-contain" alt="logo">
-    <div class="pl-2">WOODLAND <span class="text-gray-500 text-base ml-1">Admin</span></div>
-  </div>
+    body {
+      display: flex;
+      flex-direction: column;
+    }
 
-  <!-- Profile Dropdown -->
-  <div class="relative">
-    <button id="profileBtn" class="flex items-center space-x-3 focus:outline-none">
-      <img src="/images/profile.jpg" alt="Admin" class="w-10 h-10 rounded-full border-2 border-gray-300 object-cover">
-      <span class="text-gray-700 font-medium hidden sm:inline">Admin</span>
-    </button>
+    /* Header - Fixed Height */
+    .admin-header {
+      height: 64px;
+      flex-shrink: 0;
+      z-index: 50;
+    }
 
-    <!-- Dropdown Menu -->
-    <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md border z-50">
-      <a href="/admin/settings" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
-      <a href="/admin/logout" class="block px-4 py-2 text-sm text-white bg-gray-800 hover:bg-gray-700 rounded-b-md">Logout</a>
-    </div>
-  </div>
-</nav>
+    /* Main Layout Container */
+    .main-layout {
+      display: flex;
+      flex: 1 1 auto;
+      overflow: hidden;
+      min-height: 0;
+    }
 
-  <div class=" bg-gray-100 flex ">
-  <!-- Sidebar -->
-<aside class="w-64 bg-white shadow-md border-r border-gray-200 flex flex-col justify-start p-4 min-h-[calc(100vh-64px)] mt-[0px]">
-  <!-- Sidebar Navigation -->
-  <nav class="space-y-2">
-    <a href="/admin" class="flex items-center px-4 py-2 text-gray-700 hover:text-white hover:bg-gray-700 rounded-md transition">
-      <i class="fas fa-tachometer-alt mr-3"></i>
-      Dashboard
-    </a>
-    <a href="/admin/users" class="flex items-center px-4 py-2 text-gray-700 hover:text-white hover:bg-gray-700 rounded-md transition">
-      <i class="fas fa-users mr-3"></i>
-      Users
-    </a>
-    <a href="/admin/products" class="flex items-center px-4 py-2 text-gray-700 hover:text-white hover:bg-gray-700 rounded-md transition">
-      <i class="fas fa-boxes mr-3"></i>
-      Products
-    </a>
-    <a href="/admin/order" class="flex items-center px-4 py-2 text-gray-700 hover:text-white hover:bg-gray-700 rounded-md transition">
-      <i class="fas fa-shopping-cart mr-3"></i>
-      Orders
-    </a>
-    <a href="#" class="flex items-center px-4 py-2 text-gray-700 hover:text-white hover:bg-gray-700 rounded-md transition">
-      <i class="fas fa-image mr-3"></i>
-      Banner
-    </a>
-    <a href="/admin/coupons" class="flex items-center px-4 py-2 text-gray-700 hover:text-white hover:bg-gray-700 rounded-md transition">
-      <i class="fas fa-ticket-alt mr-3"></i>
-      Coupon
-    </a>
-    <a href="#" class="flex items-center px-4 py-2 text-gray-700 hover:text-white hover:bg-gray-700 rounded-md transition">
-      <i class="fas fa-chart-line mr-3"></i>
-      Sales Report
-    </a>
-    <a href="/admin/category" class="flex items-center px-4 py-2 text-gray-700 hover:text-white hover:bg-gray-700 rounded-md transition">
-      <i class="fas fa-tags mr-3"></i>
-      Category
-    </a>
-  </nav>
-</aside>
+    /* Sidebar - Fixed Width and Height */
+    .admin-sidebar {
+      width: 254px;
+      flex-shrink: 0;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background-color: white;
+      border-right: 1px solid #e5e7eb;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
 
+    /* Main Content Area - Scrollable */
+    .main-content {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      overflow-x: hidden;
+      height: 100%;
+      background-color: #f9fafb;
+    }
 
+    /* Footer - Fixed Height */
+    .admin-footer {
+      height: 50px;
+      flex-shrink: 0;
+    }
 
+    /* Mobile Sidebar Styles - FIXED */
+    @media (max-width: 1023px) {
+      .admin-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 256px;
+        z-index: 45;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-in-out;
+        visibility: visible !important;
+        display: block !important;
+      }
+      
+      .admin-sidebar.mobile-open {
+        transform: translateX(0) !important;
+      }
+      
+      .main-content {
+        width: 100%;
+        margin-left: 0;
+      }
 
+      /* Mobile Overlay */
+      #mobileOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        z-index: 40;
+      }
 
+      #mobileOverlay.hidden {
+        display: none;
+      }
+    }
 
+    /* Animations */
+    @keyframes slideInLeft {
+      from {
+        transform: translateX(-100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
     
+    @keyframes slideOutLeft {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(-100%);
+        opacity: 0;
+      }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+    
+    /* Active sidebar link styles */
+    .sidebar-link-active {
+      background: linear-gradient(135deg, #374151 0%, #4B5563 100%);
+      color: white !important;
+      box-shadow: 0 4px 12px rgba(55, 65, 81, 0.15);
+      transform: translateX(4px);
+    }
+    
+    .sidebar-link-active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 4px;
+      height: 32px;
+      background: linear-gradient(to bottom, #3B82F6, #1D4ED8);
+      border-radius: 0 4px 4px 0;
+    }
+    
+    /* Mobile menu button animation */
+    .menu-btn-line {
+      transition: all 0.3s ease;
+      transform-origin: center;
+    }
+    
+    .menu-btn-open .menu-btn-line:nth-child(1) {
+      transform: rotate(45deg) translate(6px, 6px);
+    }
+    
+    .menu-btn-open .menu-btn-line:nth-child(2) {
+      opacity: 0;
+    }
+    
+    .menu-btn-open .menu-btn-line:nth-child(3) {
+      transform: rotate(-45deg) translate(6px, -6px);
+    }
+    
+    /* Custom scrollbar for sidebar */
+    .sidebar-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+    
+    .sidebar-scroll::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 2px;
+    }
+    
+    .sidebar-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 2px;
+    }
+    
+    .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Admin Navigation - Fixed Header -->
+  <nav class="admin-header sticky top-0 w-full bg-white/95 backdrop-blur-sm shadow-lg border-b border-gray-200">
+    <div class="px-4 sm:px-6 lg:px-8 h-full">
+      <div class="flex justify-between items-center h-full">
+        
+        <!-- Left Section: Mobile Menu + Logo -->
+        <div class="flex items-center gap-4">
+          <!-- Mobile Menu Button -->
+          <button 
+            id="mobileMenuBtn" 
+            class="lg:hidden p-2 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all duration-200"
+            aria-label="Toggle menu">
+            <div class="w-6 h-6 flex flex-col justify-between">
+              <span class="menu-btn-line w-full h-0.5 bg-gray-600 rounded-full"></span>
+              <span class="menu-btn-line w-full h-0.5 bg-gray-600 rounded-full"></span>
+              <span class="menu-btn-line w-full h-0.5 bg-gray-600 rounded-full"></span>
+            </div>
+          </button>
+          
+          <!-- Logo -->
+          <div class="flex items-center" style="font-family: 'Raleway', sans-serif;">
+            <img src="/images/logo.png" class="h-8 sm:h-10 w-auto object-contain" alt="logo">
+            <div class="ml-2 sm:ml-3">
+              <span class="text-xl sm:text-2xl font-bold text-gray-800">WOODLAND</span>
+              <span class="hidden sm:inline text-sm sm:text-base text-gray-500 ml-1">Admin</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Section: Profile -->
+        <div class="relative">
+          <button 
+            id="profileBtn" 
+            class="flex items-center gap-2 sm:gap-3 p-2 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all duration-200">
+            <img src="/images/profile.jpg" alt="Admin" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-gray-300 object-cover shadow-sm">
+            <span class="hidden sm:inline text-gray-700 font-medium">Admin</span>
+            <i class="fas fa-chevron-down text-gray-400 text-xs hidden sm:inline"></i>
+          </button>
+
+          <!-- Profile Dropdown -->
+          <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white shadow-xl rounded-xl border border-gray-200 z-50 overflow-hidden">
+            <div class="py-2">
+              <div class="px-4 py-3 border-b border-gray-100">
+                <p class="text-sm text-gray-500">Signed in as</p>
+                <p class="text-sm font-medium text-gray-800 truncate">admin@woodland.com</p>
+              </div>
+              <a href="/admin/settings" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                <i class="fas fa-cog mr-3 text-gray-400"></i>
+                Settings
+              </a>
+              <a href="/admin/profile" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                <i class="fas fa-user mr-3 text-gray-400"></i>
+                Profile
+              </a>
+              <div class="border-t border-gray-100 mt-2">
+                <a href="/admin/logout" class="flex items-center px-4 py-3 text-sm text-white bg-gradient-to-r from-gray-800 to-gray-900 hover:from-gray-900 hover:to-gray-950 transition-all">
+                  <i class="fas fa-sign-out-alt mr-3"></i>
+                  Logout
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Layout Container -->
+  <div class="main-layout">
+    
+    <!-- Mobile Overlay -->
+    <div id="mobileOverlay" class="hidden lg:hidden"></div>
+    
+    <!-- Sidebar - FIXED MOBILE FUNCTIONALITY -->
+    <aside id="sidebar" class="admin-sidebar sidebar-scroll">
+      
+      <!-- Sidebar Header (Mobile Only) -->
+      <div class="flex items-center justify-between px-5 py-3 border-b border-gray-200 lg:hidden bg-white">
+        <h2 class="text-base font-semibold text-gray-800" style="font-family: 'Raleway', sans-serif;">Navigation</h2>
+        <button id="closeSidebarBtn" class="p-2 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
+          <i class="fas fa-times text-gray-500 text-sm"></i>
+        </button>
+      </div>
+      
+      <!-- Sidebar Content -->
+      <div class="flex flex-col h-full bg-white">
+        
+        <!-- Navigation Links -->
+        <nav class="flex-1 px-3 py-4 space-y-1 bg-white">
+          <a href="/admin" data-page="dashboard" class="sidebar-link group relative flex items-center px-3 py-2.5 text-gray-700 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-all duration-200 font-medium text-sm">
+            <div class="flex items-center justify-center w-8 h-8 mr-3 bg-gray-100 group-hover:bg-gray-200 rounded-md transition-colors">
+              <i class="fas fa-tachometer-alt text-gray-600 group-hover:text-gray-800 text-sm"></i>
+            </div>
+            <span>Dashboard</span>
+            <div class="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+              <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
+            </div>
+          </a>
+          
+          <a href="/admin/users" data-page="users" class="sidebar-link group relative flex items-center px-3 py-2.5 text-gray-700 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-all duration-200 font-medium text-sm">
+            <div class="flex items-center justify-center w-8 h-8 mr-3 bg-gray-100 group-hover:bg-gray-200 rounded-md transition-colors">
+              <i class="fas fa-users text-gray-600 group-hover:text-gray-800 text-sm"></i>
+            </div>
+            <span>Users</span>
+            <div class="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+              <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
+            </div>
+          </a>
+          
+          <a href="/admin/products" data-page="products" class="sidebar-link group relative flex items-center px-3 py-2.5 text-gray-700 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-all duration-200 font-medium text-sm">
+            <div class="flex items-center justify-center w-8 h-8 mr-3 bg-gray-100 group-hover:bg-gray-200 rounded-md transition-colors">
+              <i class="fas fa-boxes text-gray-600 group-hover:text-gray-800 text-sm"></i>
+            </div>
+            <span>Products</span>
+            <div class="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+              <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
+            </div>
+          </a>
+          
+          <a href="/admin/order" data-page="orders" class="sidebar-link group relative flex items-center px-3 py-2.5 text-gray-700 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-all duration-200 font-medium text-sm">
+            <div class="flex items-center justify-center w-8 h-8 mr-3 bg-gray-100 group-hover:bg-gray-200 rounded-md transition-colors">
+              <i class="fas fa-shopping-cart text-gray-600 group-hover:text-gray-800 text-sm"></i>
+            </div>
+            <span>Orders</span>
+            <div class="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+              <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
+            </div>
+          </a>
+          
+          <a href="/admin/banner" data-page="banner" class="sidebar-link group relative flex items-center px-3 py-2.5 text-gray-700 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-all duration-200 font-medium text-sm">
+            <div class="flex items-center justify-center w-8 h-8 mr-3 bg-gray-100 group-hover:bg-gray-200 rounded-md transition-colors">
+              <i class="fas fa-image text-gray-600 group-hover:text-gray-800 text-sm"></i>
+            </div>
+            <span>Banner</span>
+            <div class="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+              <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
+            </div>
+          </a>
+          
+          <a href="/admin/coupons" data-page="coupons" class="sidebar-link group relative flex items-center px-3 py-2.5 text-gray-700 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-all duration-200 font-medium text-sm">
+            <div class="flex items-center justify-center w-8 h-8 mr-3 bg-gray-100 group-hover:bg-gray-200 rounded-md transition-colors">
+              <i class="fas fa-ticket-alt text-gray-600 group-hover:text-gray-800 text-sm"></i>
+            </div>
+            <span>Coupons</span>
+            <div class="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+              <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
+            </div>
+          </a>
+          
+          <a href="/admin/salesReport" data-page="reports" class="sidebar-link group relative flex items-center px-3 py-2.5 text-gray-700 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-all duration-200 font-medium text-sm">
+            <div class="flex items-center justify-center w-8 h-8 mr-3 bg-gray-100 group-hover:bg-gray-200 rounded-md transition-colors">
+              <i class="fas fa-chart-line text-gray-600 group-hover:text-gray-800 text-sm"></i>
+            </div>
+            <span>Sales Report</span>
+            <div class="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+              <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
+            </div>
+          </a>
+          
+          <a href="/admin/category" data-page="category" class="sidebar-link group relative flex items-center px-3 py-2.5 text-gray-700 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-all duration-200 font-medium text-sm">
+            <div class="flex items-center justify-center w-8 h-8 mr-3 bg-gray-100 group-hover:bg-gray-200 rounded-md transition-colors">
+              <i class="fas fa-tags text-gray-600 group-hover:text-gray-800 text-sm"></i>
+            </div>
+            <span>Category</span>
+            <div class="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+              <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
+            </div>
+          </a>
+          
+          <a href="/admin/offers" data-page="offers" class="sidebar-link group relative flex items-center px-3 py-2.5 text-gray-700 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-all duration-200 font-medium text-sm">
+            <div class="flex items-center justify-center w-8 h-8 mr-3 bg-gray-100 group-hover:bg-gray-200 rounded-md transition-colors">
+              <i class="fas fa-percentage text-gray-600 group-hover:text-gray-800 text-sm"></i>
+            </div>
+            <span>Offers</span>
+            <div class="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+              <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
+            </div>
+          </a>
+        </nav>
+        
+        <!-- Sidebar Footer -->
+        <div class="p-3 border-t border-gray-200 bg-gray-50">
+          <div class="flex items-center gap-2 p-2.5 bg-white rounded-lg shadow-sm">
+            <div class="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-md flex items-center justify-center">
+              <i class="fas fa-crown text-white text-xs"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-medium text-gray-800 truncate">Admin Panel</p>
+              <p class="text-xs text-gray-500">v2.0.1</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Content will be injected here -->

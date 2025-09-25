@@ -333,7 +333,7 @@
           <div id="variants-container" class="mb-6">
             <% if (product.variants && product.variants.length > 0) { %>
               <% for (let i = 0; i < product.variants.length; i++) { %>
-                <div class="border border-gray-200 p-6 rounded-lg bg-gray-50 relative hover:shadow-md transition-shadow duration-200 mb-4">
+                <div class="variant-block border border-gray-200 p-6 rounded-lg bg-gray-50 relative hover:shadow-md transition-shadow duration-200 mb-4">
                   <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-medium text-gray-800 flex items-center">
                       <i class="fas fa-cube mr-2 text-indigo-500"></i>
@@ -444,6 +444,13 @@
 <script>
 let variantIndex = document.querySelectorAll('#variants-container .border').length;
 
+document.addEventListener('DOMContentLoaded', function() {
+  const existingVariants = document.querySelectorAll('#variants-container .variant-block');
+  if (existingVariants.length === 0) {
+    addVariantField();
+  }
+});
+
 function validateAndSubmit() {
   if (validateForm()) {
     // Show loading state
@@ -492,7 +499,7 @@ function validateForm() {
   if (description.trim() === '') {
     displayErrorMessage('description-error', 'Please enter a product description.');
     isValid = false;
-  } else if (!/^[\p{L}\p{N}\s.,''"""!?()\-–—]+$/u.test(description.trim())) {
+  } else if (!/^[\p{L}\p{N}\s.,!?()\-–—:;'"‘’“”\/]+$/u.test(description.trim())) {
     displayErrorMessage('description-error', 'Description contains invalid characters.');
     isValid = false;
   } else if (description.trim().length < 10) {
@@ -512,8 +519,8 @@ function validateForm() {
     isValid = false;
   }
 
-  // Validate variants
-  const variantCount = document.querySelectorAll('[name$="[color]"]').length;
+  const variantBlocks = document.querySelectorAll('#variants-container .variant-block');
+  const variantCount = variantBlocks.length;
   
   if (variantCount === 0) {
     displayErrorMessage("variant-error", 'There should be at least 1 variant.');
@@ -521,30 +528,37 @@ function validateForm() {
   }
 
   for (let i = 0; i < variantCount; i++) {
-    const _id = document.getElementsByName(`variants[${i}][_id]`)[0]?.value;
-    const color = document.getElementsByName(`variants[${i}][color]`)[0]?.value;
-    const salePrice = document.getElementsByName(`variants[${i}][salePrice]`)[0]?.value;
-    const quantity = document.getElementsByName(`variants[${i}][quantity]`)[0]?.value;
-    const regularPrice = document.getElementsByName(`variants[${i}][regularPrice]`)[0]?.value;
+    const variantBlock = variantBlocks[i];
+    const regularPriceInput = variantBlock.querySelector(`input[name*="[regularPrice]"]`);
+    const salePriceInput = variantBlock.querySelector(`input[name*="[salePrice]"]`);
+    const quantityInput = variantBlock.querySelector(`input[name*="[quantity]"]`);
+    const colorInput = variantBlock.querySelector(`input[name*="[color]"]`);
 
+    const regularPrice = regularPriceInput?.value || '';
+    const salePrice = salePriceInput?.value || '';
+    const quantity = quantityInput?.value || '';
+    const color = colorInput?.value || '';
 
     if (!regularPrice || isNaN(regularPrice) || parseFloat(regularPrice) <= 0) {
       displayErrorMessage(`regularPrice-error-${i}`, `Enter a valid regular price for variant ${i + 1}.`);
       isValid = false;
     }
 
-    if (!salePrice || isNaN(salePrice) || parseFloat(salePrice) <= 0 || parseFloat(salePrice) >= parseFloat(regularPrice)) {
-      displayErrorMessage(`salePrice-error-${i}`, `Enter a valid sale price for variant ${i + 1} and it should be less than regular price.`);
+    if (!salePrice || isNaN(salePrice) || parseFloat(salePrice) <= 0) {
+      displayErrorMessage(`salePrice-error-${i}`, `Enter a valid sale price for variant ${i + 1}.`);
+      isValid = false;
+    } else if (parseFloat(salePrice) >= parseFloat(regularPrice)) {
+      displayErrorMessage(`salePrice-error-${i}`, `Sale price for variant ${i + 1} should be less than regular price.`);
       isValid = false;
     }
 
-    if (!quantity || isNaN(quantity) || parseInt(quantity) <= 0) {
+    if (!quantity || isNaN(quantity) || parseInt(quantity) < 0) {
       displayErrorMessage(`quantity-error-${i}`, `Enter a valid quantity for variant ${i + 1}.`);
       isValid = false;
     }
 
     if (!color || !/^[a-zA-Z\s]+$/.test(color.trim())) {
-      displayErrorMessage(`color-error-${i}`, `Color for variant ${i + 1} must be alphabetic.`);
+      displayErrorMessage(`color-error-${i}`, `Color for variant ${i + 1} must contain only alphabetic characters.`);
       isValid = false;
     }
   }
@@ -788,79 +802,121 @@ function deleteSingleImage(imageId, productId) {
   });
 }
 
+function addVariantField() {
+  const container = document.getElementById('variants-container');
+  const currentVariantCount = container.querySelectorAll('.variant-block').length;
+  const variantNumber = currentVariantCount + 1;
+  
+  const variantHTML = `
+    <div class="variant-block border border-gray-200 p-6 rounded-lg bg-gray-50 relative hover:shadow-md transition-shadow duration-200 mb-4">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-medium text-gray-800 flex items-center">
+          <i class="fas fa-cube mr-2 text-indigo-500"></i>
+          Variant ${variantNumber}
+        </h3>
+        <button type="button" onclick="removeVariantField(this)" class="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-all duration-200">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Regular Price -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Regular Price <span class="text-red-500">*</span>
+          </label>
+          <input 
+            type="text"
+            name="variants[${currentVariantCount}][regularPrice]"
+            placeholder="0.00"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
+          >
+          <div id="regularPrice-error-${currentVariantCount}" class="error-message text-red-500 text-xs mt-1"></div>
+        </div>
+        <!-- Sale Price -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Sale Price <span class="text-red-500">*</span>
+          </label>
+          <input 
+            type="text"
+            name="variants[${currentVariantCount}][salePrice]"
+            placeholder="0.00"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
+          >
+          <div id="salePrice-error-${currentVariantCount}" class="error-message text-red-500 text-xs mt-1"></div>
+        </div>
+        <!-- Quantity -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Quantity <span class="text-red-500">*</span>
+          </label>
+          <input 
+            type="number"
+            name="variants[${currentVariantCount}][quantity]"
+            placeholder="0"
+            min="0"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
+          >
+          <div id="quantity-error-${currentVariantCount}" class="error-message text-red-500 text-xs mt-1"></div>
+        </div>
+        <!-- Color -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Color <span class="text-red-500">*</span>
+          </label>
+          <input 
+            type="text"
+            name="variants[${currentVariantCount}][color]"
+            placeholder="e.g., Red, Blue"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
+          >
+          <div id="color-error-${currentVariantCount}" class="error-message text-red-500 text-xs mt-1"></div>
+        </div>
+      </div>
+    </div>
+  `;
+  container.insertAdjacentHTML('beforeend', variantHTML);
+  
+  // Update all variant names to be sequential after adding
+  updateVariantNames();
+}
+
 function removeVariantField(button) {
-  const variantBlock = button.closest('.border');
+  const variantBlock = button.closest('.variant-block');
   if (variantBlock) {
-    const allVariants = document.querySelectorAll('#variants-container .border');
+    const allVariants = document.querySelectorAll('#variants-container .variant-block');
     if (allVariants.length <= 1) {
-      Swal.fire({
-        title: 'Cannot Remove!',
-        text: 'At least one variant is required for the product.',
-        icon: 'warning',
-        confirmButtonColor: '#f59e0b',
-        confirmButtonText: '<i class="fas fa-check mr-2"></i>Understood',
-        customClass: {
-          popup: 'rounded-lg shadow-2xl',
-          title: 'text-gray-800 font-semibold',
-          content: 'text-gray-600',
-          confirmButton: 'rounded-lg px-6 py-3 font-medium shadow-lg hover:shadow-xl transition-all duration-200'
-        },
-        buttonsStyling: false
-      });
+      showNotification('At least one variant is required!', 'error');
       return;
     }
-
-    Swal.fire({
-      title: 'Remove Variant?',
-      text: "This will permanently remove this product variant and all its data.",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: '<i class="fas fa-trash-alt mr-2"></i>Yes, Remove',
-      cancelButtonText: '<i class="fas fa-times mr-2"></i>Cancel',
-      reverseButtons: true,
-      customClass: {
-        popup: 'rounded-lg shadow-2xl',
-        title: 'text-gray-800 font-semibold',
-        content: 'text-gray-600',
-        confirmButton: 'rounded-lg px-6 py-3 font-medium shadow-lg hover:shadow-xl transition-all duration-200',
-        cancelButton: 'rounded-lg px-6 py-3 font-medium shadow-lg hover:shadow-xl transition-all duration-200'
-      },
-      buttonsStyling: false,
-      focusConfirm: false,
-      focusCancel: true
-    }).then((result) => {
-      if (result.isConfirmed) {
-        variantBlock.remove();
-        updateVariantNumbers();
-        
-        Swal.fire({
-          title: 'Removed!',
-          text: 'The variant has been successfully removed.',
-          icon: 'success',
-          confirmButtonColor: '#10b981',
-          confirmButtonText: '<i class="fas fa-check mr-2"></i>OK',
-          customClass: {
-            popup: 'rounded-lg shadow-2xl',
-            title: 'text-gray-800 font-semibold',
-            content: 'text-gray-600',
-            confirmButton: 'rounded-lg px-6 py-3 font-medium shadow-lg hover:shadow-xl transition-all duration-200'
-          },
-          buttonsStyling: false,
-          timer: 1500,
-          timerProgressBar: true
-        });
-      }
-    });
+    variantBlock.remove();
+    updateVariantNumbers();
+    updateVariantNames(); // Update names after removal
   }
 }
 
 function updateVariantNumbers() {
-  const variants = document.querySelectorAll('#variants-container .border');
+  const variants = document.querySelectorAll('#variants-container .variant-block');
   variants.forEach((variant, index) => {
     const title = variant.querySelector('h3');
     title.innerHTML = `<i class="fas fa-cube mr-2 text-indigo-500"></i> Variant ${index + 1}`;
+  });
+}
+
+// New function to update variant input names to be sequential
+function updateVariantNames() {
+  const variants = document.querySelectorAll('#variants-container .variant-block');
+  variants.forEach((variant, index) => {
+    const inputs = variant.querySelectorAll('input');
+    inputs.forEach(input => {
+      const name = input.getAttribute('name');
+      if (name && name.includes('variants[')) {
+        // Replace the index in the name attribute
+        const newName = name.replace(/variants\[\d+\]/, `variants[${index}]`);
+        input.setAttribute('name', newName);
+      }
+    });
   });
 }
 

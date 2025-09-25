@@ -1,6 +1,6 @@
 <%- include('../../views/partials/user/header') %>
 
-<!-- Swal-style -->
+<!-- Swal-style and existing styles -->
 <style>
   .swal2-popup {
     border-radius: .7rem !important;
@@ -29,6 +29,21 @@
     font-size: 12px;
     margin-top: 4px;
   }
+  .offer-badge {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    z-index: 10;
+  }
+  .offer-badge span {
+    background-color: #ef4444;
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 9999px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
 </style>
 
 <div class="container mx-auto px-4 py-8 flex flex-col lg:flex-row gap-10 items-start">
@@ -39,7 +54,6 @@
     <% if (cartItems.length > 0) { %>
       <% cartItems.forEach(item => { %>
         <%
-          // Use the variant from the processed cart item (which is already found by variantId)
           const variant = item.variant;
           const isOutOfStock = item.isOutOfStock || (variant && variant.quantity === 0);
           const stockLeft = item.stockLeft || (variant ? variant.quantity - item.quantity : 0);
@@ -52,11 +66,16 @@
         <div id="cartItem-<%= item._id %>" class="flex items-center justify-between <% if (cartItems.length - 1 !== cartItems.indexOf(item)) { %>border-b<% } %> py-4 <%= isOutOfStock ? 'out-of-stock' : '' %>">
           <div class="flex items-center gap-4">
             <div class="flex flex-col items-center">
-              <!-- Product Image -->
+              <!-- Product Image with Offer Tag -->
               <div class="relative">
-                <img src="/uploads/product-images/<%= item.productid.images[0] %>"
+                <img src="/Uploads/product-images/<%= item.productid.images[0] %>"
                      alt="Product Image"
                      class="w-20 h-20 object-cover rounded-md border <%= isOutOfStock ? 'opacity-50' : '' %>">
+                <% if (variant && variant.offerPercentage > 0 && !isOutOfStock) { %>
+                  <div class="offer-badge">
+                    <span><%= variant.offerPercentage %>% OFF</span>
+                  </div>
+                <% } %>
                 <% if (isOutOfStock) { %>
                   <div class="absolute inset-0 flex items-center justify-center bg-red-500 bg-opacity-75 rounded-md">
                     <span class="text-white text-xs font-bold">OUT OF STOCK</span>
@@ -79,6 +98,9 @@
                   data-remaining-stock="<%= remainingStock %>"
                   data-current-qty="<%= item.quantity %>"
                   data-variant-id="<%= item.variantId %>"
+                  data-offer-percentage="<%= variant ? variant.offerPercentage : 0 %>"
+                  data-sale-price="<%= variant ? variant.salePrice : 0 %>"
+                  data-final-price="<%= variant ? variant.finalPrice : 0 %>"
                   class="w-6 h-6 flex items-center justify-center bg-gray-200 text-gray-800 rounded-full hover:bg-gray-300 text-xs <%= !canIncreaseQuantity ? 'opacity-50 cursor-not-allowed' : '' %>"
                   <%= !canIncreaseQuantity ? 'disabled' : '' %>>+</button>
               </div>
@@ -96,17 +118,40 @@
                 <span class="text-sm text-gray-600 capitalize">
                   <%= variant.color || variant.colorName || 'Default' %>
                 </span>
-                <!-- Optional: Show color swatch if you have color codes -->
                 <% if (variant.colorCode) { %>
                   <div class="variant-color ml-2" style="background-color: <%= variant.colorCode %>"></div>
                 <% } %>
               </div>
               <% } %>
               
+              <!-- Price Section -->
+              <div class="flex flex-col gap-1 mt-1">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm text-gray-600 mr-2">Price:</span>
 
-              
-              <p class="text-sm text-gray-500">Price: ₹<%= item.variant?.salePrice || 'N/A' %></p>
-              
+                  <!-- Final / Current Price (Static) -->
+                  <p class="text-sm font-bold <%= (variant && variant.offerPercentage > 0) ? 'text-red-600' : 'text-gray-900' %>">
+                    ₹<span id="finalPrice-<%= item._id %>">
+                      <%= (variant?.offerPercentage > 0 ? variant.finalPrice : variant.salePrice).toLocaleString('en-IN') %>
+                    </span>
+                  </p>
+
+                  <!-- Sale Price (strike-through, static) – show only if offer -->
+                  <% if (variant && variant.offerPercentage > 0) { %>
+                    <p class="text-sm text-gray-500 line-through">
+                      ₹<span id="salePrice-<%= item._id %>"><%= variant.salePrice.toLocaleString('en-IN') %></span>
+                    </p>
+                  <% } %>
+                </div>
+
+                <!-- Savings line (static) – show only if offer -->
+                <p class="text-xs text-green-600 font-semibold min-h-[16px]" id="savings-<%= item._id %>">
+                  <% if (variant && variant.offerPercentage > 0) { %>
+                    You save ₹<%= (variant.salePrice - variant.finalPrice).toLocaleString('en-IN') %>
+                  <% } %>
+                </p>
+              </div>
+
               <!-- Stock Information -->
               <div class="stock-info" id="stock-info-<%= item._id %>">
                 <% if (isOutOfStock) { %>
@@ -122,8 +167,9 @@
                 <% } %>
               </div>
               
+              <!-- Total Price -->
               <p class="text-sm font-medium mt-1" id="total-<%= item._id %>">
-                Total: ₹<%= isOutOfStock ? 0 : (item.variant?.salePrice * item.quantity) %>
+                Total: ₹<%= isOutOfStock ? 0 : (variant?.finalPrice * item.quantity).toLocaleString('en-IN') %>
               </p>
             </div>
           </div>
@@ -171,33 +217,39 @@
                   <% } %>
                 </div>
                 <% } %>
+                <!-- Order Summary Price Section -->
+                <p class="text-xs text-green-600" id="summarySavings-<%= item._id %>">
+                  <% if (variant && variant.offerPercentage > 0) { %>
+                    You save ₹<%= (variant.salePrice - variant.finalPrice).toLocaleString('en-IN') %>
+                  <% } %>
+                </p>
                 <p class="text-xs text-gray-500" id="totalQuantity-<%= item._id %>">
-                  Qty: <%= item.quantity %> × ₹<%= item.variant?.salePrice %>
+                  Qty: <%= item.quantity %> × ₹<%= variant?.finalPrice.toLocaleString('en-IN') %>
                 </p>
               </div>
-              <p id="totalprice-<%= item._id %>">₹<%= item.variant?.salePrice * item.quantity %></p>
+              <p id="totalprice-<%= item._id %>">₹<%= (variant?.finalPrice * item.quantity).toLocaleString('en-IN') %></p>
             </div>
           <% }) %>
           
           <div class="border-t pt-4 space-y-2">
             <div class="flex justify-between">
               <span>Subtotal:</span>
-              <span id="subTotal">₹<%= inStockSubtotal %></span>
+              <span id="subTotal">₹<%= inStockSubtotal.toLocaleString('en-IN') %></span>
             </div>
             <div class="flex justify-between">
               <span>Delivery:</span>
               <span class="<%= inStockDeliveryCharge === 0 ? 'text-green-600' : '' %>">
-                <%= inStockDeliveryCharge === 0 ? "Free" : "₹" + inStockDeliveryCharge %>
+                <%= inStockDeliveryCharge === 0 ? "Free" : "₹" + inStockDeliveryCharge.toLocaleString('en-IN') %>
               </span>
             </div>
             <div class="flex justify-between text-green-600">
               <span>Discount:</span>
-              <span>- ₹<%= inStockDiscount %></span>
+              <span>- ₹<%= inStockDiscount.toLocaleString('en-IN') %></span>
             </div>
             <hr class="my-2">
             <div class="flex justify-between font-semibold text-lg">
               <span>Total:</span>
-              <span id="finalAmount">₹<%= inStockFinalAmount %></span>
+              <span id="finalAmount">₹<%= inStockFinalAmount.toLocaleString('en-IN') %></span>
             </div>
           </div>
         </div>
@@ -212,7 +264,7 @@
         <!-- Free delivery notice -->
         <% if (inStockSubtotal < 5000) { %>
           <p class="text-xs text-gray-500 mt-2 text-center">
-            Add ₹<%= 5000 - inStockSubtotal %> more for free delivery!
+            Add ₹<%= (5000 - inStockSubtotal).toLocaleString('en-IN') %> more for free delivery!
           </p>
         <% } %>
         
@@ -251,7 +303,6 @@ function deleteCartItem(itemId) {
     }
   }).then((result) => {
     if (result.isConfirmed) {
-      // Show loading
       Swal.fire({
         title: 'Removing...',
         allowOutsideClick: false,
@@ -295,17 +346,21 @@ function deleteCartItem(itemId) {
   });
 }
 
-// Update the updateQuantity function to handle variant ID
 function updateQuantity(itemId, change) {
   const qtyInput = document.getElementById(`qty-${itemId}`);
   const plusBtn = document.getElementById(`plus-btn-${itemId}`);
-  const minusBtn = plusBtn.previousElementSibling.previousElementSibling; // Get minus button
+  const minusBtn = plusBtn.previousElementSibling.previousElementSibling;
   
   let currentQty = parseInt(qtyInput.value);
   const newQty = currentQty + change;
   const remainingStock = parseInt(plusBtn.getAttribute('data-remaining-stock'));
   const variantId = plusBtn.getAttribute('data-variant-id');
+  const offerPercentage = parseFloat(plusBtn.getAttribute('data-offer-percentage'));
+  const salePrice = parseFloat(plusBtn.getAttribute('data-sale-price'));
+  const finalPrice = parseFloat(plusBtn.getAttribute('data-final-price'));
   
+  console.log('Updating quantity for itemId:', itemId, 'variantId:', variantId, 'change:', change);
+
   // Validate quantity limits
   if (newQty < 1) {
     Swal.fire({
@@ -318,7 +373,7 @@ function updateQuantity(itemId, change) {
     return;
   }
   
-  if (newQty > remainingStock && change!= -1) {
+  if (newQty > remainingStock && change !== -1) {
     Swal.fire({
       title: 'Stock Limit Exceeded',
       text: `Only ${remainingStock} items available in stock`,
@@ -340,7 +395,7 @@ function updateQuantity(itemId, change) {
     },
     body: JSON.stringify({ 
       quantity: newQty,
-      variantId: variantId // Include variant ID in the request
+      variantId: variantId
     })
   })
   .then(res => res.json())
@@ -350,59 +405,59 @@ function updateQuantity(itemId, change) {
       qtyInput.value = newQty;
       plusBtn.setAttribute('data-current-qty', newQty);
       
+      // Update price section (static prices, only total changes)
+      const priceSection = qtyInput.closest('.flex.items-center.gap-4').nextElementSibling.querySelector('.flex.flex-col.gap-1.mt-1');
+      if (priceSection) {
+        if (offerPercentage > 0) {
+          priceSection.innerHTML = `
+            <div class="flex items-center gap-2">
+              <span class="text-sm text-gray-600 mr-2">Price:</span>
+              <p class="text-sm font-bold text-red-600">
+                ₹<span id="finalPrice-${itemId}">${finalPrice.toLocaleString('en-IN')}</span>
+              </p>
+              <p class="text-sm text-gray-500 line-through">
+                ₹<span id="salePrice-${itemId}">${salePrice.toLocaleString('en-IN')}</span>
+              </p>
+            </div>
+            <p class="text-xs text-green-600 font-semibold min-h-[16px]" id="savings-${itemId}">
+              You save ₹${(salePrice - finalPrice).toLocaleString('en-IN')}
+            </p>
+          `;
+        } else {
+          priceSection.innerHTML = `
+            <div class="flex items-center gap-2">
+              <span class="text-sm text-gray-600 mr-2">Price:</span>
+              <p class="text-sm font-bold text-gray-900 min-h-[24px]">
+                ₹<span id="finalPrice-${itemId}">${finalPrice.toLocaleString('en-IN')}</span>
+              </p>
+            </div>
+            <p class="text-xs text-green-600 min-h-[16px]" id="savings-${itemId}"></p>
+          `;
+        }
+      }
+      
       // Update total price for this item
       const totalElem = document.getElementById(`total-${itemId}`);
       if (totalElem) {
-        totalElem.textContent = `Total: ₹${data.updatedTotal}`;
-      }
-      
-      // Update order summary
-      const totalPriceElem = document.getElementById(`totalprice-${itemId}`);
-      if (totalPriceElem) {
-        totalPriceElem.textContent = `₹${data.updatedTotal}`;
-      }
-      
-      const totalQuantityElem = document.getElementById(`totalQuantity-${itemId}`);
-      if (totalQuantityElem) {
-        totalQuantityElem.textContent = `Qty: ${newQty} × ₹${data.salePrice}`;
-      }
-      
-      // Check if item is now out of stock
-      const stockLeft = remainingStock - newQty;
-      const isNowOutOfStock = stockLeft === 0;
-      
-      // If the item is now out of stock, we may need to refresh the page
-      // to update the order summary correctly
-      if (isNowOutOfStock && data.inStockOnly) {
-        setTimeout(() => location.reload(), 500);
-        return;
-      }
-      
-      // Update cart totals
-      const subTotal = document.getElementById('subTotal');
-      if (subTotal) {
-        subTotal.textContent = `₹${data.updatedCartTotal}`;
-      }
-      
-      const finalAmountElem = document.getElementById('finalAmount');
-      if (finalAmountElem) {
-        finalAmountElem.textContent = `₹${data.finalAmount}`;
+        totalElem.textContent = `Total: ₹${(data.updatedTotal).toLocaleString('en-IN')}`;
       }
       
       // Update stock information
+      const stockLeft = remainingStock - newQty;
       const stockInfoElem = document.getElementById(`stock-info-${itemId}`);
       if (stockInfoElem) {
-        if (stockLeft === 0) {
+        if (stockLeft < 0) {
+          stockInfoElem.innerHTML = '<p class="text-red-600 text-xs">⚠️ Your cart quantity exceeds available stock</p>';
+        } else if (stockLeft === 0) {
           stockInfoElem.innerHTML = '<p class="text-red-600 text-xs">🚫 Reached maximum limit</p>';
         } else if (stockLeft >= 1 && stockLeft <= 5) {
           stockInfoElem.innerHTML = `<p class="stock-warning">⚠️ Only ${stockLeft} left in stock</p>`;
-        } else if (stockLeft > 0) {
+        } else {
           stockInfoElem.innerHTML = `<p class="text-green-600 text-xs">✅ In Stock (${stockLeft} available)</p>`;
         }
       }
       
       // Update button states
-      // Plus button
       if (newQty >= remainingStock) {
         plusBtn.disabled = true;
         plusBtn.classList.add('opacity-50', 'cursor-not-allowed');
@@ -411,13 +466,41 @@ function updateQuantity(itemId, change) {
         plusBtn.classList.remove('opacity-50', 'cursor-not-allowed');
       }
       
-      // Minus button
       if (newQty <= 1) {
         minusBtn.disabled = true;
         minusBtn.classList.add('opacity-50', 'cursor-not-allowed');
       } else {
         minusBtn.disabled = false;
         minusBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+      
+      // Update order summary
+      const totalPriceElem = document.getElementById(`totalprice-${itemId}`);
+      if (totalPriceElem) {
+        totalPriceElem.textContent = `₹${(data.updatedTotal).toLocaleString('en-IN')}`;
+      }
+      
+      const totalQuantityElem = document.getElementById(`totalQuantity-${itemId}`);
+      if (totalQuantityElem) {
+        totalQuantityElem.textContent = `Qty: ${newQty} × ₹${finalPrice.toLocaleString('en-IN')}`;
+      }
+      
+      // Update cart totals
+      const subTotal = document.getElementById('subTotal');
+      if (subTotal) {
+        subTotal.textContent = `₹${data.updatedCartTotal.toLocaleString('en-IN')}`;
+      }
+      
+      const finalAmountElem = document.getElementById('finalAmount');
+      if (finalAmountElem) {
+        finalAmountElem.textContent = `₹${data.finalAmount.toLocaleString('en-IN')}`;
+      }
+      
+      // Update offer badge visibility
+      const cartItem = document.getElementById(`cartItem-${itemId}`);
+      const offerBadge = cartItem.querySelector('.offer-badge');
+      if (stockLeft <= 0 && offerBadge) {
+        offerBadge.remove();
       }
       
       // Show success feedback
@@ -428,7 +511,6 @@ function updateQuantity(itemId, change) {
       }
       
     } else {
-      // Restore original quantity on error
       qtyInput.value = originalText;
       Swal.fire({
         title: 'Update Failed',
@@ -440,7 +522,6 @@ function updateQuantity(itemId, change) {
     }
   })
   .catch(err => {
-    // Restore original quantity on error
     qtyInput.value = originalText;
     console.error('Error updating quantity:', err);
     Swal.fire({
@@ -458,7 +539,6 @@ function showToast(message, type = 'info') {
   const toast = document.createElement('div');
   toast.className = `fixed top-4 right-4 z-50 px-4 py-2 rounded shadow-lg text-white text-sm transition-all duration-300 transform translate-x-full`;
   
-  // Set background color based on type
   switch(type) {
     case 'success':
       toast.classList.add('bg-green-500');
@@ -476,12 +556,10 @@ function showToast(message, type = 'info') {
   toast.textContent = message;
   document.body.appendChild(toast);
   
-  // Animate in
   setTimeout(() => {
     toast.classList.remove('translate-x-full');
   }, 100);
   
-  // Animate out and remove
   setTimeout(() => {
     toast.classList.add('translate-x-full');
     setTimeout(() => {
@@ -493,8 +571,6 @@ function showToast(message, type = 'info') {
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
   console.log('Cart page loaded with variant ID system');
-  
-  // Add any additional initialization here
   const cartItems = document.querySelectorAll('[id^="cartItem-"]');
   console.log(`Found ${cartItems.length} cart items`);
 });

@@ -93,9 +93,21 @@ const userSchema = new Schema({
         default:Date.now
     },
 
-    // referralCode:{
-    //     type: String
-    // },
+    referralCode: {
+        type: String,
+        unique: true
+    },
+
+    referredBy: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        default: null
+    },
+
+    referredUsers: [{ // for storing referred users
+        type: Schema.Types.ObjectId,
+        ref: 'User'
+    }],
 
     // redeemed:{
     //     type: Boolean,

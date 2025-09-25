@@ -1,107 +1,1339 @@
-<%- include('../partials/admin/header', { title: 'Admin Panel - Sign In' }) %>
+<%- include('../partials/admin/header', { title: 'Admin Panel - Dashboard' }) %>
 
+<!-- Chart.js for advanced charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 
+<!-- Keep all your existing styles exactly the same -->
+<style>
+  /* All your existing styles remain unchanged */
+  .bg-admin-gradient {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  }
+  
+  .bg-card-gradient {
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  }
 
-  <!-- Main Content -->
-  <main class="flex-1 p-8 space-y-8">
-    <!-- Dashboard Summary Cards -->
-    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div class="bg-green-100 p-6 rounded-xl shadow-md text-center">
-        <h2 class="text-sm font-medium text-gray-600">Total Sales</h2>
-        <p class="text-3xl font-bold text-green-700">₹5,55,000</p>
-      </div>
-      <div class="bg-gray-200 p-6 rounded-xl shadow-md text-center">
-        <h2 class="text-sm font-medium text-gray-600">Visitors</h2>
-        <p class="text-3xl font-bold text-gray-800">2,500</p>
-      </div>
-      <div class="bg-blue-200 p-6 rounded-xl shadow-md text-center">
-        <h2 class="text-sm font-medium text-gray-600">Total Orders</h2>
-        <p class="text-3xl font-bold text-blue-800">1,500</p>
-      </div>
-      <div class="bg-yellow-200 p-6 rounded-xl shadow-md text-center">
-        <h2 class="text-sm font-medium text-gray-600">Users</h2>
-        <p class="text-3xl font-bold text-yellow-800">1,013</p>
-      </div>
-    </section>
+  .bg-header-gradient {
+    background: linear-gradient(135deg, #1e293b 0%, #374151 50%, #4b5563 100%);
+  }
 
-    <!-- Charts & Recent Sales -->
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- Chart -->
-      <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
-        <h3 class="text-lg font-semibold mb-4">Sales & Users Growth</h3>
-        <canvas id="salesChart" class="w-full h-64"></canvas>
-      </div>
+  .bg-primary-gradient {
+    background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+  }
 
-      <!-- Sales List -->
-      <div class="bg-white rounded-xl shadow-md p-6 overflow-y-auto">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-semibold">Recent Sales</h3>
-          <a href="#" class="text-sm text-blue-600 hover:underline">View all</a>
+  .shadow-gradient {
+    box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.1), 0 2px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+  
+  .shadow-gradient-lg {
+    box-shadow: 0 8px 20px -5px rgba(0, 0, 0, 0.12), 0 4px 8px -3px rgba(0, 0, 0, 0.08);
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, #1e293b 0%, #374151 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .card-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .card-hover:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px -5px rgba(0, 0, 0, 0.12), 0 6px 12px -3px rgba(0, 0, 0, 0.08);
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slideInUp {
+    from { transform: translateY(15px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.02); opacity: 0.9; }
+  }
+
+  .animate-fadeInUp { animation: fadeInUp 0.5s ease-out; }
+  .animate-slideInUp { animation: slideInUp 0.4s ease-out; }
+  .animate-pulse { animation: pulse 2s infinite; }
+
+  .overview-card {
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 1.25rem;
+    box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.1), 0 3px 8px -2px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    padding: 1.5rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .overview-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.15), 0 8px 15px -3px rgba(0, 0, 0, 0.08);
+  }
+
+  .overview-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--accent-gradient);
+    border-radius: 1.25rem 1.25rem 0 0;
+  }
+
+  .overview-card.revenue::before { --accent-gradient: linear-gradient(90deg, #10b981, #047857); }
+  .overview-card.orders::before { --accent-gradient: linear-gradient(90deg, #3b82f6, #1d4ed8); }
+  .overview-card.customers::before { --accent-gradient: linear-gradient(90deg, #8b5cf6, #7c3aed); }
+
+  .chart-section {
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 1.25rem;
+    box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    overflow: hidden;
+  }
+
+  .filter-tabs {
+    display: flex;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    border-radius: 0.75rem;
+    padding: 0.2rem;
+    gap: 0.15rem;
+  }
+
+  .filter-tab {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #6b7280;
+    border: none;
+    background: transparent;
+  }
+
+  .filter-tab.active {
+    background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+    color: white;
+    transform: translateY(-0.5px);
+    box-shadow: 0 3px 8px rgba(55, 65, 81, 0.3);
+  }
+
+  .filter-tab:hover:not(.active) {
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+    color: #374151;
+  }
+
+  .filter-tab:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .products-section {
+    padding: 1.25rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .products-carousel {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding: 0.75rem 0;
+    margin: 0 -0.25rem;
+    scrollbar-width: thin;
+    scrollbar-color: #374151 #f1f5f9;
+  }
+
+  .products-carousel::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .products-carousel::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 2px;
+  }
+
+  .products-carousel::-webkit-scrollbar-thumb {
+    background: #374151;
+    border-radius: 2px;
+  }
+
+  .product-card {
+    min-width: 180px;
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 0.875rem;
+    padding: 1rem;
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
+    border-color: #374151;
+  }
+
+  .product-image {
+    width: 100%;
+    height: 100px;
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    border-radius: 0.625rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.75rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0.625rem;
+  }
+
+  .product-image i {
+    font-size: 2rem;
+    color: #9ca3af;
+  }
+
+  .category-item {
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 0.875rem;
+    padding: 1rem;
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+  }
+
+  .category-item:hover {
+    transform: translateX(4px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    border-color: #374151;
+  }
+
+  .order-item {
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+  }
+
+  .order-item:hover {
+    transform: translateX(6px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    border-color: #374151;
+  }
+
+  .btn-enhanced {
+    background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.25rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .btn-enhanced:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(55, 65, 81, 0.3);
+  }
+
+  .section-spacing {
+    margin-bottom: 1.5rem;
+  }
+
+  .compact-grid {
+    gap: 1.5rem;
+  }
+
+  .analytics-mini-cards {
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .analytics-mini-card {
+    padding: 1rem;
+    border-radius: 0.75rem;
+  }
+
+  .chart-container-compact {
+    padding: 1.25rem;
+    padding-top: 0.75rem;
+  }
+
+  .status-badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.75rem;
+    font-weight: 600;
+  }
+
+  /* Loading state styles */
+  .loading-overlay {
+    position: relative;
+  }
+
+  .loading-overlay::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 10;
+    border-radius: inherit;
+  }
+
+  .loading-overlay::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #374151;
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 11;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Dropdown styles */
+  .dropdown-enter {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+
+  .dropdown-enter-active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dropdown-exit {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .dropdown-exit-active {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Enhanced button with dropdown */
+  .btn-enhanced-dropdown {
+    position: relative;
+    background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+    color: white;
+    border: none;
+    padding: 0.6rem 1rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .btn-enhanced-dropdown:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(55, 65, 81, 0.3);
+  }
+
+  .btn-enhanced-dropdown:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Success notification */
+  .success-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+    z-index: 1000;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .success-notification.show {
+    transform: translateX(0);
+  }
+
+  .error-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+    z-index: 1000;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .error-notification.show {
+    transform: translateX(0);
+  }
+
+  /* Mobile responsive adjustments */
+  @media (max-width: 768px) {
+    .overview-card {
+      padding: 1.25rem;
+    }
+    .product-card {
+      min-width: 160px;
+      padding: 0.875rem;
+    }
+    .product-image {
+      height: 80px;
+    }
+    .section-spacing {
+      margin-bottom: 1.25rem;
+    }
+    #formatDropdown {
+      min-width: 160px;
+      right: 0;
+      left: auto;
+    }
+    
+    .btn-enhanced {
+      font-size: 0.75rem;
+      padding: 0.5rem 0.875rem;
+    }
+  }
+
+  .header-compact {
+    margin-bottom: 1.5rem;
+  }
+
+  .grid-compact {
+    gap: 1.25rem;
+  }
+</style>
+
+<!-- Main Dashboard Content -->
+<div class="p-3 lg:p-5 bg-admin-gradient min-h-screen">
+  <div class="max-w-7xl mx-auto">
+    
+    <!-- Compact Page Header -->
+    <div class="header-compact animate-fadeInUp">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gradient mb-1" style="font-family: 'Raleway', sans-serif;">
+            Overview
+          </h1>
+          <p class="text-gray-600 text-base">Real-time business analytics</p>
         </div>
-        <ul class="divide-y divide-gray-200">
-          <li class="py-3 flex justify-between font-medium">
-            <span>Abinshad</span><span>₹263,099.00</span>
-          </li>
-          <li class="py-3 flex justify-between">
-            <span>Sachu</span><span>₹45,922.00</span>
-          </li>
-          <li class="py-3 flex justify-between">
-            <span>Jordan Fisher</span><span>₹61,231.00</span>
-          </li>
-          <li class="py-3 flex justify-between">
-            <span>Paulson Rame</span><span>₹23,342.00</span>
-          </li>
-          <li class="py-3 flex justify-between">
-            <span>Andrea Netto</span><span>₹79,239.00</span>
-          </li>
-          <li class="py-3 flex justify-between">
-            <span>Agnes Xavier</span><span>₹6,590.00</span>
-          </li>
-        </ul>
+        <div class="flex items-center gap-2">
+          <div class="animate-pulse">
+            <div class="w-2.5 h-2.5 bg-green-500 rounded-full"></div>
+          </div>
+          <span class="text-sm font-medium text-gray-500">Live</span>
+        </div>
       </div>
-    </section>
-  </main>
+    </div>
+
+    <!-- Compact Overview Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 grid-compact section-spacing animate-slideInUp" style="animation-delay: 0.1s;">
+      
+      <!-- Total Revenue -->
+      <div class="overview-card revenue card-hover">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+            <i class="fas fa-dollar-sign text-green-600 text-lg"></i>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Total Revenue</p>
+            <p class="text-xs text-gray-500" id="revenueTimeframe">This period</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <p class="text-2xl font-bold text-gradient" id="totalRevenue">$0</p>
+          <div class="flex items-center text-green-600 text-sm font-bold">
+            <i class="fas fa-arrow-up text-xs mr-1"></i>
+            <span>--</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Orders -->
+      <div class="overview-card orders card-hover">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+            <i class="fas fa-shopping-bag text-blue-600 text-lg"></i>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Recent Orders</p>
+            <p class="text-xs text-gray-500">Latest transactions</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <p class="text-2xl font-bold text-gradient" id="totalOrders"><%= recentOrders.length %></p>
+          <div class="flex items-center text-blue-600 text-sm font-bold">
+            <i class="fas fa-shopping-cart text-xs mr-1"></i>
+            <span>orders</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Users -->
+      <div class="overview-card customers card-hover">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+            <i class="fas fa-users text-purple-600 text-lg"></i>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Total Users</p>
+            <p class="text-xs text-gray-500">Registered users</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <p class="text-2xl font-bold text-gradient" id="totalUsers"><%= totalUsers %></p>
+          <div class="flex items-center text-purple-600 text-sm font-bold">
+            <i class="fas fa-user-plus text-xs mr-1"></i>
+            <span>users</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Compact Charts Section -->
+    <div class="grid grid-cols-1 xl:grid-cols-3 grid-compact section-spacing animate-slideInUp" style="animation-delay: 0.2s;">
+      
+      <!-- Sales Analytics -->
+      <div class="xl:col-span-2 chart-section card-hover" id="salesAnalyticsSection">
+        <div class="p-5 pb-2">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-lg font-bold text-gradient mb-1">Sales Analytics</h3>
+              <p class="text-sm text-gray-600">Revenue performance tracking</p>
+            </div>
+            <div>
+              <p class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">Filter</p>
+              <div class="filter-tabs">
+                <button class="filter-tab <%= filter === 'daily' ? 'active' : '' %>" data-filter="daily" onclick="updateFilter('daily')">Daily</button>
+                <button class="filter-tab <%= filter === 'monthly' ? 'active' : '' %>" data-filter="monthly" onclick="updateFilter('monthly')">Monthly</button>
+                <button class="filter-tab <%= filter === 'yearly' ? 'active' : '' %>" data-filter="yearly" onclick="updateFilter('yearly')">Yearly</button>
+              </div>
+              
+              <!-- Generate Ledger Button -->
+              <div class="flex items-center gap-2 mt-3">
+                <div class="relative">
+                  <button class="btn-enhanced flex items-center gap-2" id="generateLedgerBtn" onclick="toggleFormatDropdown()">
+                    <i class="fas fa-file-export text-sm"></i>
+                    <span>Generate Ledger</span>
+                    <i class="fas fa-chevron-down text-xs transition-transform" id="dropdownIcon"></i>
+                  </button>
+                  
+                  <!-- Format Selection Dropdown -->
+                  <div class="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 min-w-[180px] z-50 hidden" id="formatDropdown">
+                    <div class="p-2">
+                      <p class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2 px-2">Export Format</p>
+                      <button class="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg flex items-center gap-2 transition-colors" onclick="generateLedger('pdf')">
+                        <i class="fas fa-file-pdf text-red-500"></i>
+                        <span>PDF Document</span>
+                      </button>
+                      <button class="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg flex items-center gap-2 transition-colors" onclick="generateLedger('excel')">
+                        <i class="fas fa-file-excel text-green-500"></i>
+                        <span>Excel Spreadsheet</span>
+                      </button>
+                      <button class="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg flex items-center gap-2 transition-colors" onclick="generateLedger('csv')">
+                        <i class="fas fa-file-csv text-blue-500"></i>
+                        <span>CSV File</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Loading indicator -->
+                <div class="hidden items-center gap-2" id="ledgerLoading">
+                  <div class="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+                  <span class="text-sm text-gray-600">Generating...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Compact Analytics Cards -->
+          <div class="grid grid-cols-3 analytics-mini-cards">
+            <div class="text-center analytics-mini-card bg-blue-50 rounded-lg">
+              <p class="text-sm font-semibold text-gray-600 mb-1">Total Revenue</p>
+              <p class="text-lg font-bold text-gradient" id="totalRevenueCard">$0</p>
+              <div class="flex items-center justify-center text-blue-600 text-xs mt-1 font-semibold">
+                <i class="fas fa-dollar-sign mr-1"></i>
+                <span>Revenue</span>
+              </div>
+            </div>
+            <div class="text-center analytics-mini-card bg-orange-50 rounded-lg">
+              <p class="text-sm font-semibold text-gray-600 mb-1">Products Sold</p>
+              <p class="text-lg font-bold text-gradient" id="totalProductsSold">0</p>
+              <div class="flex items-center justify-center text-orange-600 text-xs mt-1 font-semibold">
+                <i class="fas fa-box mr-1"></i>
+                <span>Items</span>
+              </div>
+            </div>
+            <div class="text-center analytics-mini-card bg-green-50 rounded-lg">
+              <p class="text-sm font-semibold text-gray-600 mb-1">Categories</p>
+              <p class="text-lg font-bold text-gradient" id="totalCategories">0</p>
+              <div class="flex items-center justify-center text-green-600 text-xs mt-1 font-semibold">
+                <i class="fas fa-tags mr-1"></i>
+                <span>Active</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="chart-container-compact">
+          <canvas id="salesChart" height="180"></canvas>
+        </div>
+      </div>
+
+      <!-- Sales Target -->
+      <div class="chart-section card-hover" id="salesTargetSection">
+        <div class="p-5">
+          <div class="mb-4">
+            <h3 class="text-lg font-bold text-gradient mb-1">Sales Target</h3>
+            <p class="text-sm text-gray-600">Goal progress tracking</p>
+          </div>
+          
+          <div class="relative flex items-center justify-center mb-6">
+            <canvas id="targetChart" width="150" height="150"></canvas>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-center">
+                <p class="text-xl font-bold text-gradient" id="targetPercentage">75%</p>
+                <p class="text-xs text-gray-500">Complete</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="space-y-3">
+            <div class="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
+              <div class="flex items-center gap-2">
+                <div class="w-3 h-3 bg-gray-400 rounded-full"></div>
+                <span class="text-sm font-semibold text-gray-600">Current Period</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <i class="fas fa-chart-line text-gray-500 text-xs"></i>
+                <span class="font-bold text-gradient text-sm" id="currentTarget">0</span>
+              </div>
+            </div>
+            <div class="flex items-center justify-between p-2.5 bg-green-50 rounded-lg">
+              <div class="flex items-center gap-2">
+                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span class="text-sm font-semibold text-gray-600">Target Goal</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <i class="fas fa-bullseye text-green-500 text-xs"></i>
+                <span class="font-bold text-gradient text-sm" id="targetGoal">1,000,000</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Compact Products and Categories Section -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 grid-compact section-spacing animate-slideInUp" style="animation-delay: 0.3s;">
+      
+      <!-- Compact Top Selling Products -->
+      <div class="chart-section card-hover" id="productsSection">
+        <div class="products-section">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="text-lg font-bold text-gradient mb-1">Top Selling Products</h3>
+              <p class="text-sm text-gray-600">Best performing items</p>
+            </div>
+          </div>
+          
+          <div class="products-carousel" id="productsCarousel">
+            <!-- Products will be populated here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Categories -->
+      <div class="chart-section card-hover" id="categoriesSection">
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-lg font-bold text-gradient mb-1">Top Categories</h3>
+              <p class="text-sm text-gray-600">Best performing categories</p>
+            </div>
+            <button class="btn-enhanced">
+              <span>View All</span>
+            </button>
+          </div>
+          
+          <div class="space-y-3" id="topCategories">
+            <!-- Categories will be populated here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Compact Recent Orders -->
+    <div class="animate-slideInUp" style="animation-delay: 0.4s;">
+      <div class="chart-section card-hover">
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-lg font-bold text-gradient mb-1">Recent Orders</h3>
+              <p class="text-sm text-gray-600">Latest customer orders</p>
+            </div>
+            <button class="btn-enhanced">
+              <span>View All Orders</span>
+            </button>
+          </div>
+          
+          <div class="space-y-3" id="recentOrders">
+            <!-- Recent orders will be populated here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
-<!-- socket -->
-<script src="/socket.io/socket.io.js"></script>
-<!-- Chart.js CDN -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  const ctx = document.getElementById('salesChart').getContext('2d');
-  new Chart(ctx, {
-    type: 'bar',
+// Global variables - Fixed: Single declaration
+let salesChart = null;
+let targetChart = null;
+let currentFilter = '<%= filter %>';
+let isDropdownOpen = false;
+
+// Chart color scheme with #374151
+const chartColors = {
+  primary: '#374151',
+  secondary: '#4b5563',
+  success: '#10b981',
+  warning: '#f59e0b',
+  danger: '#ef4444',
+  purple: '#8b5cf6'
+};
+
+// Server data from backend (static data that doesn't change with filters)
+const staticData = {
+  recentOrders: <%- JSON.stringify(recentOrders) %>,
+  totalUsers: <%= totalUsers %>
+};
+
+// Dynamic data that changes with filters
+let dashboardData = {
+  filter: '<%= filter %>',
+  revenueData: <%- JSON.stringify(revenueData) %>,
+  bestProducts: <%- JSON.stringify(bestProducts) %>,
+  bestCategories: <%- JSON.stringify(bestCategories) %>
+};
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+  loadDashboard();
+});
+
+// Load dashboard data
+function loadDashboard() {
+  updateMetrics();
+  initializeCharts();
+  populateProducts();
+  populateCategories();
+  populateRecentOrders();
+}
+
+// Toggle format dropdown
+function toggleFormatDropdown() {
+  const dropdown = document.getElementById('formatDropdown');
+  const icon = document.getElementById('dropdownIcon');
+  
+  if (isDropdownOpen) {
+    dropdown.classList.add('hidden');
+    icon.style.transform = 'rotate(0deg)';
+    isDropdownOpen = false;
+  } else {
+    dropdown.classList.remove('hidden');
+    icon.style.transform = 'rotate(180deg)';
+    isDropdownOpen = true;
+  }
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+  const dropdown = document.getElementById('formatDropdown');
+  const button = document.getElementById('generateLedgerBtn');
+  
+  if (!dropdown.contains(event.target) && !button.contains(event.target)) {
+    dropdown.classList.add('hidden');
+    document.getElementById('dropdownIcon').style.transform = 'rotate(0deg)';
+    isDropdownOpen = false;
+  }
+});
+
+// Generate ledger function
+async function generateLedger(format) {
+  const dropdown = document.getElementById('formatDropdown');
+  const loadingIndicator = document.getElementById('ledgerLoading');
+  const generateBtn = document.getElementById('generateLedgerBtn');
+  
+  // Close dropdown
+  dropdown.classList.add('hidden');
+  document.getElementById('dropdownIcon').style.transform = 'rotate(0deg)';
+  isDropdownOpen = false;
+  
+  // Show loading state
+  generateBtn.style.display = 'none';
+  loadingIndicator.classList.remove('hidden');
+  loadingIndicator.classList.add('flex');
+  
+  try {
+    // Prepare request data
+    const requestData = {
+      filter: currentFilter,
+      format: format,
+      timestamp: new Date().toISOString()
+    };
+      
+    
+    // Make request to backend
+    const response = await fetch('/admin/dashboard/generate-ledger', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestData)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    // Handle file download
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    
+    // Set filename based on format and filter
+    const timestamp = new Date().toISOString().split('T')[0];
+    const filename = `ledger-${currentFilter}-${timestamp}.${format === 'excel' ? 'xlsx' : format}`;
+    a.download = filename;
+    
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    
+    // Show success notification
+    showNotification('Ledger generated successfully!', 'success');
+    
+  } catch (error) {
+    console.error('Error generating ledger:', error);
+    showNotification('Failed to generate ledger. Please try again.', 'error');
+  } finally {
+    // Hide loading state
+    loadingIndicator.classList.add('hidden');
+    loadingIndicator.classList.remove('flex');
+    generateBtn.style.display = 'flex';
+  }
+}
+
+// Show notification function
+function showNotification(message, type = 'success') {
+  // Remove existing notifications
+  const existingNotifications = document.querySelectorAll('.success-notification, .error-notification');
+  existingNotifications.forEach(notification => notification.remove());
+  
+  // Create new notification
+  const notification = document.createElement('div');
+  notification.className = `${type}-notification`;
+  notification.innerHTML = `
+    <div class="flex items-center gap-2">
+      <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
+      <span>${message}</span>
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Show notification
+  setTimeout(() => {
+    notification.classList.add('show');
+  }, 100);
+  
+  // Hide notification after 3 seconds
+  setTimeout(() => {
+    notification.classList.remove('show');
+    setTimeout(() => {
+      notification.remove();
+    }, 300);
+  }, 3000);
+}
+
+// Update filter - AJAX call to new stats endpoint
+async function updateFilter(filter) {
+  if (currentFilter === filter) return; // Don't refetch if same filter
+  
+  // Close dropdown if open
+  if (isDropdownOpen) {
+    toggleFormatDropdown();
+  }
+  
+  currentFilter = filter;
+  
+  // Update active tab
+  document.querySelectorAll('.filter-tab').forEach(tab => {
+    tab.classList.remove('active');
+    tab.disabled = true; // Disable during loading
+  });
+  document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
+  
+  try {
+    // Show loading state
+    showLoadingState();
+    
+    // Fetch new data from stats endpoint
+    const response = await fetch(`/admin/dashboard/stats?filter=${filter}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // Update dashboard data
+    dashboardData = {
+      filter: filter,
+      revenueData: data.revenueData,
+      bestProducts: data.bestProducts,
+      bestCategories: data.bestCategories
+    };
+    
+    // Update UI with new data
+    updateMetrics();
+    initializeCharts();
+    populateProducts();
+    populateCategories();
+    
+    hideLoadingState();
+    
+  } catch (error) {
+    console.error('Error fetching dashboard data:', error);
+    
+    // Show error state
+    showErrorState();
+    
+    // Re-enable tabs and revert to previous filter
+    setTimeout(() => {
+      document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.disabled = false;
+      });
+      
+      // Revert active tab
+      document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      document.querySelector(`[data-filter="${dashboardData.filter}"]`).classList.add('active');
+      currentFilter = dashboardData.filter;
+      
+      hideLoadingState();
+    }, 2000);
+  }
+}
+
+// Show loading state
+function showLoadingState() {
+  const sections = ['#salesAnalyticsSection', '#salesTargetSection', '#productsSection', '#categoriesSection'];
+  sections.forEach(selector => {
+    const element = document.querySelector(selector);
+    if (element) {
+      element.classList.add('loading-overlay');
+    }
+  });
+}
+
+// Hide loading state
+function hideLoadingState() {
+  const sections = ['#salesAnalyticsSection', '#salesTargetSection', '#productsSection', '#categoriesSection'];
+  sections.forEach(selector => {
+    const element = document.querySelector(selector);
+    if (element) {
+      element.classList.remove('loading-overlay');
+    }
+  });
+  
+  // Re-enable filter tabs
+  document.querySelectorAll('.filter-tab').forEach(tab => {
+    tab.disabled = false;
+  });
+}
+
+// Show error state
+function showErrorState() {
+  const errorMessage = '<div class="text-center py-4 text-red-500"><i class="fas fa-exclamation-triangle mr-2"></i>Failed to load data. Please try again.</div>';
+  
+  document.getElementById('productsCarousel').innerHTML = errorMessage;
+  document.getElementById('topCategories').innerHTML = errorMessage;
+}
+
+// Update metrics based on current data
+function updateMetrics() {
+  const { revenueData, bestProducts, bestCategories, filter } = dashboardData;
+  
+  // Calculate total revenue
+  const totalRevenue = revenueData.reduce((sum, item) => sum + (item.totalRevenue || 0), 0);
+  const totalProductsSold = bestProducts.reduce((sum, item) => sum + (item.totalQty || 0), 0);
+  
+  // Update revenue display
+  document.getElementById('totalRevenue').textContent = '₹' + totalRevenue.toLocaleString();
+  document.getElementById('totalRevenueCard').textContent = '₹' + totalRevenue.toLocaleString();
+  
+  // Update products sold
+  document.getElementById('totalProductsSold').textContent = totalProductsSold.toLocaleString();
+  
+  // Update categories count
+  document.getElementById('totalCategories').textContent = bestCategories.length;
+  
+  // Update timeframe descriptions
+  const timeframes = {
+    daily: 'Last 30 days',
+    monthly: 'This year',
+    yearly: 'All years'
+  };
+  
+  const timeframe = timeframes[filter] || 'This period';
+  document.getElementById('revenueTimeframe').textContent = timeframe;
+}
+
+// Initialize charts with real data
+function initializeCharts() {
+  const { revenueData, filter } = dashboardData;
+  
+  // Generate labels and data based on filter type
+  let labels = [];
+  let data = [];
+  
+  if (filter === 'daily') {
+    // Last 30 days
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      labels.push(date.getDate() + '/' + (date.getMonth() + 1));
+      
+      // Find matching revenue data
+      const dayData = revenueData.find(item => 
+        item._id.day === date.getDate() && 
+        item._id.month === date.getMonth() + 1 && 
+        item._id.year === date.getFullYear()
+      );
+      data.push(dayData ? dayData.totalRevenue : 0);
+    }
+  } else if (filter === 'monthly') {
+    // 12 months of current year
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    for (let i = 0; i < 12; i++) {
+      labels.push(monthNames[i]);
+      
+      const monthData = revenueData.find(item => 
+        item._id.month === i + 1 && 
+        item._id.year === new Date().getFullYear()
+      );
+      data.push(monthData ? monthData.totalRevenue : 0);
+    }
+  } else if (filter === 'yearly') {
+    // All available years from data
+    const years = [...new Set(revenueData.map(item => item._id.year))].sort();
+    
+    if (years.length === 0) {
+      // If no data, show last 5 years
+      const currentYear = new Date().getFullYear();
+      for (let i = 4; i >= 0; i--) {
+        years.push(currentYear - i);
+      }
+    }
+    
+    years.forEach(year => {
+      labels.push(year.toString());
+      const yearData = revenueData.find(item => item._id.year === year);
+      data.push(yearData ? yearData.totalRevenue : 0);
+    });
+  }
+
+  // Sales Chart
+  const salesCtx = document.getElementById('salesChart').getContext('2d');
+  if (salesChart) salesChart.destroy();
+  
+  salesChart = new Chart(salesCtx, {
+    type: 'line',
     data: {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'],
+      labels: labels,
       datasets: [{
-        label: 'Sales in Rupees',
-        data: [1500, 2500, 3200, 4000, 5000, 5800, 6200, 7000, 7600, 8100],
-        backgroundColor: '#3B82F6'
+        label: 'Revenue',
+        data: data,
+        borderColor: chartColors.primary,
+        backgroundColor: chartColors.primary + '20',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: chartColors.primary,
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7
       }]
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       plugins: {
         legend: { display: false }
       },
       scales: {
         y: {
-          beginAtZero: true
+          beginAtZero: true,
+          grid: { color: '#f3f4f6' },
+          ticks: {
+            callback: function(value) {
+              return '₹' + value.toLocaleString();
+            }
+          }
+        },
+        x: {
+          grid: { display: false }
         }
       }
     }
   });
 
-  window.addEventListener('pageshow', function (event) {
-    if (event.persisted) {
-      window.location.reload();
+  // Target Chart (Doughnut)
+  const targetCtx = document.getElementById('targetChart').getContext('2d');
+  if (targetChart) targetChart.destroy();
+  
+  const totalRevenue = data.reduce((sum, val) => sum + val, 0);
+  const targetGoal = 1000000;
+  const percentage = Math.min(100, (totalRevenue / targetGoal) * 100);
+  
+  document.getElementById('targetPercentage').textContent = Math.round(percentage) + '%';
+  document.getElementById('currentTarget').textContent = '₹' + totalRevenue.toLocaleString();
+  
+  targetChart = new Chart(targetCtx, {
+    type: 'doughnut',
+    data: {
+      datasets: [{
+        data: [percentage, 100 - percentage],
+        backgroundColor: [chartColors.primary, '#e5e7eb'],
+        borderWidth: 0,
+        cutout: '75%'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } }
     }
   });
+}
 
+// Populate products from dashboard data
+function populateProducts() {
+  const container = document.getElementById('productsCarousel');
+  container.innerHTML = '';
+  
+  const { bestProducts } = dashboardData;
+  
+  if (!bestProducts || bestProducts.length === 0) {
+    container.innerHTML = '<div class="text-center text-gray-500 py-4">No products data available</div>';
+    return;
+  }
+  
+  bestProducts.slice(0, 6).forEach((product, index) => {
+    const productCard = document.createElement('div');
+    productCard.className = 'product-card';
+    productCard.innerHTML = `
+      <div class="product-image">
+        ${product.image ? 
+          `<img src="/Uploads/product-images/${product.image}" alt="${product.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+           <i class="fas fa-box" style="display:none;"></i>` : 
+          `<i class="fas fa-box"></i>`
+        }
+      </div>
+      <h4 class="font-bold text-gray-900 text-sm mb-1">${product.name || 'Unknown Product'}</h4>
+      <p class="text-xs text-gray-500 mb-2">${product.totalQty} sold</p>
+      <div class="flex items-center justify-between">
+        <p class="font-bold text-gradient text-base">#${index + 1}</p>
+        <span class="text-green-600 text-xs font-semibold">Top ${index + 1}</span>
+      </div>
+    `;
+    container.appendChild(productCard);
+  });
+}
 
+// Populate categories from dashboard data
+function populateCategories() {
+  const container = document.getElementById('topCategories');
+  container.innerHTML = '';
+  
+  const { bestCategories } = dashboardData;
+  
+  if (!bestCategories || bestCategories.length === 0) {
+    container.innerHTML = '<div class="text-center text-gray-500 py-4">No categories data available</div>';
+    return;
+  }
+  
+  const colors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'];
+  
+  bestCategories.slice(0, 5).forEach((category, index) => {
+    const categoryItem = document.createElement('div');
+    categoryItem.className = 'category-item';
+    const color = colors[index % colors.length];
+    
+    const maxQty = Math.max(...bestCategories.map(c => c.totalQty));
+    const progressPercentage = (category.totalQty / maxQty) * 100;
+    
+    categoryItem.innerHTML = `
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style="background-color: ${color}">
+            ${index + 1}
+          </div>
+          <div>
+            <p class="font-bold text-gray-900 text-sm">${category.name || 'Unknown Category'}</p>
+            <p class="text-xs text-gray-500">${category.totalQty} items sold</p>
+          </div>
+        </div>
+        <div class="text-right">
+          <p class="font-bold text-gradient text-sm">${category.totalQty} units</p>
+          <div class="w-16 h-1.5 bg-gray-200 rounded-full mt-1">
+            <div class="h-full rounded-full transition-all duration-500" style="background-color: ${color}; width: ${progressPercentage}%"></div>
+          </div>
+        </div>
+      </div>
+    `;
+    container.appendChild(categoryItem);
+  });
+}
 
+// Populate recent orders from static data (doesn't change with filters)
+function populateRecentOrders() {
+  const container = document.getElementById('recentOrders');
+  container.innerHTML = '';
+  
+  const { recentOrders } = staticData;
+  
+  if (!recentOrders || recentOrders.length === 0) {
+    container.innerHTML = '<div class="text-center text-gray-500 py-4">No recent orders available</div>';
+    return;
+  }
+  
+  recentOrders.slice(0, 5).forEach(order => {
+    const orderItem = document.createElement('div');
+    orderItem.className = 'order-item';
+    
+    // Get first product from order items
+    const firstProduct = order.orderitems && order.orderitems.length > 0 ? order.orderitems[0] : null;
+    const productName = firstProduct && firstProduct.product ? firstProduct.product.productName : 'Unknown Product';
+    
+    // Format date
+    const orderDate = new Date(order.createdOn);
+    const timeAgo = getTimeAgo(orderDate);
+    
+    // Determine status based on order status
+    const status = order.orderStatus || 'Processing';
+    const statusColors = {
+      'Delivered': 'text-green-600 bg-green-100',
+      'Processing': 'text-blue-600 bg-blue-100',
+      'Shipped': 'text-purple-600 bg-purple-100',
+      'Pending': 'text-orange-600 bg-orange-100',
+      'Cancelled': 'text-red-600 bg-red-100'
+    };
+    
+    orderItem.innerHTML = `
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+            ${firstProduct && firstProduct.product && firstProduct.product.images && firstProduct.product.images.length > 0 ?
+              `<img src="${firstProduct.product.images[0]}" alt="Product" class="w-8 h-8 object-cover rounded" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+               <i class="fas fa-shopping-bag text-gray-600 text-sm" style="display:none;"></i>` :
+              `<i class="fas fa-shopping-bag text-gray-600 text-sm"></i>`
+            }
+          </div>
+          <div>
+            <p class="font-bold text-gray-900 text-sm">#${order._id.toString().slice(-6).toUpperCase()}</p>
+            <p class="text-xs text-gray-500">${order.user ? order.user.name : 'Unknown User'} • ${productName}</p>
+          </div>
+        </div>
+        <div class="text-right">
+          <p class="font-bold text-gradient text-sm">₹${order.finalAmount ? order.finalAmount.toLocaleString() : '0'}</p>
+          <div class="flex items-center gap-2 mt-1">
+            <span class="status-badge rounded-full ${statusColors[status] || statusColors['Processing']}">${status}</span>
+            <span class="text-xs text-gray-500">${timeAgo}</span>
+          </div>
+        </div>
+      </div>
+    `;
+    container.appendChild(orderItem);
+  });
+}
+
+// Helper function to format time ago
+function getTimeAgo(date) {
+  const now = new Date();
+  const diffInSeconds = Math.floor((now - date) / 1000);
+  
+  if (diffInSeconds < 60) return 'Just now';
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} min ago`;
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+  if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+  return date.toLocaleDateString();
+}
+
+// Load dashboard
+loadDashboard();
 </script>
 
 <%- include('../partials/admin/footer') %>
-</body>
-</html>
