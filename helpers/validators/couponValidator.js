@@ -1,4 +1,4 @@
-function validateCoupon(data) {
+function validateCoupon(data,method) {
   const errors = [];
 
   // 1. Name validation
@@ -35,6 +35,8 @@ function validateCoupon(data) {
   const startDate = new Date(data.startOn);
   const endDate = new Date(data.expireOn);
 
+  if(method!='edit'){
+    console.log(method,'lo')
   if (isNaN(startDate.getTime())) {
     errors.push("Start date is invalid");
   } else if (startDate < now) {
@@ -45,6 +47,7 @@ function validateCoupon(data) {
     errors.push("End date is invalid");
   } else if (endDate <= startDate) {
     errors.push("End date must be after the start date");
+  }
   }
 
   return errors;

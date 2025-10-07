@@ -33,8 +33,8 @@ const orderSchema = new mongoose.Schema({
             },
             status: {
             type: String,
-             enum: ['Pending','Ordered','Shipped', 'Out For Delivery', 'Delivered', 'Cancelled','Return Request', 'Returned','Return Rejected', 'Return Accepted'],
-            default: 'Pending'
+             enum: ['Pending','Processing','Ordered','Shipped', 'Out For Delivery', 'Delivered', 'Cancelled','Return Request', 'Returned','Return Rejected', 'Return Accepted'],
+            default: 'Processing'
           },
           cancellationReasonTitle:{
             type: String,
@@ -71,8 +71,8 @@ const orderSchema = new mongoose.Schema({
           }],
            orderStatus: {
             type: String,
-            enum: ['Pending', 'Ordered', 'Cancelled', 'Partially Cancelled', 'Shipped','Out For Delivery', 'Delivered','Return Request', 'Returned','Return Accepted', 'Return Rejected'],
-            default: 'Pending'
+            enum: ['Pending','Processing', 'Ordered', 'Cancelled', 'Partially Cancelled', 'Shipped','Out For Delivery', 'Delivered','Return Request', 'Returned','Return Accepted', 'Return Rejected'],
+            default: 'Processing'
           },
           cancellationReasonTitle: {
             type: String,
@@ -110,6 +110,11 @@ const orderSchema = new mongoose.Schema({
           finalAmount: {
             type: Number,
             required: true
+          },
+          
+          shippingCharge: {
+            type: Number,
+            default: 0
           },
 
           shippingAddress: {

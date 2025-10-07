@@ -53,7 +53,7 @@
     
     <!-- Action Buttons -->
     <div class="mb-6 no-print flex justify-between items-center">
-      <a href="/order/<%= order._id %>" class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition duration-200">
+      <a href="/order-details/<%= order._id %>" class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition duration-200">
         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
         </svg>
@@ -66,13 +66,6 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H3a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
           </svg>
           Print Invoice
-        </button>
-        
-        <button onclick="downloadPDF()" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200">
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-          </svg>
-          Download PDF
         </button>
       </div>
     </div>
@@ -372,69 +365,6 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-  // Download PDF functionality
-  function downloadPDF() {
-    // Show loading
-    Swal.fire({
-      title: 'Generating PDF...',
-      text: 'Please wait while we prepare your invoice.',
-      allowOutsideClick: false,
-      showConfirmButton: false,
-      willOpen: () => {
-        Swal.showLoading();
-      }
-    });
-
-    // Create a form to submit PDF generation request
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/invoice/download';
-    form.style.display = 'none';
-
-    // Add order ID
-    const orderIdInput = document.createElement('input');
-    orderIdInput.type = 'hidden';
-    orderIdInput.name = 'orderId';
-    orderIdInput.value = '<%= order._id %>';
-    form.appendChild(orderIdInput);
-
-    // Add invoice type
-    const typeInput = document.createElement('input');
-    typeInput.type = 'hidden';
-    typeInput.name = 'invoiceType';
-    typeInput.value = '<%= invoiceType || "order" %>';
-    form.appendChild(typeInput);
-
-    <% if (invoiceType === 'item' && item) { %>
-      // Add item ID for item invoice
-      const itemIdInput = document.createElement('input');
-      itemIdInput.type = 'hidden';
-      itemIdInput.name = 'itemId';
-      itemIdInput.value = '<%= item._id %>';
-      form.appendChild(itemIdInput);
-    <% } %>
-
-    document.body.appendChild(form);
-    
-    // Submit form
-    form.submit();
-    
-    // Remove form
-    document.body.removeChild(form);
-    
-    // Close loading after a short delay
-    setTimeout(() => {
-      Swal.close();
-      Swal.fire({
-        icon: 'success',
-        title: 'PDF Generated!',
-        text: 'Your invoice PDF has been downloaded.',
-        timer: 2000,
-        showConfirmButton: false
-      });
-    }, 2000);
-  }
-
   // Print functionality
   function printInvoice() {
     window.print();

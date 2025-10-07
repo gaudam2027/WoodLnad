@@ -3,6 +3,7 @@ const router = express.Router();
 
 //controllers
 const userController = require('../controllers/user/userController');
+const infoController = require('../controllers/user/infoController');
 const profileController = require('../controllers/user/profileController')
 const addressController = require('../controllers/user/AddressController')
 const wishlistController = require('../controllers/user/wishlistController')
@@ -37,9 +38,14 @@ router.post('/signIn',userController.signin);
 //home page & shopping page
 router.get('/',checkUserStatus,userController.loadHomepage);
 router.get('/shop',checkUserStatus,userController.loadShoppage);
-router.post('/filter',userController.filterProduct);
+router.get('/filter',userController.filterProduct);
 router.get('/shopDetails',checkUserStatus,userController.shopDetails);
 router.post('/review',checkUserStatus,userController.submitReview);
+
+//About us & contact us page
+router.get('/aboutus',checkUserStatus,infoController.aboutUs);
+router.get('/contactUs',checkUserStatus,infoController.contactUs);
+router.post('/contact', checkUserStatus,infoController.postContactForm);
 
 
 //profile management
@@ -91,6 +97,8 @@ router.post('/verify-payment',checkoutController.verifyPayment)
 
 //order management
 router.get('/order-success',userAuth,orderController.loadOrderSuccess);
+router.get('/order-failure',userAuth,orderController.loadOrderFailure);
+router.post('/retry-payment', orderController.retryPaymentVerify);
 router.get('/order',userAuth,orderController.loadOrderpage);
 router.get('/order-details/:id',userAuth, orderController.orderDetails);
 // router.post('/order/:id', orderController.cancelOrReturnOrderItem);
@@ -99,7 +107,11 @@ router.post('/orders/action', orderController.handleOrderOrItemAction);
 //Invoice management
 router.get('/invoice/full/:orderId', invoiceController.getFullInvoice);
 router.get('/invoice/full/download/:orderId', invoiceController.downloadFullInvoice);
+//Item invoice
 router.get('/invoice/item/:orderId/:itemId', invoiceController.getItemInvoice);
+router.get('/invoice/item/download/:orderId/:itemId', invoiceController.downloadItemInvoice);
+//Email invoice
+router.post('/invoice/email',invoiceController.emailInvoice)
 
 
 router.get('/logout',userController.logout)

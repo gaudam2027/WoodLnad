@@ -424,107 +424,98 @@ const loadShoppage = async (req, res) => {
 
   //filter product
 
-  const filterProduct = async (req, res) => {
-    try {
-        
-        let { category,discount,price,color,sortBy,search,page = 1 } = req.body;
-        const user = req.session.userId || req.session.user?._id
-        const userData = await User.findOne({_id:user,isBlocked:false});
-        discount = Number(discount)
-        
-        const limit = 8; // number of products per page
-        const skip = (page - 1) * limit;
-    
-        
-        let filters = {isBlocked: false,};
+const filterProduct = async (req, res) => {
+  try {
+      let { category, discount, price, color, sortBy, search, page = 1 } = req.query;
+      page = Number(page) || 1;
+      discount = Number(discount) || 0;
+      console.log('r')
 
+      const user = req.session.userId || req.session.user?._id;
+      const userData = await User.findOne({ _id: user, isBlocked: false });
 
-        //search products
-        if (search && search.trim() !== "") {
-            const searchRegex = new RegExp(search.trim(), "i");
-          
-            filters.$or = [
-              { productName: searchRegex },
-              { "variants.color": searchRegex } // searchin in inside the variants array's color field
-            ];
-          }
-        
-          if (category) {
-            const foundCategory = await Category.findOne({ name: category, isListed: true });
-            if (foundCategory) {
-              filters.category = foundCategory._id;
-            } else {
-              return res.status(404).send('Category not found or not listed');
-            }
-          } else {
-            
-            const listedCategories = await Category.find({ isListed: true }).select('_id');
-            const listedCategoryIds = listedCategories.map(cat => cat._id);
-            filters.category = { $in: listedCategoryIds };
-          }
+      const limit = 8;
+      const skip = (page - 1) * limit;
 
-        if (price || color||discount) {
-            const variantFilter = {};
-            // Price filter inside variants array
-            if (price) {
-                if (price.includes('above')) {
+      let filters = { isBlocked: false };
+
+      // Search
+      if (search && search.trim() !== "") {
+          const searchRegex = new RegExp(search.trim(), "i");
+          filters.$or = [
+            { productName: searchRegex },
+            { "variants.color": searchRegex }
+          ];
+      }
+
+      // Category
+      if (category) {
+          const foundCategory = await Category.findOne({ name: category, isListed: true });
+          if (foundCategory) filters.category = foundCategory._id;
+      } else {
+          const listedCategories = await Category.find({ isListed: true }).select('_id');
+          const listedCategoryIds = listedCategories.map(cat => cat._id);
+          filters.category = { $in: listedCategoryIds };
+      }
+
+      // Variants filters
+      if (price || color || discount) {
+          const variantFilter = {};
+
+          if (price) {
+              if (price.includes('above')) {
                   const min = Number(price.split('-')[1]);
                   variantFilter.salePrice = { $gt: min };
-                } else {
+              } else {
                   const [min, max] = price.split('-').map(Number);
                   variantFilter.salePrice = { $gte: min, $lte: max };
-                }
-            }
-            // Color filter inside variants array
-            if (color && Array.isArray(color)) {
-                variantFilter.color = { $in: color };
-              } else if (color) {
-                variantFilter.color = color;
               }
+          }
 
-            // Dicount filter
-            if (discount && discount > 0) {
-              variantFilter.offerPercentage = { $gte: discount };
-            }
+          if (color) {
+              if (Array.isArray(color)) variantFilter.color = { $in: color };
+              else variantFilter.color = color;
+          }
 
-            // Apply $elemMatch to combine price and color filters
-            if (Object.keys(variantFilter).length > 0) {
+          if (discount > 0) variantFilter.offerPercentage = { $gte: discount };
+
+          if (Object.keys(variantFilter).length > 0) {
               filters['variants'] = { $elemMatch: variantFilter };
-            }
           }
-
-    
-          let query = Product.find(filters);
-          
-          let sortOption = {};
-            if (sortBy === "priceAsc") {
-            sortOption["variants.0.salePrice"] = 1;
-            } else if (sortBy === "priceDesc") {
-            sortOption["variants.0.salePrice"] = -1;
-            } else if (sortBy === "az") {
-            sortOption.productName = 1;
-            } else if (sortBy === "za") {
-            sortOption.productName = -1;
-            } else {
-            sortOption.createdAt = -1; // default newest first
-          }
-
-          const totalProducts = await Product.countDocuments(filters);
-          const totalPages = Math.ceil(totalProducts / limit);
-
-
-          const products = await query
-          .sort(sortOption)
-          .skip(skip)
-          .limit(limit);
-          const wishlistItems = await Wishlist.findOne({ user: user?._id }).lean();
-          const wishlistProductIds = wishlistItems ? wishlistItems.products.map(p => p.toString()) : [];
-        res.json({ success: true,user:userData, products,wishlistProductIds,totalPages,currentPage: page});
-      } catch (err) {
-        console.error('Error filtering products:', err);
-        res.status(500).json({ success: false, message: 'Server Error' });
       }
-  };
+
+      let query = Product.find(filters);
+
+      // Sorting
+      let sortOption = {};
+      if (sortBy === "priceAsc") sortOption["variants.0.salePrice"] = 1;
+      else if (sortBy === "priceDesc") sortOption["variants.0.salePrice"] = -1;
+      else if (sortBy === "az") sortOption.productName = 1;
+      else if (sortBy === "za") sortOption.productName = -1;
+      else sortOption.createdAt = -1;
+
+      const totalProducts = await Product.countDocuments(filters);
+      const totalPages = Math.ceil(totalProducts / limit);
+
+      const products = await query.sort(sortOption).skip(skip).limit(limit);
+
+      const wishlistItems = await Wishlist.findOne({ user: user?._id }).lean();
+      const wishlistProductIds = wishlistItems ? wishlistItems.products.map(p => p.toString()) : [];
+
+      res.json({
+          success: true,
+          user: userData,
+          products,
+          wishlistProductIds,
+          totalPages,
+          currentPage: page
+      });
+  } catch (err) {
+      console.error('Error filtering products:', err);
+      res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
   
 
 const shopDetails = async (req, res) => {

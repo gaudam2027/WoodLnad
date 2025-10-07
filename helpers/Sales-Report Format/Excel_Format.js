@@ -1,7 +1,7 @@
 const ExcelJS = require('exceljs');
 
 const generateSalesReportExcel = async (reportData, filter, res) => {
-  const { timeSeries, summary, dateRange } = reportData;
+  const { orders, summary, period } = reportData;
 
   try {
     // Create workbook and set properties
@@ -30,398 +30,360 @@ const generateSalesReportExcel = async (reportData, filter, res) => {
 
     // Define column widths
     summarySheet.columns = [
-      { width: 25 }, // Metric
-      { width: 20 }, // Value
-      { width: 15 }, // Performance
-      { width: 30 }  // Description
+      { width: 20 }, // A
+      { width: 20 }, // B
+      { width: 20 }, // C
+      { width: 20 }  // D
     ];
 
     // Title Row
     summarySheet.mergeCells('A1:D1');
     const titleCell = summarySheet.getCell('A1');
-    titleCell.value = 'SALES PERFORMANCE EXECUTIVE SUMMARY';
+    titleCell.value = 'SALES PERFORMANCE REPORT';
     titleCell.font = { 
       name: 'Calibri', 
-      size: 20, 
+      size: 26, 
       bold: true, 
-      color: { argb: 'FF1E3A8A' } 
+      color: { argb: 'FFFFFFFF' } 
     };
     titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
     titleCell.fill = {
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: 'FFE0F2FE' }
+      fgColor: { argb: 'FF1E3A8A' }
     };
+    summarySheet.getRow(1).height = 40;
 
     // Period Information
     summarySheet.mergeCells('A2:D2');
     const periodCell = summarySheet.getCell('A2');
-    periodCell.value = `Report Period: ${filter.toUpperCase()}${dateRange.startDate && dateRange.endDate ? ` | ${formatDateRange(dateRange.startDate, dateRange.endDate)}` : ''} | Generated: ${new Date().toLocaleDateString('en-IN')}`;
+    periodCell.value = `Period: ${filter.toUpperCase()}${period?.current?.start && period?.current?.end ? ` | ${formatDateRange(period.current.start, period.current.end)}` : ''}`;
     periodCell.font = { 
       name: 'Calibri', 
-      size: 12, 
-      italic: true,
-      color: { argb: 'FF374151' }
+      size: 16, 
+      color: { argb: 'FFE0F2FE' }
     };
     periodCell.alignment = { horizontal: 'center', vertical: 'middle' };
+    periodCell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF1E3A8A' }
+    };
+    summarySheet.getRow(2).height = 25;
 
     // Add empty row
     summarySheet.addRow([]);
 
-    // Key Metrics Header
-    const metricsHeaderRow = summarySheet.addRow(['Key Performance Metrics', '', '', '']);
+    // Executive Summary Header
     summarySheet.mergeCells('A4:D4');
-    metricsHeaderRow.font = { 
+    const summaryHeaderCell = summarySheet.getCell('A4');
+    summaryHeaderCell.value = 'Executive Summary';
+    summaryHeaderCell.font = { 
       name: 'Calibri', 
-      size: 16, 
+      size: 20, 
       bold: true, 
       color: { argb: 'FF1E3A8A' } 
     };
-    metricsHeaderRow.alignment = { horizontal: 'center' };
+    summaryHeaderCell.alignment = { horizontal: 'left', vertical: 'middle' };
+    summarySheet.getRow(4).height = 30;
 
-    // Sub-headers
-    const subHeaderRow = summarySheet.addRow(['Metric', 'Value', 'Status', 'Analysis']);
-    subHeaderRow.font = { 
-      name: 'Calibri', 
-      size: 12, 
-      bold: true, 
-      color: { argb: 'FFFFFFFF' } 
-    };
-    subHeaderRow.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FF1E3A8A' }
-    };
-    subHeaderRow.alignment = { horizontal: 'center', vertical: 'middle' };
-
-    // Calculate additional metrics
-    const avgOrderValue = summary.totalOrders > 0 ? summary.finalRevenue / summary.totalOrders : 0;
+    // Calculate metrics (same as PDF)
+    const finalRevenue = summary.totalAmount - summary.totalDiscount;
+    const avgOrderValue = summary.totalOrders > 0 ? finalRevenue / summary.totalOrders : 0;
     const discountRate = summary.totalAmount > 0 ? (summary.totalDiscount / summary.totalAmount) * 100 : 0;
-    const netMargin = summary.totalAmount > 0 ? ((summary.finalRevenue / summary.totalAmount) * 100) : 0;
 
-    // Metrics data
+    // Metrics cards (matching PDF layout)
     const metricsData = [
-      {
-        metric: 'Total Orders',
-        value: summary.totalOrders.toLocaleString(),
-        status: getPerformanceStatus(summary.totalOrders, 'orders'),
-        analysis: `${summary.totalOrders} orders processed during this period`
-      },
-      {
-        metric: 'Gross Sales Amount',
-        value: `₹${formatCurrency(summary.totalAmount)}`,
-        status: getPerformanceStatus(summary.totalAmount, 'sales'),
-        analysis: `Total sales before discounts and adjustments`
-      },
-      {
-        metric: 'Total Discounts Given',
-        value: `₹${formatCurrency(summary.totalDiscount)}`,
-        status: getPerformanceStatus(discountRate, 'discount_rate'),
-        analysis: `${discountRate.toFixed(1)}% of gross sales as discounts`
-      },
-      {
-        metric: 'Net Revenue',
-        value: `₹${formatCurrency(summary.finalRevenue)}`,
-        status: getPerformanceStatus(summary.finalRevenue, 'revenue'),
-        analysis: `Final revenue after all discounts and adjustments`
-      },
-      {
-        metric: 'Average Order Value',
-        value: `₹${formatCurrency(avgOrderValue)}`,
-        status: getPerformanceStatus(avgOrderValue, 'aov'),
-        analysis: `Revenue per order - key profitability metric`
-      },
-      {
-        metric: 'Net Profit Margin',
-        value: `${netMargin.toFixed(1)}%`,
-        status: getPerformanceStatus(netMargin, 'margin'),
-        analysis: `Percentage of sales retained as net revenue`
-      }
+      { title: 'Total Orders', value: summary.totalOrders.toLocaleString(), color: 'FF16A34A', bg: 'FFDCFCE7' },
+      { title: 'Gross Sales', value: `₹${formatCurrency(summary.totalAmount)}`, color: 'FF2563EB', bg: 'FFDBEAFE' },
+      { title: 'Total Discounts', value: `₹${formatCurrency(summary.totalDiscount)}`, color: 'FFDC2626', bg: 'FFFEE2E2' },
+      { title: 'Net Revenue', value: `₹${formatCurrency(finalRevenue)}`, color: 'FF059669', bg: 'FFD1FAE5' }
     ];
 
-    // Add metrics rows
-    metricsData.forEach((metric, index) => {
-      const row = summarySheet.addRow([
-        metric.metric,
-        metric.value,
-        metric.status,
-        metric.analysis
-      ]);
+    let currentRow = 6;
+    for (let i = 0; i < metricsData.length; i += 2) {
+      // First card (left)
+      if (metricsData[i]) {
+        summarySheet.mergeCells(`A${currentRow}:B${currentRow + 1}`);
+        const card1 = summarySheet.getCell(`A${currentRow}`);
+        card1.value = metricsData[i].title;
+        card1.font = { name: 'Calibri', size: 14, bold: true, color: { argb: metricsData[i].color } };
+        card1.alignment = { horizontal: 'center', vertical: 'middle' };
+        card1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: metricsData[i].bg } };
 
-      // Style the row
-      row.font = { name: 'Calibri', size: 11 };
-      row.alignment = { horizontal: 'left', vertical: 'middle' };
-      
-      // Alternate row colors
-      const fillColor = index % 2 === 0 ? 'FFF8FAFC' : 'FFFFFFFF';
-      row.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: fillColor }
-      };
+        summarySheet.mergeCells(`A${currentRow + 2}:B${currentRow + 2}`);
+        const value1 = summarySheet.getCell(`A${currentRow + 2}`);
+        value1.value = metricsData[i].value;
+        value1.font = { name: 'Calibri', size: 20, bold: true, color: { argb: 'FF374151' } };
+        value1.alignment = { horizontal: 'center', vertical: 'middle' };
+        value1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: metricsData[i].bg } };
 
-      // Add borders
-      row.eachCell((cell) => {
-        cell.border = {
-          top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-          left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-          bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-          right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
-        };
-      });
-
-      // Color-code the status cell
-      const statusCell = row.getCell(3);
-      const statusColor = getStatusColor(metric.status);
-      statusCell.font = { 
-        name: 'Calibri', 
-        size: 11, 
-        color: { argb: statusColor.font },
-        bold: true
-      };
-      statusCell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: statusColor.background }
-      };
-
-      // Bold and color the value cell
-      const valueCell = row.getCell(2);
-      valueCell.font = { 
-        name: 'Calibri', 
-        size: 11, 
-        bold: true,
-        color: { argb: 'FF1E3A8A' }
-      };
-    });
-
-    // ==============================
-    // TIME SERIES PERFORMANCE WORKSHEET
-    // ==============================
-    
-    const timeSeriesSheet = workbook.addWorksheet('Time Series Analysis', {
-      pageSetup: { 
-        paperSize: 9, // A4
-        orientation: 'landscape',
-        margins: {
-          left: 0.5, right: 0.5,
-          top: 0.75, bottom: 0.75,
-          header: 0.3, footer: 0.3
+        // Add borders
+        for (let r = currentRow; r <= currentRow + 2; r++) {
+          for (let c = 1; c <= 2; c++) {
+            const cell = summarySheet.getCell(r, c);
+            cell.border = {
+              top: { style: 'thin', color: { argb: 'FFE5E7EB' } },
+              left: { style: 'thin', color: { argb: 'FFE5E7EB' } },
+              bottom: { style: 'thin', color: { argb: 'FFE5E7EB' } },
+              right: { style: 'thin', color: { argb: 'FFE5E7EB' } }
+            };
+          }
         }
       }
-    });
 
-    // Define columns for time series
-    timeSeriesSheet.columns = [
-      { header: 'Period', key: 'period', width: 20 },
-      { header: 'Orders', key: 'orders', width: 12 },
-      { header: 'Gross Sales (₹)', key: 'grossSales', width: 18 },
-      { header: 'Discounts (₹)', key: 'discounts', width: 16 },
-      { header: 'Net Revenue (₹)', key: 'netRevenue', width: 18 },
-      { header: 'Avg Order Value (₹)', key: 'avgOrder', width: 20 },
-      { header: 'Growth Rate (%)', key: 'growthRate', width: 16 },
-      { header: 'Performance', key: 'performance', width: 15 }
-    ];
+      // Second card (right)
+      if (metricsData[i + 1]) {
+        summarySheet.mergeCells(`C${currentRow}:D${currentRow + 1}`);
+        const card2 = summarySheet.getCell(`C${currentRow}`);
+        card2.value = metricsData[i + 1].title;
+        card2.font = { name: 'Calibri', size: 14, bold: true, color: { argb: metricsData[i + 1].color } };
+        card2.alignment = { horizontal: 'center', vertical: 'middle' };
+        card2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: metricsData[i + 1].bg } };
 
-    // Title for time series sheet
-    timeSeriesSheet.mergeCells('A1:H1');
-    const timeSeriesTitleCell = timeSeriesSheet.getCell('A1');
-    timeSeriesTitleCell.value = 'SALES PERFORMANCE TIMELINE';
-    timeSeriesTitleCell.font = { 
-      name: 'Calibri', 
-      size: 18, 
-      bold: true, 
-      color: { argb: 'FF1E3A8A' } 
-    };
-    timeSeriesTitleCell.alignment = { horizontal: 'center', vertical: 'middle' };
-    timeSeriesTitleCell.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFE0F2FE' }
-    };
+        summarySheet.mergeCells(`C${currentRow + 2}:D${currentRow + 2}`);
+        const value2 = summarySheet.getCell(`C${currentRow + 2}`);
+        value2.value = metricsData[i + 1].value;
+        value2.font = { name: 'Calibri', size: 20, bold: true, color: { argb: 'FF374151' } };
+        value2.alignment = { horizontal: 'center', vertical: 'middle' };
+        value2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: metricsData[i + 1].bg } };
 
-    // Add empty row
-    timeSeriesSheet.addRow([]);
-
-    // Style the header row
-    const timeSeriesHeaderRow = timeSeriesSheet.getRow(3);
-    timeSeriesHeaderRow.values = [
-      'Period', 'Orders', 'Gross Sales (₹)', 'Discounts (₹)', 
-      'Net Revenue (₹)', 'Avg Order Value (₹)', 'Growth Rate (%)', 'Performance'
-    ];
-    
-    timeSeriesHeaderRow.font = { 
-      name: 'Calibri', 
-      size: 12, 
-      bold: true, 
-      color: { argb: 'FFFFFFFF' } 
-    };
-    timeSeriesHeaderRow.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FF1E3A8A' }
-    };
-    timeSeriesHeaderRow.alignment = { horizontal: 'center', vertical: 'middle' };
-    
-    timeSeriesHeaderRow.eachCell((cell) => {
-      cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' }
-      };
-    });
-
-    // Add time series data
-    timeSeries.forEach((item, index) => {
-      // Calculate growth rate
-      const growthRate = index > 0 && timeSeries[index - 1].revenue > 0
-        ? ((item.revenue - timeSeries[index - 1].revenue) / timeSeries[index - 1].revenue * 100)
-        : 0;
-
-      const row = timeSeriesSheet.addRow({
-        period: item.period,
-        orders: item.orders,
-        grossSales: item.sales.toFixed(2),
-        discounts: item.discounts.toFixed(2),
-        netRevenue: item.revenue.toFixed(2),
-        avgOrder: item.avgOrder.toFixed(2),
-        growthRate: index > 0 ? `${growthRate >= 0 ? '+' : ''}${growthRate.toFixed(1)}%` : 'N/A',
-        performance: getPerformanceRating(item.revenue, timeSeries)
-      });
-
-      // Style data rows
-      row.font = { name: 'Calibri', size: 10 };
-      row.alignment = { horizontal: 'center', vertical: 'middle' };
-      
-      // Right align numbers
-      [3, 4, 5, 6].forEach(colNum => {
-        row.getCell(colNum).alignment = { horizontal: 'right', vertical: 'middle' };
-      });
-
-      // Alternate row colors
-      const fillColor = index % 2 === 0 ? 'FFF8FAFC' : 'FFFFFFFF';
-      row.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: fillColor }
-      };
-
-      // Add borders
-      row.eachCell((cell) => {
-        cell.border = {
-          top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-          left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-          bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-          right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
-        };
-      });
-
-      // Color-code growth rate
-      const growthCell = row.getCell(7);
-      if (index > 0) {
-        const growthColor = growthRate >= 5 ? 'FF16A34A' : growthRate >= 0 ? 'FF059669' : 'FFDC2626';
-        growthCell.font = { 
-          name: 'Calibri', 
-          size: 10, 
-          color: { argb: growthColor },
-          bold: true
-        };
+        // Add borders
+        for (let r = currentRow; r <= currentRow + 2; r++) {
+          for (let c = 3; c <= 4; c++) {
+            const cell = summarySheet.getCell(r, c);
+            cell.border = {
+              top: { style: 'thin', color: { argb: 'FFE5E7EB' } },
+              left: { style: 'thin', color: { argb: 'FFE5E7EB' } },
+              bottom: { style: 'thin', color: { argb: 'FFE5E7EB' } },
+              right: { style: 'thin', color: { argb: 'FFE5E7EB' } }
+            };
+          }
+        }
       }
 
-      // Color-code performance
-      const performanceCell = row.getCell(8);
-      const perfColor = getPerformanceColor(row.getCell(8).value);
-      performanceCell.font = { 
-        name: 'Calibri', 
-        size: 10, 
-        color: { argb: perfColor.font },
-        bold: true
+      currentRow += 5;
+    }
+
+    // Growth Indicators section
+    currentRow += 2;
+    summarySheet.mergeCells(`A${currentRow}:D${currentRow}`);
+    const growthHeaderCell = summarySheet.getCell(`A${currentRow}`);
+    growthHeaderCell.value = 'Growth Indicators (vs Previous Period)';
+    growthHeaderCell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FF475569' } };
+    growthHeaderCell.alignment = { horizontal: 'left', vertical: 'middle' };
+    growthHeaderCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+
+    currentRow++;
+    const growthRow = summarySheet.addRow([
+      `Sales Growth: ${summary.salesGrowth}%`,
+      `Orders Growth: ${summary.ordersGrowth}%`,
+      `Discount Growth: ${summary.discountGrowth}%`,
+      `Avg Order Value: ₹${formatCurrency(avgOrderValue)}`
+    ]);
+
+    growthRow.font = { name: 'Calibri', size: 11, color: { argb: 'FF1E293B' } };
+    growthRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+    growthRow.eachCell((cell) => {
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+        left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+        bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+        right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
       };
-      performanceCell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: perfColor.background }
+    });
+
+    currentRow++;
+    const discountRateRow = summarySheet.addRow([
+      `Discount Rate: ${discountRate.toFixed(1)}%`,
+      '', '', ''
+    ]);
+    discountRateRow.font = { name: 'Calibri', size: 11, color: { argb: 'FF1E293B' } };
+    discountRateRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+    discountRateRow.eachCell((cell) => {
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+        left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+        bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+        right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
       };
     });
 
     // ==============================
-    // INSIGHTS & RECOMMENDATIONS WORKSHEET
+    // ORDER BREAKDOWN WORKSHEET (matching PDF table)
     // ==============================
     
-    const insightsSheet = workbook.addWorksheet('Insights & Recommendations');
+    if (orders && orders.length > 0) {
+      const orderSheet = workbook.addWorksheet('Order Breakdown');
+      
+      orderSheet.columns = [
+        { header: 'Order ID', key: 'orderId', width: 15 },
+        { header: 'Date', key: 'date', width: 20 },
+        { header: 'Total (₹)', key: 'total', width: 15 },
+        { header: 'Discount (₹)', key: 'discount', width: 15 },
+        { header: 'Final (₹)', key: 'final', width: 15 }
+      ];
+
+      // Title
+      orderSheet.mergeCells('A1:E1');
+      const orderTitleCell = orderSheet.getCell('A1');
+      orderTitleCell.value = 'Order Breakdown';
+      orderTitleCell.font = { 
+        name: 'Calibri', 
+        size: 20, 
+        bold: true, 
+        color: { argb: 'FF1E3A8A' } 
+      };
+      orderTitleCell.alignment = { horizontal: 'left', vertical: 'middle' };
+      orderSheet.getRow(1).height = 30;
+
+      // Empty row
+      orderSheet.addRow([]);
+
+      // Header row
+      const headerRow = orderSheet.addRow(['Order ID', 'Date', 'Total (₹)', 'Discount (₹)', 'Final (₹)']);
+      headerRow.font = { 
+        name: 'Calibri', 
+        size: 11, 
+        bold: true, 
+        color: { argb: 'FFFFFFFF' } 
+      };
+      headerRow.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF1E3A8A' }
+      };
+      headerRow.alignment = { horizontal: 'center', vertical: 'middle' };
+      
+      headerRow.eachCell((cell) => {
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FF3B82F6' } },
+          left: { style: 'thin', color: { argb: 'FF3B82F6' } },
+          bottom: { style: 'thin', color: { argb: 'FF3B82F6' } },
+          right: { style: 'thin', color: { argb: 'FF3B82F6' } }
+        };
+      });
+
+      // Add order data
+      orders.forEach((order, index) => {
+        // Ensure order ID shows only last 8 characters (same as PDF)
+        const shortOrderId = order.orderId ? order.orderId.toString().slice(-8) : "N/A";
+        
+        const row = orderSheet.addRow([
+          shortOrderId,
+          new Date(order.createdOn).toLocaleDateString("en-IN"),
+          formatCurrency(order.totalPrice),
+          formatCurrency(order.couponDiscount),
+          formatCurrency(order.finalAmount)
+        ]);
+
+        // Style data rows
+        row.font = { name: 'Calibri', size: 10, color: { argb: 'FF1F2937' } };
+        
+        // Alternate row colors
+        const fillColor = index % 2 === 0 ? 'FFF8FAFC' : 'FFFFFFFF';
+        row.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: fillColor }
+        };
+
+        // Center align date, right align numbers
+        row.getCell(1).alignment = { horizontal: 'right', vertical: 'middle' }; // Order ID
+        row.getCell(2).alignment = { horizontal: 'center', vertical: 'middle' }; // Date
+        row.getCell(3).alignment = { horizontal: 'right', vertical: 'middle' }; // Total
+        row.getCell(4).alignment = { horizontal: 'right', vertical: 'middle' }; // Discount
+        row.getCell(5).alignment = { horizontal: 'right', vertical: 'middle' }; // Final
+
+        // Add borders
+        row.eachCell((cell) => {
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+          };
+        });
+      });
+    }
+
+    // ==============================
+    // PERFORMANCE INSIGHTS WORKSHEET (matching PDF insights)
+    // ==============================
+    
+    const insightsSheet = workbook.addWorksheet('Performance Insights');
     
     insightsSheet.columns = [
-      { width: 25 }, // Category
-      { width: 50 }, // Insight
-      { width: 25 }  // Action
+      { width: 25 }, // Title
+      { width: 60 }  // Description
     ];
 
     // Title
-    insightsSheet.mergeCells('A1:C1');
+    insightsSheet.mergeCells('A1:B1');
     const insightsTitleCell = insightsSheet.getCell('A1');
-    insightsTitleCell.value = 'BUSINESS INSIGHTS & RECOMMENDATIONS';
+    insightsTitleCell.value = 'Performance Insights';
     insightsTitleCell.font = { 
       name: 'Calibri', 
-      size: 18, 
+      size: 20, 
       bold: true, 
       color: { argb: 'FF1E3A8A' } 
     };
-    insightsTitleCell.alignment = { horizontal: 'center', vertical: 'middle' };
-    insightsTitleCell.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFE0F2FE' }
-    };
+    insightsTitleCell.alignment = { horizontal: 'left', vertical: 'middle' };
+    insightsSheet.getRow(1).height = 30;
 
-    // Generate insights
-    const insights = generateBusinessInsights(timeSeries, summary);
+    // Empty row
+    insightsSheet.addRow([]);
+
+    // Generate insights (same logic as PDF)
+    const insights = calculateInsights(summary);
     
-    // Headers
-    const insightsHeaderRow = insightsSheet.addRow(['Category', 'Insight', 'Recommended Action']);
-    insightsHeaderRow.font = { 
-      name: 'Calibri', 
-      size: 12, 
-      bold: true, 
-      color: { argb: 'FFFFFFFF' } 
-    };
-    insightsHeaderRow.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FF1E3A8A' }
-    };
-
-    // Add insights
     insights.forEach((insight, index) => {
-      const row = insightsSheet.addRow([
-        insight.category,
-        insight.insight,
-        insight.action
-      ]);
-
-      // Style
-      row.font = { name: 'Calibri', size: 11 };
-      row.alignment = { horizontal: 'left', vertical: 'top' };
-      row.height = 40; // Increase row height for better readability
-
-      // Alternate colors
-      const fillColor = index % 2 === 0 ? 'FFF8FAFC' : 'FFFFFFFF';
-      row.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: fillColor }
+      // Add insight title and description
+      const titleRow = insightsSheet.addRow([insight.title, '']);
+      titleRow.font = { 
+        name: 'Calibri', 
+        size: 14, 
+        bold: true, 
+        color: { argb: 'FF374151' } 
       };
 
-      // Wrap text
-      row.eachCell((cell) => {
-        cell.alignment = { ...cell.alignment, wrapText: true };
-        cell.border = {
-          top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-          left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-          bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-          right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
-        };
+      const bg = index % 2 === 0 ? 'FFF0F9FF' : 'FFFEFCE8';
+      const border = index % 2 === 0 ? 'FF0EA5E9' : 'FFEAB308';
+
+      titleRow.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: bg }
+      };
+
+      const descRow = insightsSheet.addRow(['', insight.description]);
+      descRow.font = { 
+        name: 'Calibri', 
+        size: 11, 
+        color: { argb: 'FF6B7280' } 
+      };
+      descRow.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: bg }
+      };
+      descRow.alignment = { wrapText: true, vertical: 'top' };
+      descRow.height = 40;
+
+      // Add borders
+      [titleRow, descRow].forEach(row => {
+        row.eachCell((cell) => {
+          cell.border = {
+            top: { style: 'thin', color: { argb: border } },
+            left: { style: 'thin', color: { argb: border } },
+            bottom: { style: 'thin', color: { argb: border } },
+            right: { style: 'thin', color: { argb: border } }
+          };
+        });
       });
+
+      // Empty row between insights
+      insightsSheet.addRow([]);
     });
 
     // ==============================
@@ -453,7 +415,7 @@ const generateSalesReportExcel = async (reportData, filter, res) => {
 };
 
 // ==============================
-// HELPER FUNCTIONS
+// HELPER FUNCTIONS (same as PDF)
 // ==============================
 
 function formatCurrency(amount) {
@@ -470,126 +432,24 @@ function formatDateRange(startDate, endDate) {
   return `${start} to ${end}`;
 }
 
-function getPerformanceStatus(value, type) {
-  switch (type) {
-    case 'orders':
-      if (value >= 100) return 'Excellent';
-      if (value >= 50) return 'Good';
-      if (value >= 20) return 'Average';
-      return 'Below Average';
-    case 'sales':
-    case 'revenue':
-      if (value >= 100000) return 'Excellent';
-      if (value >= 50000) return 'Good';
-      if (value >= 20000) return 'Average';
-      return 'Below Average';
-    case 'aov':
-      if (value >= 2000) return 'Excellent';
-      if (value >= 1000) return 'Good';
-      if (value >= 500) return 'Average';
-      return 'Below Average';
-    case 'discount_rate':
-      if (value <= 5) return 'Excellent';
-      if (value <= 10) return 'Good';
-      if (value <= 20) return 'Average';
-      return 'High';
-    case 'margin':
-      if (value >= 80) return 'Excellent';
-      if (value >= 70) return 'Good';
-      if (value >= 60) return 'Average';
-      return 'Below Average';
-    default:
-      return 'N/A';
-  }
-}
-
-function getStatusColor(status) {
-  switch (status.toLowerCase()) {
-    case 'excellent':
-      return { font: 'FF16A34A', background: 'FFD1FAE5' };
-    case 'good':
-      return { font: 'FF059669', background: 'FFECFDF5' };
-    case 'average':
-      return { font: 'FFCA8A04', background: 'FFFEF3C7' };
-    case 'below average':
-    case 'high':
-      return { font: 'FFDC2626', background: 'FFFECACA' };
-    default:
-      return { font: 'FF6B7280', background: 'FFF9FAFB' };
-  }
-}
-
-function getPerformanceRating(revenue, allData) {
-  if (allData.length === 0) return 'N/A';
-  
-  const maxRevenue = Math.max(...allData.map(item => item.revenue));
-  const avgRevenue = allData.reduce((sum, item) => sum + item.revenue, 0) / allData.length;
-  
-  if (revenue >= maxRevenue * 0.9) return 'Excellent';
-  if (revenue >= avgRevenue * 1.1) return 'Above Average';
-  if (revenue >= avgRevenue * 0.9) return 'Average';
-  return 'Below Average';
-}
-
-function getPerformanceColor(performance) {
-  switch (performance?.toLowerCase()) {
-    case 'excellent':
-      return { font: 'FF16A34A', background: 'FFD1FAE5' };
-    case 'above average':
-      return { font: 'FF059669', background: 'FFECFDF5' };
-    case 'average':
-      return { font: 'FFCA8A04', background: 'FFFEF3C7' };
-    case 'below average':
-      return { font: 'FFDC2626', background: 'FFFECACA' };
-    default:
-      return { font: 'FF6B7280', background: 'FFF9FAFB' };
-  }
-}
-
-function generateBusinessInsights(timeSeries, summary) {
+function calculateInsights(summary) {
   const insights = [];
+  const { salesGrowth, ordersGrowth, discountGrowth, totalAmount, totalDiscount } = summary;
 
-  if (timeSeries.length === 0) return insights;
-
-  // Revenue trend analysis
-  if (timeSeries.length > 1) {
-    const latest = timeSeries[timeSeries.length - 1];
-    const previous = timeSeries[timeSeries.length - 2];
-    const growthRate = previous.revenue > 0 
-      ? ((latest.revenue - previous.revenue) / previous.revenue * 100)
-      : 0;
-    
-    insights.push({
-      category: 'Revenue Growth',
-      insight: `Revenue ${growthRate >= 0 ? 'increased' : 'decreased'} by ${Math.abs(growthRate).toFixed(1)}% compared to the previous period.`,
-      action: growthRate >= 5 ? 'Maintain current strategies' : growthRate < -5 ? 'Review marketing and pricing strategies' : 'Monitor trends closely'
-    });
-  }
-
-  // Best performing period
-  const bestPeriod = timeSeries.reduce((max, item) => 
-    item.revenue > max.revenue ? item : max, timeSeries[0]);
-  
   insights.push({
-    category: 'Peak Performance',
-    insight: `Best performing period: ${bestPeriod.period} with ₹${formatCurrency(bestPeriod.revenue)} revenue from ${bestPeriod.orders} orders.`,
-    action: 'Analyze factors that contributed to this peak performance and replicate successful strategies'
+    title: "Sales Growth",
+    description: `Sales changed by ${salesGrowth}% compared to the previous period. ${salesGrowth > 10 ? "Strong upward trend!" : salesGrowth < -10 ? "Revenue dipped noticeably." : "Stable performance."}`
   });
 
-  // Average order value analysis
-  const avgOrderValue = summary.totalOrders > 0 ? summary.finalRevenue / summary.totalOrders : 0;
   insights.push({
-    category: 'Order Value',
-    insight: `Average order value is ₹${formatCurrency(avgOrderValue)}. ${avgOrderValue > 1500 ? 'Strong customer purchasing power.' : 'Opportunity to increase order value.'}`,
-    action: avgOrderValue > 1500 ? 'Focus on customer retention' : 'Implement upselling and cross-selling strategies'
+    title: "Orders Growth", 
+    description: `Order volume changed by ${ordersGrowth}% compared to the previous period. ${ordersGrowth > 10 ? "Excellent engagement!" : ordersGrowth < -10 ? "Order rate declined." : "Consistent order flow."}`
   });
 
-  // Discount analysis
-  const discountRate = summary.totalAmount > 0 ? (summary.totalDiscount / summary.totalAmount) * 100 : 0;
+  const discountRate = totalAmount > 0 ? (totalDiscount / totalAmount) * 100 : 0;
   insights.push({
-    category: 'Discount Strategy',
-    insight: `Discount rate is ${discountRate.toFixed(1)}% of gross sales. ${discountRate > 15 ? 'High discount usage may impact margins.' : 'Conservative discount approach.'}`,
-    action: discountRate > 15 ? 'Review discount policies and focus on value-based pricing' : 'Consider strategic promotions to boost sales'
+    title: "Discount Utilization",
+    description: `Discounts account for ${discountRate.toFixed(1)}% of gross sales. ${discountRate > 20 ? "High dependency on discounts - consider optimization." : discountRate < 5 ? "Minimal discount use, strong margins." : "Moderate discounting level."}`
   });
 
   return insights;

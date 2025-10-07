@@ -25,7 +25,7 @@ const walletSchema = new mongoose.Schema({
       },
       paymentMethod: {
         type: String,
-        enum: ['Upi','Debit-Card','Net-Banking'],
+        enum: ['Upi','Debit-Card','Net-Banking','Wallet'],
         required: false,
       },
       reference: {

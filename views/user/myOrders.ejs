@@ -237,6 +237,16 @@
     box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
   }
 
+  .btn-success {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+  }
+
+  .btn-success:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+  }
   .search-input {
     background: rgba(255, 255, 255, 0.9);
     border: 2px solid rgba(0, 0, 0, 0.1);
@@ -507,7 +517,7 @@
                       <button onclick="downloadInvoice('<%= order._id %>')" class="order-btn btn-primary">
                         <i class="fas fa-download mr-1"></i>Invoice
                       </button>
-                      <% if (order.orderStatus !== 'Cancelled' && order.orderStatus !== 'Delivered' && order.orderStatus !== 'Returned' && order.orderStatus !== 'Return Request' && order.orderStatus !== 'Return Accepted' && order.orderStatus !== 'Return Rejected') { %>
+                      <% if (order.orderStatus !== 'Cancelled' && order.orderStatus !== 'Delivered' && order.orderStatus !== 'Returned' && order.orderStatus !== 'Return Request' && order.orderStatus !== 'Return Accepted' && order.orderStatus !== 'Return Rejected' && order.orderStatus !== 'Pending') { %>
                         <button onclick="openActionModal('<%= order._id %>', 'cancel', 'order')" class="order-btn btn-danger">
                           <i class="fas fa-times mr-1"></i>Cancel
                         </button>
@@ -515,6 +525,11 @@
                       <% if (order.orderStatus === 'Delivered') { %>
                         <button onclick="openActionModal('<%= order._id %>', 'return', 'order')" class="order-btn btn-warning">
                           <i class="fas fa-undo mr-1"></i>Return
+                        </button>
+                      <% } %>
+                      <% if (order.orderStatus === 'Pending') { %>
+                        <button onclick="retryPayment('<%= order._id %>')" class="order-btn btn-success">
+                          <i class="fas fa-redo mr-1"></i>Retry Payment
                         </button>
                       <% } %>
                     </div>
@@ -557,7 +572,7 @@
                             <p class="text-xs text-gray-500 mt-1">Return: <%= item.returnReasonTitle %></p>
                           <% } %>
 
-                          <% if (item.status !== 'Cancelled' && item.status !== 'Returned' && item.status !== 'Return Request' && item.status !== 'return_accepted' && item.status !== 'Return Rejected' && order.orderStatus !== 'Cancelled') { %>
+                          <% if (item.status !== 'Cancelled' && item.status !== 'Returned' && item.status !== 'Return Request' && item.status !== 'return_accepted' && item.status !== 'Return Rejected' && order.orderStatus !== 'Cancelled' && item.status !== 'Pending') { %>
                             <div class="flex gap-1 mt-2">
                               <% if (item.status !== 'Delivered') { %>
                                 <button onclick="openActionModal('<%= order._id %>', 'cancel', 'item', '<%= item._id %>')" class="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition">
@@ -755,6 +770,10 @@ function searchOrders() {
 
 function viewOrderDetails(orderId) {
   window.location.href = `/order-details/${orderId}`;
+}
+
+function retryPayment(orderId) {
+  window.location.href = `/order-failure?orderId=${orderId}`;
 }
 
 function downloadInvoice(orderId) {

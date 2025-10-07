@@ -225,16 +225,19 @@
               </div>
             </label>
             <label class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
-              <input type="radio" name="paymentMethod" value="Card" class="text-gray-600 focus:ring-gray-500">
+              <input type="radio" name="paymentMethod" value="Wallet" class="text-gray-600 focus:ring-gray-500">
               <div class="ml-3 flex items-center gap-3">
-                <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                  <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                <div class="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
+                  <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M2.25 8.25A2.25 2.25 0 014.5 6h15a2.25 2.25 0 012.25 2.25v9a2.25 2.25 0 01-2.25 2.25H4.5A2.25 2.25 0 012.25 17.25v-9z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M18 12.75a.75.75 0 100-1.5.75.75 0 000 1.5z" />
                   </svg>
                 </div>
                 <div>
-                  <p class="font-medium text-gray-800">Credit/Debit Card</p>
-                  <p class="text-sm text-gray-600">Pay using your credit or debit card</p>
+                  <p class="font-medium text-gray-800">Wallet</p>
+                  <p class="text-sm text-gray-600">Pay using your wallet balance</p>
                 </div>
               </div>
             </label>
@@ -754,7 +757,7 @@
         return;
       }
 
-      if (paymentMethod === 'COD') {
+      if (paymentMethod === 'COD'||paymentMethod === 'Wallet') {
         // COD order placed successfully
         Swal.fire({
           icon: 'success',
@@ -815,6 +818,38 @@
         };
 
         const rzp = new Razorpay(options);
+
+        rzp.on('payment.failed', function (response) {
+          console.error("Payment failed:", response.error);
+
+          // Call backend to create failed order
+          fetch('/verify-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              razorpay_order_id: options.order_id,  // still send the order_id
+              razorpay_payment_id: null,            // no payment id
+              razorpay_signature: null,             // no signature
+              paymentMethod,
+              addressId: selectedAddressId,
+              finalAmount: data.finalAmount,
+              couponId: selectedCouponId || null
+            })
+          })
+          .then(res => res.json())
+          .then(verifyData => {
+            // Backend should create order with `paymentStatus: "failed"`
+            window.location.href = `/order-failure?orderId=${verifyData.orderId}`;
+          })
+          .catch(err => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Payment Failed',
+              text: 'Your payment was not successful. Please try again.',
+              confirmButtonColor: '#374151'
+            });
+          });
+        });
         rzp.open();
       }
     })

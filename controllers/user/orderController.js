@@ -1,7 +1,11 @@
 const User = require('../../model/userSchema');
 const Product = require('../../model/productSchema');
 const Order = require('../../model/orderSchema');
+const Coupon = require('../../model/couponSchema');
+const Cart = require('../../model/cartSchema')
 const Wallet = require('../../model/walletSchema')
+const razorpay = require('../../config/razorpay');
+const crypto = require('crypto');
 const {calculateRefundAmount} = require('../../helpers/cuponDiscoundRefund')
 const { getIO } = require('../../config/socket'); //for getting socket IO
 
@@ -10,8 +14,132 @@ const loadOrderSuccess = async(req, res) => {
    const user = req.session.userId || req.session.user?._id
    const userData = await User.findOne({_id:user,isBlocked:false});
   const { orderId } = req.query;
-  res.render('orderSuccess', { orderId ,user:userData});
+  const order = await Order.findOne({_id:orderId})
+  res.render('orderSuccess', {orderId ,user:userData});
 }
+
+const loadOrderFailure = async(req, res) => {
+  try {
+    const user = req.session.userId || req.session.user?._id
+    const userData = await User.findOne({_id:user,isBlocked:false});
+
+    if (!userData) {
+      return res.redirect('/login');
+    }
+    const { orderId } = req.query;
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.redirect('/order');
+    }
+
+      const shortOrderId = order._id.toString().slice(-6);
+      // Generate a new Razorpay order for retry
+      const options = {
+        amount: order.finalAmount * 100, // paise
+        currency: "INR",
+        receipt: `retry_${shortOrderId}_${Date.now()}`.slice(0, 40)
+      };
+
+      const razorpayOrder = await razorpay.orders.create(options);
+    res.render('orderFailure', { order ,user:userData,finalAmount: order.finalAmount,razorpayOrderId: razorpayOrder.id,razorpayKey: process.env.RAZORPAY_KEY_ID});
+  } catch (error) {
+    console.error('Failed to load failure page',error)
+  }
+}
+
+const retryPaymentVerify = async (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = req.body;
+    const userId = req.session.userId || req.session.user?._id;
+
+    const order = await Order.findOne({ _id: orderId, user: userId });
+    if (!order) return res.json({ success: false, message: "Order not found" });
+
+    if (order.paymentStatus === 'paid') {
+      return res.json({ success: true, orderId: order._id });
+    }
+
+    // Verify Razorpay signature
+    const generatedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_SECRET)
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+      .digest("hex");
+
+    if (generatedSignature !== razorpay_signature) {
+      return res.json({ success: false, message: "Invalid payment signature" });
+    }
+
+    // Fetch cart for removing purchased items
+    const cart = await Cart.findOne({ userId }).populate("items.productid");
+
+    // Check stock and calculate final price
+    const inStockItems = [];
+    for (const item of order.orderitems) {
+      const product = await Product.findById(item.product);
+      const variant = product.variants.find(v => v._id.toString() === item.variantId.toString());
+      if (!variant || variant.quantity < item.quantity) {
+        return res.json({ success: false, message: `Item out of stock: ${product.name}` });
+      }
+      inStockItems.push({ product, variant, quantity: item.quantity });
+    }
+
+    // Decreasing stock
+    for (const item of inStockItems) {
+      item.variant.quantity -= item.quantity;
+      await item.product.save();
+      getIO().emit("stock-update", {
+        productId: item.product._id.toString(),
+        variantId: item.variant._id,
+        remainingStock: item.variant.quantity
+      });
+    }
+
+    // Handle coupon usage if applied
+    if (order.couponApplied && order.couponCode) {
+      const coupon = await Coupon.findOne({ name: order.couponCode });
+      if (coupon) {
+        const userUsage = coupon.usedBy.find(u => u.user.toString() === userId.toString());
+        if (userUsage) {
+          userUsage.count += 1;
+        } else {
+          coupon.usedBy.push({ user: userId, count: 1 });
+        }
+        await coupon.save();
+      }
+    }
+
+    // Remove purchased items from cart
+    if (cart) {
+      cart.items = cart.items.filter(cartItem => 
+        !order.orderitems.some(oItem =>
+          oItem.product.equals(cartItem.productid._id) &&
+          oItem.variantId.toString() === cartItem.variantId.toString()
+        )
+      );
+      await cart.save();
+    }
+
+    // Update order as paid
+    order.paymentStatus = 'paid';
+    order.paymentMethod = 'Card';
+    order.razorpayOrderId = razorpay_order_id;
+    order.razorpayPaymentId = razorpay_payment_id;
+    order.orderStatus = 'Processing';
+    for(item in order.orderitems){
+      item.status = 'Processing'
+    }
+    await order.save();
+
+    res.json({ success: true, orderId: order._id, redirect: "/order/success" });
+
+  } catch (err) {
+    console.error("Retry Payment Verify Error:", err);
+    res.json({ success: false, message: "Server error during payment verification" });
+  }
+};
+
+
+
 
 const loadOrderpage = async (req, res) => {
   try {
@@ -131,20 +259,6 @@ const orderDetails = async (req, res) => {
       return res.status(404).render('404', { message: 'Order not found' });
     }
 
-    // let discountAmount = 0;
-    // for (const item of order.orderitems) {
-    //   const product = item.product;
-    //   const variant = product?.variants?.find(v => v._id.toString() === item.variantId.toString());
-    //   if (variant?.offerPrice) {
-    //     discountAmount += variant.offerPrice;
-    //   }
-    // }
-
-    let couponDiscount = order.couponDiscount||0
-    order.finalAmount = order.totalPrice - couponDiscount;
-    // order.taxAmount = order.finalAmount * (2 / 100);
-    // order.finalAmount += order.taxAmount;
-
     const cancelReasons = [
       'Ordered by mistake',
       'Changed mind',
@@ -210,6 +324,8 @@ const handleOrderOrItemAction = async (req, res) => {
               { $inc: { 'variants.$.quantity': item.quantity } }
             );
           }
+          //shipping charge
+          refundAmount += order.shippingCharge
         }
 
       } else if (action === 'return') {
@@ -330,6 +446,8 @@ const handleOrderOrItemAction = async (req, res) => {
 
 module.exports = {
     loadOrderSuccess,
+    loadOrderFailure,
+    retryPaymentVerify,
     loadOrderpage,
     orderDetails,
     handleOrderOrItemAction,

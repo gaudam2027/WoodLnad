@@ -158,18 +158,20 @@
   }
 
   /* Wishlist specific styles */
-  .wishlist-card {
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    border-radius: 16px;
-    transition: all 0.3s ease;
-    height: 280px;
-    display: flex;
-    flex-direction: column;
-    justify-content: between;
-    overflow: hidden;
-  }
+.wishlist-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  height: 340px; /* Increased from 280px */
+  min-width: 240px; /* Set a minimum width for consistency */
+  display: flex;
+  flex-direction: column;
+  justify-content: between;
+  overflow: hidden;
+  padding: 20px 20px 16px 20px; /* More padding for content */
+}
 
   .wishlist-card:hover {
     background: rgba(255, 255, 255, 1);

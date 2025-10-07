@@ -19,29 +19,21 @@ const loadSalesReport = async (req, res) => {
 // Generate Sales Report Data with Time Series
 const generateSalesReport = async (req, res) => {
   try {
-    const { filter, startDate, endDate } = req.query;
-    const reportRes = await generateReportData(filter, startDate, endDate);
-    
+    const { filter, page, limit = 10, selectedDate, startDate, endDate } = req.query;
+    console.log(req.query)
+    const reportRes = await generateReportData(filter, {date:selectedDate,startDate,endDate});
+    // console.log(reportRes.summary)
 
-    let chartData = {summary: reportRes.summary}
-    // Format chart data: labels + values
-    chartData.labels = reportRes.timeSeries.map(item => ({
-      label: item.period,      // date / week / month / year
-      orders: item.orders,
-      sales: item.sales,
-      discounts: item.discounts,
-      revenue: item.revenue,
-      avgOrder: item.avgOrder
-    }));
 
 
 
     res.json({
       success: true,
       data: {
-        chartData,
-        filter,
-        dateRange: reportRes.dateRange
+        reportRes,
+        pagination:page
+        // filter,
+        // dateRange: reportRes.dateRange
       }
     });
 
@@ -60,8 +52,8 @@ const exportSalesReport = async(req,res) => {
 
     console.log("Export request:", { filter, format, startDate, endDate });
 
-    const reportRes = await generateReportData(filter, startDate || null, endDate || null);
-
+    const reportRes = await generateReportData(filter,{date:startDate,startDate,endDate});
+console.log(reportRes)
     switch (format.toLowerCase()) {
       case "pdf":
         return generateSalesReportPDF(reportRes, filter, res);

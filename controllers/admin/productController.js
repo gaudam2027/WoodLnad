@@ -4,6 +4,8 @@ const Offer = require('../../model/offerSchema')
 const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
+const { error } = require('console');
+const {applyBestOffersToAllProducts} = require('../../helpers/offer-helpers/offerPrice')
 
 
 const productsPage = async (req, res) => {
@@ -156,6 +158,7 @@ const addProducts = async(req,res)=>{
 
     await newProduct.save();
 
+    await applyBestOffersToAllProducts();
     return res.status(200).json({ success: true, message: 'Product created successfully' });
 
   } catch (error) {
@@ -173,6 +176,7 @@ const productEditPage = async(req,res)=>{
         console.log(product)
         let existingImageCount = product.images.length
         res.render('product-edit',{product:product,cat:category})
+        console.log(category)
         
     } catch (error) {
 
@@ -187,8 +191,8 @@ const editProduct = async(req,res)=>{
 
         const id = req.params.id
         const product = await Product.findOne({_id:id});
-        console.log(id);
-        // console.log(id);
+
+        if(!product) return res.status(400).json({error:"The product is not found !"}) //Invalid product id
         
         const data = req.body;
         const existingProduct = await Product.findOne({
@@ -214,25 +218,28 @@ const editProduct = async(req,res)=>{
                 images.push(req.files[i].filename);
             }
         }
-        console.log(data.variants)
+        console.log('img',images)
         
-        const updateFields = {
-            productName:data.productName,
-            description:data.description,
-            category:product.category,
-            regularPrice:data.regularPrice,
-            salePrice:data.salePrice,
-            quantity:data.quantity,
-            size:data.size,
-            color:data.color,
-            variants:data.variants
-        }
+        const updateQuery = {
+            $set: {
+                productName: data.productName,
+                description: data.description,
+                category: data.category,
+                regularPrice: data.regularPrice,
+                salePrice: data.salePrice,
+                quantity: data.quantity,
+                size: data.size,
+                color: data.color,
+                variants: data.variants
+            }
+        };
 
         if(req.files.length>0){
-            updateFields.$push = {images:{$each:images}};
+            updateQuery.$push = {images:{$each:images}};
         }
 
-        await Product.findByIdAndUpdate(id,updateFields,{new:true});
+        await Product.findByIdAndUpdate(id,updateQuery,{new:true,runValidators:true});
+        await applyBestOffersToAllProducts();
         res.redirect("/admin/products");
         
     } catch (error) {
@@ -246,7 +253,6 @@ const editProduct = async(req,res)=>{
 const deleteSingleImage = async(req,res)=>{
     try {
 
-        
         const {imageNameToServer,productIdToServer} = req.body;
         const product = await Product.findByIdAndUpdate(productIdToServer,{$pull:{images:imageNameToServer}});
         const imagePath = path.join("Public","uploads","product-images",imageNameToServer);

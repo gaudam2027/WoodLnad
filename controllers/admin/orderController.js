@@ -115,7 +115,8 @@ const statusUpdate = async (req, res) => {
     }
 
     const validTransitions = {
-      Pending: ['Ordered', 'Cancelled'],
+      Pending: [],
+      Processing: ['Ordered', 'Cancelled'],
       Ordered: ['Shipped', 'Cancelled'],
       Shipped: ['Out For Delivery'],
       'Out For Delivery': ['Delivered'],
@@ -228,7 +229,11 @@ const verifyReturn = async (req, res) => {
       }
 
       // Calculate refund using helper
-      const refundAmount = calculateRefundAmount(order, items);
+      let refundAmount = calculateRefundAmount(order, items);
+
+      //shipping Charge
+      const shippingCharge = order.shippingCharge
+      if(!itemId) refundAmount+=shippingCharge      // shipping charge refund only for complete order return 
 
       let wallet = await Wallet.findOne({ user: order.user._id });
       if (!wallet) {

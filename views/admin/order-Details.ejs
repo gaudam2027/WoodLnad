@@ -66,6 +66,7 @@
             <span class="text-sm font-medium text-gray-700">Order Status:</span>
             <span class="inline-flex items-center px-3 py-2 rounded-lg font-medium
               <%= order.orderStatus === 'Pending' ? 'bg-amber-50 text-amber-700 border border-amber-200' : 
+                  order.orderStatus === 'Processing' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
                   order.orderStatus === 'Ordered' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
                   order.orderStatus === 'Shipped' ? 'bg-purple-50 text-purple-700 border border-purple-200' :
                   order.orderStatus === 'Out For Delivery' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' :
@@ -200,6 +201,7 @@
                             <% const currentItemStatus = item.status %>
                             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
                               <%= currentItemStatus === 'Pending' ? 'bg-amber-50 text-amber-700 border border-amber-200' : 
+                                  currentItemStatus === 'Processing' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
                                   currentItemStatus === 'Ordered' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
                                   currentItemStatus === 'Shipped' ? 'bg-purple-50 text-purple-700 border border-purple-200' :
                                   currentItemStatus === 'Out For Delivery' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' :
@@ -213,7 +215,7 @@
                           </div>
                           
                           <div class="flex items-center gap-2">
-                            <% if (['Pending', 'Ordered', 'Shipped', 'Out For Delivery'].includes(currentItemStatus)) { %>
+                            <% if (['Processing', 'Ordered', 'Out For Delivery'].includes(currentItemStatus)) { %>
                               <button onclick="changeItemStatus('<%= order._id %>', '<%= item._id %>', 'Cancelled')"
                                 class="action-btn inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium bg-red-600 text-white hover:bg-red-700 transition-all duration-200 shadow-sm hover:shadow-md">
                                 <i class="fas fa-times-circle mr-1"></i>
@@ -383,7 +385,7 @@
               <div class="space-y-2">
                 <div class="flex justify-between items-center">
                   <span class="text-sm text-gray-600">Subtotal:</span>
-                  <span class="text-sm text-slate-800">₹<%= (order.totalAmount || 0).toFixed(2) %></span>
+                  <span class="text-sm text-slate-800">₹<%= (order.totalPrice || 0).toFixed(2) %></span>
                 </div>
                 
                 <% if(order.discount && order.discount > 0) { %>
@@ -402,7 +404,7 @@
                 
                 <div class="flex justify-between items-center">
                   <span class="text-sm text-gray-600">Shipping:</span>
-                  <span class="text-sm text-slate-800">₹<%= (order.shippingCost || 0).toFixed(2) %></span>
+                  <span class="text-sm text-slate-800">₹<%= (order.shippingCharge || 0).toFixed(2) %></span>
                 </div>
                 
                 <hr class="border-gray-200">

@@ -1233,13 +1233,13 @@ async function submitCouponForm(event) {
       throw new Error('End date must be after start date');
     }
     
-    if (startDate < new Date().setHours(0, 0, 0, 0)) {
-      throw new Error('Start date cannot be in the past');
-    }
+  //  if (startDate < new Date().setHours(0, 0, 0, 0)) {
+  //   throw new Error('Start date cannot be in the past');
+  //  }
     
-    const url = editingId ? '/admin/coupons/edit' : '/admin/coupons/add';
+    const url = editingId ? `/admin/coupons/${editingId}` : '/admin/coupons';
     const response = await fetch(url, {
-      method: 'POST',
+      method: editingId ? 'PUT' : 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });

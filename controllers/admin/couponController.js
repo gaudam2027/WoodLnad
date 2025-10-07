@@ -106,7 +106,7 @@ const editCoupons = async(req,res)=>{
       const id = req.params.id
 
       //Coupon validation
-      const errors = validateCoupon({ name, offerPrice, usageLimit, description, minimumPrice, startOn, expireOn });
+      const errors = validateCoupon({ name, offerPrice, usageLimit, description, minimumPrice, startOn, expireOn },'edit');
       if (errors.length > 0) {
         return res.status(400).json({ success: false, message: errors[0], errors });
       }

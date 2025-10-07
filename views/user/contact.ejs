@@ -1,0 +1,1066 @@
+<%- include('../../views/partials/user/header') %>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+
+<style>
+  .profile-container {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    min-height: 100vh;
+    padding-top: 80px;
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-card:hover {
+    background: rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  }
+
+  .hero-gradient {
+    background: linear-gradient(135deg, #1e293b 0%, #475569 25%, #64748b 75%, #94a3b8 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-gradient::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="%23ffffff" fill-opacity="0.1"/><circle cx="75" cy="75" r="1" fill="%23ffffff" fill-opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    opacity: 0.3;
+  }
+
+  .section-title {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    position: relative;
+  }
+
+  .section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    border-radius: 2px;
+  }
+
+  .contact-form {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 24px;
+    padding: 2rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+
+  .form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+  }
+
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid rgba(209, 213, 219, 0.5);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    color: #374151;
+  }
+
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    transform: translateY(-1px);
+  }
+
+  .form-input.error, .form-select.error, .form-textarea.error {
+    border-color: #ef4444;
+    background: rgba(254, 242, 242, 0.8);
+  }
+
+  .form-input.success, .form-select.success, .form-textarea.success {
+    border-color: #10b981;
+    background: rgba(240, 253, 244, 0.8);
+  }
+
+  .form-textarea {
+    resize: vertical;
+    min-height: 120px;
+  }
+
+  /* Validation Messages */
+  .validation-message {
+    display: none;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .validation-message.show {
+    display: flex;
+  }
+
+  .validation-message.error {
+    color: #ef4444;
+  }
+
+  .validation-message.success {
+    color: #10b981;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    font-size: 1rem;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(59, 130, 246, 0.5);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .contact-info-card {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 20px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .contact-info-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  }
+
+  .contact-info-card:hover {
+    background: rgba(255, 255, 255, 1);
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  }
+
+  .contact-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+    position: relative;
+  }
+
+  .contact-icon::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    opacity: 0.3;
+    transform: scale(1.2);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1.2); opacity: 0.3; }
+    50% { transform: scale(1.4); opacity: 0.1; }
+  }
+
+  .store-hours {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 16px;
+    padding: 1.5rem;
+  }
+
+  .hours-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+  }
+
+  .hours-item:last-child {
+    border-bottom: none;
+  }
+
+  .toaster {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    color: white;
+    font-weight: 500;
+    z-index: 9999;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    max-width: 350px;
+  }
+
+  .toaster.show {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .toaster.success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  }
+
+  .toaster.error {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  }
+
+  .faq-item {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 16px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .faq-item:hover {
+    background: rgba(255, 255, 255, 0.95);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  .faq-question {
+    padding: 1.5rem;
+    font-weight: 600;
+    color: #374151;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .faq-answer {
+    padding: 0 1.5rem 1.5rem;
+    color: #6b7280;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 768px) {
+    .profile-container {
+      padding-top: 60px;
+    }
+    
+    .contact-form, .contact-info-card {
+      padding: 1.5rem;
+    }
+    
+    .hero-gradient {
+      padding: 3rem 0;
+    }
+    
+    .toaster {
+      left: 20px;
+      right: 20px;
+      transform: translateY(-100%);
+    }
+    
+    .toaster.show {
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .contact-icon {
+      width: 60px;
+      height: 60px;
+    }
+  }
+</style>
+
+<div class="profile-container">
+  <!-- Hero Section -->
+  <section class="hero-gradient text-white py-20 relative">
+    <div class="container mx-auto px-4 text-center relative z-10">
+      <h1 class="text-4xl md:text-6xl font-bold mb-6" style="font-family: 'Raleway', sans-serif;">
+        Contact <span class="text-blue-300">WoodLand</span>
+      </h1>
+      <p class="text-lg md:text-xl mb-8 text-blue-100 max-w-3xl mx-auto leading-relaxed">
+        Get in touch with us for any queries about our furniture collections, custom orders, or visit our showrooms
+      </p>
+    </div>
+  </section>
+
+  <div class="container mx-auto px-4 py-16">
+
+    <!-- Contact Form & Info -->
+    <section class="mb-20">
+      <div class="grid lg:grid-cols-2 gap-12">
+        
+        <!-- Contact Form -->
+        <div>
+          <div class="mb-8">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4 section-title">
+              Send Us a Message
+            </h2>
+            <p class="text-gray-600 text-lg">
+              Fill out the form below and we'll get back to you within 24 hours
+            </p>
+          </div>
+
+          <form id="contactForm" class="contact-form" novalidate>
+            <div class="grid md:grid-cols-2 gap-6">
+              <div class="form-group">
+                <label class="form-label" for="firstName">
+                  <i class="fas fa-user mr-2 text-blue-600"></i>First Name *
+                </label>
+                <input type="text" id="firstName" name="firstName" class="form-input" required>
+                <div class="validation-message error" id="firstNameError">
+                  <i class="fas fa-exclamation-circle"></i>
+                  <span></span>
+                </div>
+                <div class="validation-message success" id="firstNameSuccess">
+                  <i class="fas fa-check-circle"></i>
+                  <span>Looks good!</span>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label" for="lastName">
+                  <i class="fas fa-user mr-2 text-blue-600"></i>Last Name *
+                </label>
+                <input type="text" id="lastName" name="lastName" class="form-input" required>
+                <div class="validation-message error" id="lastNameError">
+                  <i class="fas fa-exclamation-circle"></i>
+                  <span></span>
+                </div>
+                <div class="validation-message success" id="lastNameSuccess">
+                  <i class="fas fa-check-circle"></i>
+                  <span>Looks good!</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+              <div class="form-group">
+                <label class="form-label" for="email">
+                  <i class="fas fa-envelope mr-2 text-blue-600"></i>Email Address *
+                </label>
+                <input type="email" id="email" name="email" class="form-input" required>
+                <div class="validation-message error" id="emailError">
+                  <i class="fas fa-exclamation-circle"></i>
+                  <span></span>
+                </div>
+                <div class="validation-message success" id="emailSuccess">
+                  <i class="fas fa-check-circle"></i>
+                  <span>Valid email address!</span>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label" for="phone">
+                  <i class="fas fa-phone mr-2 text-blue-600"></i>Phone Number
+                </label>
+                <input type="tel" id="phone" name="phone" class="form-input" placeholder="+91 XXXXX XXXXX">
+                <div class="validation-message error" id="phoneError">
+                  <i class="fas fa-exclamation-circle"></i>
+                  <span></span>
+                </div>
+                <div class="validation-message success" id="phoneSuccess">
+                  <i class="fas fa-check-circle"></i>
+                  <span>Valid phone number!</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="subject">
+                <i class="fas fa-tag mr-2 text-blue-600"></i>Subject *
+              </label>
+              <select id="subject" name="subject" class="form-select" required>
+                <option value="">Select inquiry type</option>
+                <option value="product">Product Inquiry</option>
+                <option value="custom">Custom Furniture</option>
+                <option value="delivery">Delivery & Installation</option>
+                <option value="warranty">Warranty & Support</option>
+                <option value="showroom">Showroom Visit</option>
+                <option value="other">Other</option>
+              </select>
+              <div class="validation-message error" id="subjectError">
+                <i class="fas fa-exclamation-circle"></i>
+                <span></span>
+              </div>
+              <div class="validation-message success" id="subjectSuccess">
+                <i class="fas fa-check-circle"></i>
+                <span>Great choice!</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="message">
+                <i class="fas fa-comment mr-2 text-blue-600"></i>Message *
+              </label>
+              <textarea id="message" name="message" class="form-textarea" 
+                        placeholder="Tell us about your furniture needs, questions, or how we can help you..."
+                        required minlength="10" maxlength="500"></textarea>
+              <div class="flex justify-between items-start mt-2">
+                <div class="flex flex-col">
+                  <div class="validation-message error" id="messageError">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span></span>
+                  </div>
+                  <div class="validation-message success" id="messageSuccess">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Perfect length!</span>
+                  </div>
+                </div>
+                <small class="text-gray-500 mt-1" id="messageCount">0/500</small>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="flex items-center cursor-pointer">
+                <input type="checkbox" id="newsletter" name="newsletter" class="mr-3 w-4 h-4 text-blue-600">
+                <span class="text-sm text-gray-600">Subscribe to our newsletter for updates and exclusive offers</span>
+              </label>
+            </div>
+
+            <button type="submit" id="submitBtn" class="btn-primary">
+              <i class="fas fa-paper-plane mr-2"></i>
+              <span id="btnText">Send Message</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="space-y-8">
+          <div>
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-8 section-title">
+              Get In Touch
+            </h2>
+          </div>
+
+          <!-- Phone -->
+          <div class="contact-info-card">
+            <div class="contact-icon">
+              <i class="fas fa-phone text-white text-2xl relative z-10"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Call Us</h3>
+            <p class="text-gray-600 mb-2">+91 9567826814</p>
+            <p class="text-sm text-gray-500 mb-4">Monday - Sunday: 9 AM - 9 PM</p>
+            <a href="tel:+919567826814" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium">
+              <i class="fas fa-phone-alt mr-2"></i>Call Now
+            </a>
+          </div>
+
+          <!-- Email -->
+          <div class="contact-info-card">
+            <div class="contact-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+              <i class="fas fa-envelope text-white text-2xl relative z-10"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Email Us</h3>
+            <p class="text-gray-600 mb-2">agwoodland2027@gmail.com</p>
+            <p class="text-sm text-gray-500 mb-4">We respond within 24 hours</p>
+            <a href="mailto:agwoodland2027@gmail.com" class="inline-flex items-center text-green-600 hover:text-green-800 font-medium">
+              <i class="fas fa-envelope mr-2"></i>Send Email
+            </a>
+          </div>
+
+          <!-- WhatsApp -->
+          <div class="contact-info-card">
+            <div class="contact-icon" style="background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);">
+              <i class="fab fa-whatsapp text-white text-2xl relative z-10"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">WhatsApp</h3>
+            <p class="text-gray-600 mb-2">+91 9567826814</p>
+            <p class="text-sm text-gray-500 mb-4">Quick responses & product images</p>
+            <a href="https://wa.me/919567826814" target="_blank" class="inline-flex items-center text-green-600 hover:text-green-800 font-medium">
+              <i class="fab fa-whatsapp mr-2"></i>Chat Now
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Store Locations & Map -->
+    <section class="mb-20">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4 section-title">
+          Visit Our Showrooms
+        </h2>
+        <p class="text-gray-600 text-lg max-w-3xl mx-auto">
+          Experience our furniture collections in person at our beautiful showrooms
+        </p>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-8">
+        <!-- Kochi Store -->
+        <div class="lg:col-span-1">
+          <div class="glass-card p-6 rounded-3xl mb-6">
+            <div class="flex items-center mb-4">
+              <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                <i class="fas fa-store text-blue-600 text-lg"></i>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold text-gray-800">WoodLand Kochi</h3>
+                <p class="text-blue-600 font-medium text-sm">Flagship Showroom</p>
+              </div>
+            </div>
+            
+            <div class="space-y-3 text-sm">
+              <div class="flex items-start">
+                <i class="fas fa-map-marker-alt text-gray-500 mr-3 mt-1 w-4"></i>
+                <span class="text-gray-700">InfoPark Campus, Kakkanad, Kochi, Kerala 682042</span>
+              </div>
+              <div class="flex items-center">
+                <i class="fas fa-phone text-gray-500 mr-3 w-4"></i>
+                <span class="text-gray-700">+91 9567826814</span>
+              </div>
+              <div class="flex items-center">
+                <i class="fas fa-clock text-gray-500 mr-3 w-4"></i>
+                <span class="text-gray-700">10:00 AM - 8:00 PM</span>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-4 border-t border-gray-200">
+              <div class="flex space-x-2">
+                <a href="tel:+919567826814" class="btn-primary flex-1 py-2 text-sm">
+                  <i class="fas fa-phone mr-1"></i>Call
+                </a>
+                <a href="https://maps.google.com" target="_blank" class="bg-gray-100 text-gray-800 px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition flex-1 text-center">
+                  <i class="fas fa-directions mr-1"></i>Directions
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- New Delhi Store -->
+          <div class="glass-card p-6 rounded-3xl">
+            <div class="flex items-center mb-4">
+              <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                <i class="fas fa-store text-green-600 text-lg"></i>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold text-gray-800">WoodLand New Delhi</h3>
+                <p class="text-green-600 font-medium text-sm">Premium Collection</p>
+              </div>
+            </div>
+            
+            <div class="space-y-3 text-sm">
+              <div class="flex items-start">
+                <i class="fas fa-map-marker-alt text-gray-500 mr-3 mt-1 w-4"></i>
+                <span class="text-gray-700">Connaught Place, New Delhi, Delhi 110001</span>
+              </div>
+              <div class="flex items-center">
+                <i class="fas fa-phone text-gray-500 mr-3 w-4"></i>
+                <span class="text-gray-700">+91 9567826815</span>
+              </div>
+              <div class="flex items-center">
+                <i class="fas fa-clock text-gray-500 mr-3 w-4"></i>
+                <span class="text-gray-700">10:30 AM - 9:00 PM</span>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-4 border-t border-gray-200">
+              <div class="flex space-x-2">
+                <a href="tel:+919567826815" class="btn-primary flex-1 py-2 text-sm">
+                  <i class="fas fa-phone mr-1"></i>Call
+                </a>
+                <a href="https://maps.google.com" target="_blank" class="bg-gray-100 text-gray-800 px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition flex-1 text-center">
+                  <i class="fas fa-directions mr-1"></i>Directions
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Map -->
+        <div class="lg:col-span-2">
+          <iframe
+            class="w-full h-96 rounded-lg shadow-lg"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3928.389947234019!2d76.31401257489835!3d10.015711592916002!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3b080d1f7b6b27c5%3A0x25e4f55f8a59e22a!2sInfoPark%20Campus%2C%20Kakkanad%2C%20Kochi%2C%20Kerala%20682042!5e0!3m2!1sen!2sin!4v1696584321000!5m2!1sen!2sin"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
+        </div>
+      </div>
+    </section>
+
+    <!-- Store Hours -->
+    <section class="mb-20">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4 section-title">
+          Store Hours
+        </h2>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div class="store-hours">
+          <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+            <i class="fas fa-store text-blue-600 mr-3"></i>Kochi Showroom
+          </h3>
+          <div class="space-y-1">
+            <div class="hours-item">
+              <span class="font-medium text-gray-700">Monday - Saturday</span>
+              <span class="text-gray-600">10:00 AM - 8:00 PM</span>
+            </div>
+            <div class="hours-item">
+              <span class="font-medium text-gray-700">Sunday</span>
+              <span class="text-gray-600">10:00 AM - 7:00 PM</span>
+            </div>
+            <div class="hours-item">
+              <span class="font-medium text-gray-700">Public Holidays</span>
+              <span class="text-gray-600">11:00 AM - 6:00 PM</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="store-hours">
+          <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+            <i class="fas fa-store text-green-600 mr-3"></i>New Delhi Showroom
+          </h3>
+          <div class="space-y-1">
+            <div class="hours-item">
+              <span class="font-medium text-gray-700">Monday - Saturday</span>
+              <span class="text-gray-600">10:30 AM - 9:00 PM</span>
+            </div>
+            <div class="hours-item">
+              <span class="font-medium text-gray-700">Sunday</span>
+              <span class="text-gray-600">11:00 AM - 8:00 PM</span>
+            </div>
+            <div class="hours-item">
+              <span class="font-medium text-gray-700">Public Holidays</span>
+              <span class="text-gray-600">12:00 PM - 7:00 PM</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="mb-20">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4 section-title">
+          Frequently Asked Questions
+        </h2>
+        <p class="text-gray-600 text-lg max-w-3xl mx-auto">
+          Quick answers to common questions about our furniture and services
+        </p>
+      </div>
+
+      <div class="max-w-4xl mx-auto">
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>What are your delivery charges and timeline?</span>
+            <i class="fas fa-chevron-down text-gray-400"></i>
+          </div>
+          <div class="faq-answer">
+            We offer free delivery on orders above ₹15,000. For orders below this amount, delivery charges apply based on location. Standard delivery takes 7-10 business days, with express delivery available in metro cities within 2-3 days.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>Do you provide furniture assembly service?</span>
+            <i class="fas fa-chevron-down text-gray-400"></i>
+          </div>
+          <div class="faq-answer">
+            Yes, we provide professional assembly and installation services for all our furniture. Our trained technicians will set up your furniture at your preferred location in your home.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>What is your return and warranty policy?</span>
+            <i class="fas fa-chevron-down text-gray-400"></i>
+          </div>
+          <div class="faq-answer">
+            We offer a 7-day return policy for unused items in original condition. All our furniture comes with a comprehensive 2-year warranty covering manufacturing defects and structural issues.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>Can I customize furniture according to my requirements?</span>
+            <i class="fas fa-chevron-down text-gray-400"></i>
+          </div>
+          <div class="faq-answer">
+            Absolutely! We offer custom furniture services where you can choose materials, colors, dimensions, and finishes. Our design team will work with you to create pieces that perfectly fit your space and style.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>What payment methods do you accept?</span>
+            <i class="fas fa-chevron-down text-gray-400"></i>
+          </div>
+          <div class="faq-answer">
+            We accept all major payment methods including credit/debit cards, UPI, net banking, EMI options, and cash on delivery. We also offer easy EMI plans with 0% interest on select products.
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<!-- Toaster for notifications -->
+<div id="toaster" class="toaster"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const contactForm = document.getElementById('contactForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const btnText = document.getElementById('btnText');
+
+  // Validation rules
+  const validationRules = {
+    firstName: {
+      required: true,
+      minLength: 2,
+      maxLength: 50,
+      pattern: /^[a-zA-Z\s]+$/,
+      messages: {
+        required: 'First name is required',
+        minlength: 'Must be at least 2 characters',
+        maxlength: 'Cannot exceed 50 characters',
+        pattern: 'Only letters and spaces allowed'
+      }
+    },
+    lastName: {
+      required: true,
+      minLength: 2,
+      maxLength: 50,
+      pattern: /^[a-zA-Z\s]+$/,
+      messages: {
+        required: 'Last name is required',
+        minlength: 'Must be at least 2 characters',
+        maxlength: 'Cannot exceed 50 characters',
+        pattern: 'Only letters and spaces allowed'
+      }
+    },
+    email: {
+      required: true,
+      pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+      messages: {
+        required: 'Email address is required',
+        pattern: 'Please enter a valid email address'
+      }
+    },
+    phone: {
+      required: false,
+      pattern: /^[+]?[0-9\s\-\(\)]{10,15}$/,
+      messages: {
+        pattern: 'Please enter a valid phone number'
+      }
+    },
+    subject: {
+      required: true,
+      messages: {
+        required: 'Please select an inquiry type'
+      }
+    },
+    message: {
+      required: true,
+      minLength: 10,
+      maxLength: 500,
+      messages: {
+        required: 'Message is required',
+        minlength: 'Message must be at least 10 characters',
+        maxlength: 'Message cannot exceed 500 characters'
+      }
+    }
+  };
+
+  // Initialize validation for each field
+  Object.keys(validationRules).forEach(fieldName => {
+    const field = document.getElementById(fieldName);
+    if (field) {
+      field.addEventListener('input', () => {
+        clearValidationState(fieldName);
+        if (field.value.trim()) {
+          validateField(fieldName);
+        }
+      });
+      
+      field.addEventListener('blur', () => validateField(fieldName));
+    }
+  });
+
+  // Message character count
+  const messageField = document.getElementById('message');
+  const messageCount = document.getElementById('messageCount');
+  
+  if (messageField && messageCount) {
+    messageField.addEventListener('input', function() {
+      const count = this.value.length;
+      messageCount.textContent = `${count}/500`;
+      
+      if (count > 450) {
+        messageCount.style.color = '#ef4444';
+      } else if (count > 400) {
+        messageCount.style.color = '#f59e0b';
+      } else {
+        messageCount.style.color = '#6b7280';
+      }
+    });
+  }
+
+  function clearValidationState(fieldName) {
+    const field = document.getElementById(fieldName);
+    const errorElement = document.getElementById(`${fieldName}Error`);
+    const successElement = document.getElementById(`${fieldName}Success`);
+    
+    if (field) {
+      field.classList.remove('error', 'success');
+    }
+    if (errorElement) {
+      errorElement.classList.remove('show');
+    }
+    if (successElement) {
+      successElement.classList.remove('show');
+    }
+  }
+
+  function validateField(fieldName) {
+    const field = document.getElementById(fieldName);
+    const errorElement = document.getElementById(`${fieldName}Error`);
+    const successElement = document.getElementById(`${fieldName}Success`);
+    const rules = validationRules[fieldName];
+    
+    if (!field || !rules) return true;
+
+    const value = field.value.trim();
+    let isValid = true;
+    let errorMessage = '';
+
+    // Clear previous states
+    clearValidationState(fieldName);
+
+    // Skip validation if empty and not required
+    if (!value && !rules.required) {
+      return true;
+    }
+
+    // Required validation
+    if (rules.required && !value) {
+      isValid = false;
+      errorMessage = rules.messages.required;
+    }
+    // Length validation
+    else if (value && rules.minLength && value.length < rules.minLength) {
+      isValid = false;
+      errorMessage = rules.messages.minlength;
+    }
+    else if (value && rules.maxLength && value.length > rules.maxLength) {
+      isValid = false;
+      errorMessage = rules.messages.maxlength;
+    }
+    // Pattern validation
+    else if (value && rules.pattern && !rules.pattern.test(value)) {
+      isValid = false;
+      errorMessage = rules.messages.pattern;
+    }
+
+    // Apply validation result
+    if (!isValid && errorElement) {
+      field.classList.add('error');
+      const errorSpan = errorElement.querySelector('span');
+      if (errorSpan) {
+        errorSpan.textContent = errorMessage;
+      }
+      errorElement.classList.add('show');
+    } else if (isValid && value && successElement) {
+      field.classList.add('success');
+      successElement.classList.add('show');
+    }
+
+    return isValid;
+  }
+
+  function validateForm() {
+    let isFormValid = true;
+    
+    Object.keys(validationRules).forEach(fieldName => {
+      const fieldValid = validateField(fieldName);
+      if (!fieldValid) {
+        isFormValid = false;
+      }
+    });
+
+    return isFormValid;
+  }
+
+  // Form submission
+  contactForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      showToaster('Please fix the errors before submitting', 'error');
+      const firstError = document.querySelector('.form-input.error, .form-select.error, .form-textarea.error');
+      if (firstError) firstError.focus();
+      return;
+    }
+    
+    submitBtn.disabled = true;
+    btnText.textContent = 'Sending...';
+    
+    const formData = new FormData(contactForm);
+    const data = Object.fromEntries(formData.entries());
+    
+    try {
+      const response = await fetch('/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      });
+      
+      const result = await response.json();
+
+      if (result.success) {
+        showToaster('Message sent successfully! We\'ll get back to you within 24 hours.', 'success');
+        contactForm.reset();
+        
+        // Clear all validation states
+        Object.keys(validationRules).forEach(fieldName => {
+          clearValidationState(fieldName);
+        });
+        
+        if (messageCount) {
+          messageCount.textContent = '0/500';
+          messageCount.style.color = '#6b7280';
+        }
+      } else {
+        if (result.errors) {
+          Object.keys(result.errors).forEach(fieldName => {
+            const errorElement = document.getElementById(`${fieldName}Error`);
+            const field = document.getElementById(fieldName);
+            
+            if (errorElement && field) {
+              field.classList.add('error');
+              const errorSpan = errorElement.querySelector('span');
+              if (errorSpan) {
+                errorSpan.textContent = result.errors[fieldName];
+              }
+              errorElement.classList.add('show');
+            }
+          });
+          showToaster('Please fix the highlighted errors', 'error');
+        } else {
+          showToaster(result.message || 'Something went wrong. Please try again.', 'error');
+        }
+      }
+    } catch (error) {
+      showToaster('Network error. Please check your connection and try again.', 'error');
+    } finally {
+      submitBtn.disabled = false;
+      btnText.textContent = 'Send Message';
+    }
+  });
+
+  // FAQ toggle functionality
+  const faqItems = document.querySelectorAll('.faq-item');
+  faqItems.forEach(item => {
+    const question = item.querySelector('.faq-question');
+    const answer = item.querySelector('.faq-answer');
+    const icon = question.querySelector('i');
+    
+    if (question && answer && icon) {
+      answer.style.display = 'none';
+      
+      question.addEventListener('click', () => {
+        const isOpen = answer.style.display === 'block';
+        
+        faqItems.forEach(otherItem => {
+          const otherAnswer = otherItem.querySelector('.faq-answer');
+          const otherIcon = otherItem.querySelector('.faq-question i');
+          if (otherAnswer) otherAnswer.style.display = 'none';
+          if (otherIcon) otherIcon.style.transform = 'rotate(0deg)';
+        });
+        
+        if (!isOpen) {
+          answer.style.display = 'block';
+          icon.style.transform = 'rotate(180deg)';
+        }
+      });
+    }
+  });
+});
+
+function showToaster(message, type) {
+  const toaster = document.getElementById('toaster');
+  if (toaster) {
+    toaster.textContent = message;
+    toaster.className = `toaster ${type} show`;
+    
+    setTimeout(() => {
+      toaster.classList.remove('show');
+    }, 5000);
+  }
+}
+</script>
+
+<%- include('../../views/partials/user/footer') %>

@@ -39,9 +39,9 @@ router.post('/category-list',categoryController.categoryList);
 router.get('/Products',productController.productsPage);
 router.get('/addProduct',adminAuth,productController.productAddPage);
 router.post('/addProduct',adminAuth,uploads.array("images",4),productController.addProducts);
-router.get('/editProduct',adminAuth,productController.productEditPage);
-router.post('/editProduct/:id',adminAuth,uploads.array("images",4),productController.editProduct);
-router.post('/deleteSingleImage',adminAuth,productController.deleteSingleImage);
+router.get('/editProduct',productController.productEditPage);
+router.post('/editProduct/:id',uploads.array("images",4),productController.editProduct);
+router.post('/deleteSingleImage',productController.deleteSingleImage);
 router.post('/product-block',adminAuth,productController.productBlock)
 
 //Coupon Mangement
