@@ -202,8 +202,6 @@ const resetPassword = async(req,res)=>{
 const loadProfilepage = async (req,res)=>{
     try {
         
-        
-        
         const user = req.session.userId || req.session.user?._id
         const userData = await User.findOne({_id:user,isBlocked:false}).populate('referredUsers');;
         console.log(userData.referredUsers)

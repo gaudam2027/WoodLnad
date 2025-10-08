@@ -355,7 +355,12 @@
       <div class="hidden lg:block">
         <div class="glass-card p-6 rounded-2xl sticky top-6">
           <div class="text-center mb-6">
-            <img src="<%= user.profileImage || '/images/default-avatar.png' %>" alt="Profile" id="profilePreview0" class="profile-img mx-auto mb-4">
+            <!-- Fixed profile image path with error handling -->
+            <img src="<%= user.profileImage ? user.profileImage : '/images/default-avatar.png' %>" 
+                 alt="Profile" 
+                 id="profilePreview0" 
+                 class="profile-img mx-auto mb-4"
+                 onerror="this.src='/images/default-avatar.png'; console.warn('Profile image failed to load, using default');">
             <h3 class="text-xl font-bold text-gray-800 mb-1" style="font-family: 'Raleway', sans-serif;"><%= user.name %></h3>
             <p class="text-sm text-gray-600">Member since <%= new Date(user.createdOn).getFullYear() %></p>
           </div>
@@ -378,7 +383,7 @@
             </a>
           </nav>
           
-          <button class="w-full mt-6 bg-gray-800 text-white py-3 px-4 rounded-xl hover:bg-gray-700 transition font-medium flex items-center justify-center">
+          <button onclick="logout()" class="w-full mt-6 bg-gray-800 text-white py-3 px-4 rounded-xl hover:bg-gray-700 transition font-medium flex items-center justify-center">
             <i class="fas fa-sign-out-alt mr-2"></i>Logout
           </button>
         </div>
@@ -395,7 +400,11 @@
           </div>
 
           <div class="text-center mb-6 px-6">
-            <img src="<%= user.profileImage || '/images/default-avatar.png' %>" alt="Profile" class="profile-img mx-auto mb-4">
+            <!-- Fixed profile image path with error handling -->
+            <img src="<%= user.profileImage ? user.profileImage : '/images/default-avatar.png' %>" 
+                 alt="Profile" 
+                 class="profile-img mx-auto mb-4"
+                 onerror="this.src='/images/default-avatar.png'; console.warn('Profile image failed to load, using default');">
             <h3 class="text-lg font-bold text-gray-800 mb-1"><%= user.name %></h3>
             <p class="text-sm text-gray-600">Member since <%= new Date(user.createdOn).getFullYear() %></p>
           </div>
@@ -419,7 +428,7 @@
           </nav>
           
           <div class="px-6 mt-8">
-            <button class="w-full bg-gray-800 text-white py-3 px-4 rounded-xl hover:bg-gray-700 transition font-medium flex items-center justify-center">
+            <button onclick="logout()" class="w-full bg-gray-800 text-white py-3 px-4 rounded-xl hover:bg-gray-700 transition font-medium flex items-center justify-center">
               <i class="fas fa-sign-out-alt mr-2"></i>Logout
             </button>
           </div>
@@ -438,7 +447,12 @@
             </div>
             <div class="mt-4 md:mt-0">
               <div class="relative">
-                <img src="<%= user.profileImage || '/images/default-avatar.png' %>" alt="Profile" class="profile-img" id="profilePreview">
+                <!-- Fixed profile image path with error handling -->
+                <img src="<%= user.profileImage ? user.profileImage : '/images/default-avatar.png' %>" 
+                     alt="Profile" 
+                     class="profile-img" 
+                     id="profilePreview"
+                     onerror="this.src='/images/default-avatar.png'; console.warn('Profile image failed to load, using default');">
                 <label for="profileUpload" class="absolute bottom-2 right-2 bg-white p-2 rounded-full cursor-pointer hover:bg-gray-50 shadow-lg border border-gray-200">
                   <i class="fas fa-camera text-gray-600"></i>
                 </label>
@@ -585,7 +599,6 @@
   </div>
 </div>
 
-<!-- All modals remain the same... -->
 <!-- Email Change Modal -->
 <div id="emailModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
   <div class="glass-card rounded-2xl p-6 w-full max-w-md mx-4">
@@ -749,6 +762,13 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
+// Global logout function
+function logout() {
+  if (confirm('Are you sure you want to logout?')) {
+    window.location.href = '/logout';
+  }
+}
+
 // Referral functionality
 function copyReferralCode() {
   const referralCode = document.getElementById('referralCode').value;
@@ -848,202 +868,226 @@ const submitOtpBtn = document.getElementById('submitOtpBtn');
 
 let latestEmail = '';
 
-openEmailModal.addEventListener('click', () => {
-  emailModal.classList.remove('hidden');
-  emailInput.value = '';
-  emailError.classList.add('hidden');
-});
+// Only add event listeners if elements exist
+if (openEmailModal) {
+  openEmailModal.addEventListener('click', () => {
+    emailModal.classList.remove('hidden');
+    emailInput.value = '';
+    emailError.classList.add('hidden');
+  });
+}
 
-cancelEmailBtn.addEventListener('click', () => {
-  emailModal.classList.add('hidden');
-});
+if (cancelEmailBtn) {
+  cancelEmailBtn.addEventListener('click', () => {
+    emailModal.classList.add('hidden');
+  });
+}
 
-cancelOtpBtn.addEventListener('click', () => {
-  otpModal.classList.add('hidden');
-});
+if (cancelOtpBtn) {
+  cancelOtpBtn.addEventListener('click', () => {
+    otpModal.classList.add('hidden');
+  });
+}
 
-verifyEmailBtn.addEventListener('click', async () => {
-  const newEmail = emailInput.value.trim();
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+if (verifyEmailBtn) {
+  verifyEmailBtn.addEventListener('click', async () => {
+    const newEmail = emailInput.value.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  if (!emailRegex.test(newEmail)) {
-    emailError.classList.remove('hidden');
-    emailError.textContent = 'Please enter a valid email address.';
-    return;
-  }
-
-  emailError.classList.add('hidden');
-
-  try {
-    const res = await fetch('/changeEmail', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: newEmail })
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      latestEmail = newEmail;
-      emailModal.classList.add('hidden');
-      otpModal.classList.remove('hidden');
-    } else {
+    if (!emailRegex.test(newEmail)) {
       emailError.classList.remove('hidden');
-      emailError.textContent = data.message || 'Failed to send OTP.';
+      emailError.textContent = 'Please enter a valid email address.';
+      return;
     }
-  } catch (error) {
-    emailError.classList.remove('hidden');
-    emailError.textContent = 'Something went wrong. Try again.';
-  }
-});
 
-submitOtpBtn.addEventListener('click', async () => {
-  const otp = otpInput.value.trim();
-  const oldEmail = document.getElementById('email').value.trim();
-  
-  if (!otp) {
-    otpError.classList.remove('hidden');
-    otpError.textContent = 'OTP is required.';
-    return;
-  }
+    emailError.classList.add('hidden');
 
-  try {
-    const res = await fetch('/verifyEmail-OTP', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: latestEmail, otp, oldEmail })
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      otpModal.classList.add('hidden');
-      otpInput.value = '';
-      Swal.fire({
-        title: 'Email Changed Successfully',
-        text: '',
-        confirmButtonColor: '#1f2937'
+    try {
+      const res = await fetch('/changeEmail', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: newEmail })
       });
-      
-      const emailInputField = document.getElementById('email');
-      emailInputField.removeAttribute('readonly');
-      emailInputField.value = latestEmail;
-      emailInputField.setAttribute('readonly', true);
-    } else {
+
+      const data = await res.json();
+
+      if (data.success) {
+        latestEmail = newEmail;
+        emailModal.classList.add('hidden');
+        otpModal.classList.remove('hidden');
+      } else {
+        emailError.classList.remove('hidden');
+        emailError.textContent = data.message || 'Failed to send OTP.';
+      }
+    } catch (error) {
+      emailError.classList.remove('hidden');
+      emailError.textContent = 'Something went wrong. Try again.';
+    }
+  });
+}
+
+if (submitOtpBtn) {
+  submitOtpBtn.addEventListener('click', async () => {
+    const otp = otpInput.value.trim();
+    const oldEmail = document.getElementById('email').value.trim();
+    
+    if (!otp) {
       otpError.classList.remove('hidden');
-      otpError.textContent = data.message || 'Invalid OTP.';
+      otpError.textContent = 'OTP is required.';
+      return;
     }
-  } catch (err) {
-    otpError.classList.remove('hidden');
-    otpError.textContent = 'Error verifying OTP.';
-  }
-});
 
-document.getElementById('profileUpload').addEventListener('change', async function (event) {
-  const file = event.target.files[0];
-  if (!file) return;
+    try {
+      const res = await fetch('/verifyEmail-OTP', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: latestEmail, otp, oldEmail })
+      });
 
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    document.getElementById('profilePreview').src = e.target.result;
-    document.getElementById('profilePreview0').src = e.target.result;
-  };
-  reader.readAsDataURL(file);
+      const data = await res.json();
 
-  const formData = new FormData();
-  formData.append('profileImage', file);
-
-  try {
-    const res = await fetch('/editProfile', {
-      method: 'POST',
-      body: formData,
-    });
-
-    const data = await res.json();
-    if (data.success) {
-      showToaster('Profile image updated successfully!', 'success');
-    } else {
-      showToaster('Failed to update profile image', 'error');
+      if (data.success) {
+        otpModal.classList.add('hidden');
+        otpInput.value = '';
+        Swal.fire({
+          title: 'Email Changed Successfully',
+          text: '',
+          confirmButtonColor: '#1f2937'
+        });
+        
+        const emailInputField = document.getElementById('email');
+        emailInputField.removeAttribute('readonly');
+        emailInputField.value = latestEmail;
+        emailInputField.setAttribute('readonly', true);
+      } else {
+        otpError.classList.remove('hidden');
+        otpError.textContent = data.message || 'Invalid OTP.';
+      }
+    } catch (err) {
+      otpError.classList.remove('hidden');
+      otpError.textContent = 'Error verifying OTP.';
     }
-  } catch (err) {
-    showToaster('Error uploading image', 'error');
-  }
-});
+  });
+}
 
-document.getElementById('saveChanges').addEventListener('click', async function () {
-  const name = document.getElementById('name').value;
-  const dob = document.getElementById('dob').value;
-  const phone = document.getElementById('phone').value;
-  const state = document.getElementById('state').value;
-  const district = document.getElementById('district').value;
-  const address = document.getElementById('address').value;
+// Profile image upload
+const profileUpload = document.getElementById('profileUpload');
+if (profileUpload) {
+  profileUpload.addEventListener('change', async function (event) {
+    const file = event.target.files[0];
+    if (!file) return;
 
-  let isValid = true;
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const profilePreview = document.getElementById('profilePreview');
+      const profilePreview0 = document.getElementById('profilePreview0');
+      if (profilePreview) profilePreview.src = e.target.result;
+      if (profilePreview0) profilePreview0.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
 
-  document.querySelectorAll('.error-message').forEach(el => el.remove());
+    const formData = new FormData();
+    formData.append('profileImage', file);
 
-  const validateField = (value, id, message, regex) => {
-    if (!value || (regex && !regex.test(value))) {
-      const errorMessage = document.createElement('p');
-      errorMessage.classList.add('text-red-500', 'text-sm', 'error-message', 'mt-1');
-      errorMessage.textContent = message;
-      document.getElementById(id).insertAdjacentElement('afterend', errorMessage);
-      isValid = false;
+    try {
+      const res = await fetch('/editProfile', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        showToaster('Profile image updated successfully!', 'success');
+      } else {
+        showToaster('Failed to update profile image', 'error');
+      }
+    } catch (err) {
+      showToaster('Error uploading image', 'error');
     }
-  };
+  });
+}
 
-  const nameRegex = /^[A-Za-z\s]+$/;
-  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-  const phoneRegex = /^[0-9]{10}$/;
-  const addressRegex = /^[a-zA-Z0-9\s,'./-]{10,100}$/;
+// Save changes functionality
+const saveChanges = document.getElementById('saveChanges');
+if (saveChanges) {
+  saveChanges.addEventListener('click', async function () {
+    const name = document.getElementById('name').value;
+    const dob = document.getElementById('dob').value;
+    const phone = document.getElementById('phone').value;
+    const state = document.getElementById('state').value;
+    const district = document.getElementById('district').value;
+    const address = document.getElementById('address').value;
 
-  validateField(name, 'name', 'Full Name should be characters only', nameRegex);
-  validateField(address, 'address', 'Address is required', addressRegex);
-  validateField(state, 'state', 'State is required', nameRegex);
-  validateField(district, 'district', 'District is required', nameRegex);
-  validateField(dob, 'dob', 'Date of Birth is required', dateRegex);
-  validateField(phone, 'phone', 'Phone number must be 10 digits', phoneRegex);
+    let isValid = true;
 
-  if (!isValid) return;
+    document.querySelectorAll('.error-message').forEach(el => el.remove());
 
-  const formData = new FormData();
-  formData.append('name', name);
-  formData.append('dob', dob);
-  formData.append('phone', phone);
-  formData.append('state', state);
-  formData.append('district', district);
-  formData.append('address', address);
+    const validateField = (value, id, message, regex) => {
+      if (!value || (regex && !regex.test(value))) {
+        const errorMessage = document.createElement('p');
+        errorMessage.classList.add('text-red-500', 'text-sm', 'error-message', 'mt-1');
+        errorMessage.textContent = message;
+        const element = document.getElementById(id);
+        if (element) element.insertAdjacentElement('afterend', errorMessage);
+        isValid = false;
+      }
+    };
 
-  try {
-    const res = await fetch('/editProfile', {
-      method: 'POST',
-      body: formData,
-    });
+    const nameRegex = /^[A-Za-z\s]+$/;
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    const phoneRegex = /^[0-9]{10}$/;
+    const addressRegex = /^[a-zA-Z0-9\s,'./-]{10,100}$/;
 
-    const data = await res.json();
-    if (data.success) {
-      showToaster('Profile updated successfully!', 'success');
-    } else if (data.existBoth) {
-      showFieldError('email', data.emailMsg);
-      showFieldError('phone', data.phoneMsg);
-    } else if (data.existFound) {
-      showFieldError(data.existFoundField, data.message);
-      showToaster(`${data.message}`, 'error');
-    } else {
-      showToaster(`${data.message}`, 'error');
+    validateField(name, 'name', 'Full Name should be characters only', nameRegex);
+    validateField(address, 'address', 'Address is required', addressRegex);
+    validateField(state, 'state', 'State is required', nameRegex);
+    validateField(district, 'district', 'District is required', nameRegex);
+    validateField(dob, 'dob', 'Date of Birth is required', dateRegex);
+    validateField(phone, 'phone', 'Phone number must be 10 digits', phoneRegex);
+
+    if (!isValid) return;
+
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('dob', dob);
+    formData.append('phone', phone);
+    formData.append('state', state);
+    formData.append('district', district);
+    formData.append('address', address);
+
+    try {
+      const res = await fetch('/editProfile', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        showToaster('Profile updated successfully!', 'success');
+      } else if (data.existBoth) {
+        showFieldError('email', data.emailMsg);
+        showFieldError('phone', data.phoneMsg);
+      } else if (data.existFound) {
+        showFieldError(data.existFoundField, data.message);
+        showToaster(`${data.message}`, 'error');
+      } else {
+        showToaster(`${data.message}`, 'error');
+      }
+    } catch (err) {
+      showToaster('Error updating profile', 'error');
     }
-  } catch (err) {
-    showToaster('Error updating profile', 'error');
-  }
-});
+  });
+}
 
 function showFieldError(id, message) {
   const error = document.createElement('p');
   error.classList.add('text-red-500', 'text-sm', 'error-message', 'mt-1');
   error.textContent = message;
-  document.getElementById(id).insertAdjacentElement('afterend', error);
+  const element = document.getElementById(id);
+  if (element) element.insertAdjacentElement('afterend', error);
 }
 
+// Password change functionality
 const passwordModal = document.getElementById('passwordModal');
 const passwordOtpModal = document.getElementById('passwordOtpModal');
 const openPasswordModal = document.getElementById('openPasswordModal');
@@ -1071,9 +1115,11 @@ if (openPasswordModal) {
   });
 }
 
-cancelPasswordBtn.addEventListener('click', () => {
-  passwordModal.classList.add('hidden');
-});
+if (cancelPasswordBtn) {
+  cancelPasswordBtn.addEventListener('click', () => {
+    passwordModal.classList.add('hidden');
+  });
+}
 
 let otpTimerInterval;
 let otpTimeLeft = 60;
@@ -1081,159 +1127,170 @@ let otpTimeLeft = 60;
 function startOtpTimer() {
   const timerDisplay = document.getElementById('otpTimer');
   const resendBtn = document.getElementById('resendOtpBtn');
-  resendBtn.classList.add('hidden');
+  if (resendBtn) resendBtn.classList.add('hidden');
   otpTimeLeft = 60;
 
-  timerDisplay.textContent = `${otpTimeLeft}s`;
+  if (timerDisplay) timerDisplay.textContent = `${otpTimeLeft}s`;
 
   clearInterval(otpTimerInterval);
   otpTimerInterval = setInterval(() => {
     otpTimeLeft--;
-    timerDisplay.textContent = `${otpTimeLeft}s`;
+    if (timerDisplay) timerDisplay.textContent = `${otpTimeLeft}s`;
 
-    if (otpTimeLeft <= 49) {
+    if (otpTimeLeft <= 49 && resendBtn) {
       resendBtn.classList.remove('hidden');
     }
 
     if (otpTimeLeft <= 0) {
       clearInterval(otpTimerInterval);
-      timerDisplay.textContent = 'Expired';
+      if (timerDisplay) timerDisplay.textContent = 'Expired';
     }
   }, 1000);
 }
 
 function stopOtpTimer() {
   clearInterval(otpTimerInterval);
-  document.getElementById('otpTimer').textContent = '';
-  document.getElementById('resendOtpBtn').classList.add('hidden');
+  const timerDisplay = document.getElementById('otpTimer');
+  const resendBtn = document.getElementById('resendOtpBtn');
+  if (timerDisplay) timerDisplay.textContent = '';
+  if (resendBtn) resendBtn.classList.add('hidden');
 }
 
-document.getElementById('resendOtpBtn').addEventListener('click', () => {
-  fetch('/resend-password-otp', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' }
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      showToaster('OTP resent to your email.', 'success');
-      startOtpTimer();
-    } else {
-      showToaster(data.message || 'Failed to resend OTP.', 'error');
-    }
-  })
-  .catch(err => {
-    showToaster('An error occurred while resending OTP.', 'error');
+const resendOtpBtn = document.getElementById('resendOtpBtn');
+if (resendOtpBtn) {
+  resendOtpBtn.addEventListener('click', () => {
+    fetch('/resend-password-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        showToaster('OTP resent to your email.', 'success');
+        startOtpTimer();
+      } else {
+        showToaster(data.message || 'Failed to resend OTP.', 'error');
+      }
+    })
+    .catch(err => {
+      showToaster('An error occurred while resending OTP.', 'error');
+    });
   });
-});
+}
 
-document.getElementById('cancelPasswordOtpBtn').addEventListener('click', () => {
-  passwordOtpModal.classList.add('hidden');
-  stopOtpTimer();
-});
+if (cancelPasswordOtpBtn) {
+  cancelPasswordOtpBtn.addEventListener('click', () => {
+    passwordOtpModal.classList.add('hidden');
+    stopOtpTimer();
+  });
+}
 
 function openOtpModal() {
   passwordOtpModal.classList.remove('hidden');
   startOtpTimer();
 }
 
-verifyPasswordBtn.addEventListener('click', async () => {
-  const currentPassword = currentPasswordInput.value.trim();
-  const newPassword = newPasswordInput.value.trim();
-  const confirmPassword = confirmPasswordInput.value.trim();
+if (verifyPasswordBtn) {
+  verifyPasswordBtn.addEventListener('click', async () => {
+    const currentPassword = currentPasswordInput.value.trim();
+    const newPassword = newPasswordInput.value.trim();
+    const confirmPassword = confirmPasswordInput.value.trim();
 
-  if (!currentPassword || !newPassword || !confirmPassword) {
-    passwordError.classList.remove('hidden');
-    passwordError.textContent = 'All fields are required.';
-    return;
-  }
-
-  if (newPassword.length < 8) {
-    passwordError.classList.remove('hidden');
-    passwordError.textContent = 'New password must be at least 8 characters long.';
-    return;
-  }
-
-  if (newPassword !== confirmPassword) {
-    passwordError.classList.remove('hidden');
-    passwordError.textContent = 'New passwords do not match.';
-    return;
-  }
-
-  if (currentPassword === newPassword) {
-    passwordError.classList.remove('hidden');
-    passwordError.textContent = 'New password must be different from current password.';
-    return;
-  }
-
-  passwordError.classList.add('hidden');
-
-  try {
-    const res = await fetch('/changePassword', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        currentPassword: currentPassword,
-        newPassword: newPassword 
-      })
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      passwordChangeData = { currentPassword, newPassword };
-      passwordModal.classList.add('hidden');
-      passwordOtpModal.classList.remove('hidden');
-      passwordOtpInput.value = '';
-      passwordOtpError.classList.add('hidden');
-      openOtpModal();
-    } else {
+    if (!currentPassword || !newPassword || !confirmPassword) {
       passwordError.classList.remove('hidden');
-      passwordError.textContent = data.message || 'Failed to send OTP.';
+      passwordError.textContent = 'All fields are required.';
+      return;
     }
-  } catch (error) {
-    passwordError.classList.remove('hidden');
-    passwordError.textContent = 'Something went wrong. Try again.';
-  }
-});
 
-submitPasswordOtpBtn.addEventListener('click', async () => {
-  const otp = passwordOtpInput.value.trim();
-  
-  if (!otp) {
-    passwordOtpError.classList.remove('hidden');
-    passwordOtpError.textContent = 'OTP is required.';
-    return;
-  }
+    if (newPassword.length < 8) {
+      passwordError.classList.remove('hidden');
+      passwordError.textContent = 'New password must be at least 8 characters long.';
+      return;
+    }
 
-  try {
-    const res = await fetch('/verifyPassword-OTP', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        otp: otp,
-        currentPassword: passwordChangeData.currentPassword,
-        newPassword: passwordChangeData.newPassword
-      })
-    });
+    if (newPassword !== confirmPassword) {
+      passwordError.classList.remove('hidden');
+      passwordError.textContent = 'New passwords do not match.';
+      return;
+    }
 
-    const data = await res.json();
+    if (currentPassword === newPassword) {
+      passwordError.classList.remove('hidden');
+      passwordError.textContent = 'New password must be different from current password.';
+      return;
+    }
 
-    if (data.success) {
-      passwordOtpModal.classList.add('hidden');
-      passwordOtpInput.value = '';
-      passwordChangeData = {};
-      showToaster('Password changed successfully!', 'success');
-    } else {
+    passwordError.classList.add('hidden');
+
+    try {
+      const res = await fetch('/changePassword', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          currentPassword: currentPassword,
+          newPassword: newPassword 
+        })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        passwordChangeData = { currentPassword, newPassword };
+        passwordModal.classList.add('hidden');
+        passwordOtpModal.classList.remove('hidden');
+        passwordOtpInput.value = '';
+        passwordOtpError.classList.add('hidden');
+        openOtpModal();
+      } else {
+        passwordError.classList.remove('hidden');
+        passwordError.textContent = data.message || 'Failed to send OTP.';
+      }
+    } catch (error) {
+      passwordError.classList.remove('hidden');
+      passwordError.textContent = 'Something went wrong. Try again.';
+    }
+  });
+}
+
+if (submitPasswordOtpBtn) {
+  submitPasswordOtpBtn.addEventListener('click', async () => {
+    const otp = passwordOtpInput.value.trim();
+    
+    if (!otp) {
       passwordOtpError.classList.remove('hidden');
-      passwordOtpError.textContent = data.message || 'Invalid OTP.';
-      showToaster(`${data.message}`, 'error');
+      passwordOtpError.textContent = 'OTP is required.';
+      return;
     }
-  } catch (err) {
-    passwordOtpError.classList.remove('hidden');
-    passwordOtpError.textContent = 'Error verifying OTP.';
-  }
-});
+
+    try {
+      const res = await fetch('/verifyPassword-OTP', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          otp: otp,
+          currentPassword: passwordChangeData.currentPassword,
+          newPassword: passwordChangeData.newPassword
+        })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        passwordOtpModal.classList.add('hidden');
+        passwordOtpInput.value = '';
+        passwordChangeData = {};
+        showToaster('Password changed successfully!', 'success');
+      } else {
+        passwordOtpError.classList.remove('hidden');
+        passwordOtpError.textContent = data.message || 'Invalid OTP.';
+        showToaster(`${data.message}`, 'error');
+      }
+    } catch (err) {
+      passwordOtpError.classList.remove('hidden');
+      passwordOtpError.textContent = 'Error verifying OTP.';
+    }
+  });
+}
 
 function clearFieldError(id) {
   const inputElement = document.getElementById(id);
@@ -1247,6 +1304,8 @@ function clearFieldError(id) {
 
 function showToaster(message, type = 'success', duration = 3000) {
   const toaster = document.getElementById('toaster');
+  if (!toaster) return;
+  
   toaster.textContent = message;
 
   toaster.className = '';
