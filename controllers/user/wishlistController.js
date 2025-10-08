@@ -40,9 +40,10 @@ const managewishlist =async(req,res)=>{
 const addToWishlist = async (req, res) => {
   const userId = req.session.userId || req.session.user?._id;
   const { productId, variantId } = req.body;
-  console.log(variantId)
 
   try {
+    let user = await User.findById(userId)
+    if(!user) return res.status(200).json({ success: false, message: 'Please signIn to add to wishlist' })
     let wishlist = await Wishlist.findOne({ userId });
 
     if (!wishlist) {

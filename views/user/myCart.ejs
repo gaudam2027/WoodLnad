@@ -68,7 +68,7 @@
             <div class="flex flex-col items-center">
               <!-- Product Image with Offer Tag -->
               <div class="relative">
-                <img src="/Uploads/product-images/<%= item.productid.images[0] %>"
+                <img src="/uploads/product-images/<%= item.productid.images[0] %>"
                      alt="Product Image"
                      class="w-20 h-20 object-cover rounded-md border <%= isOutOfStock ? 'opacity-50' : '' %>">
                 <% if (variant && variant.offerPercentage > 0 && !isOutOfStock) { %>

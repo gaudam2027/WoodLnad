@@ -192,7 +192,7 @@
                         </div>
                         <% } %>
                         <a href="/shopDetails?id=<%= products[i]._id %>" class="block">
-                            <img src="/Uploads/product-images/<%= products[i].images[0] %>" alt="<%= products[i].productName %>"
+                            <img src="/uploads/product-images/<%= products[i].images[0] %>" alt="<%= products[i].productName %>"
                                 class="w-full h-36 sm:h-40 object-cover group-hover:scale-110 transition-transform duration-300">
                         </a>
                     </div>
@@ -217,7 +217,7 @@
                             <% } else { %>
                                 <!-- Without Offer -->
                                 <p class="text-lg font-bold text-gray-900">
-                                    ₹<%= products[i].variants[0].regularPrice.toLocaleString('en-IN') %>
+                                    ₹<%= products[i].variants[0].salePrice.toLocaleString('en-IN') %>
                                 </p>
                             <% } %>
                         </div>
@@ -646,7 +646,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     <div class="relative group overflow-hidden">
                         ${badgeHTML}
                         <a href="/shopDetails?id=${product._id}" class="block">
-                            <img src="/Uploads/product-images/${product.images[0]}" alt="${product.productName}"
+                            <img src="/uploads/product-images/${product.images[0]}" alt="${product.productName}"
                                 class="w-full h-36 sm:h-40 object-cover group-hover:scale-110 transition-transform duration-300">
                         </a>
                     </div>

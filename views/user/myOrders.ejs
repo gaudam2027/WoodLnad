@@ -37,6 +37,10 @@
     background-color: #e53e3e;
   }
 
+  #toaster.downloading {
+    background-color: #3b82f6;
+  }
+
   /* Fixed Mobile Menu Button */
   #mobileMenuToggle {
     position: fixed;
@@ -76,6 +80,66 @@
     color: #374151;
     font-size: 1.8rem;
     transition: all 0.3s ease;
+  }
+
+  /* Loading Spinner Animation */
+  .loading-spinner {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top: 2px solid #ffffff;
+    width: 16px;
+    height: 16px;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Button Loading State */
+  .btn-loading {
+    position: relative;
+    color: transparent !important;
+    cursor: not-allowed !important;
+    pointer-events: none;
+  }
+
+  .btn-loading::after {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top: 2px solid #ffffff;
+    animation: spin 1s linear infinite;
+  }
+
+  /* Downloading Toaster Animation */
+  .downloading-dots::after {
+    content: '';
+    animation: dots 1.5s steps(4, end) infinite;
+  }
+
+  @keyframes dots {
+    0%, 20% {
+      content: '.';
+    }
+    40% {
+      content: '..';
+    }
+    60% {
+      content: '...';
+    }
+    80%, 100% {
+      content: '....';
+    }
   }
 
   /* Fixed Sidebar Overlay */
@@ -191,6 +255,7 @@
     transition: all 0.3s ease;
     border: none;
     margin: 2px;
+    position: relative;
   }
 
   .btn-primary {
@@ -199,7 +264,7 @@
     box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
   }
 
-  .btn-primary:hover {
+  .btn-primary:hover:not(.btn-loading) {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
   }
@@ -247,6 +312,7 @@
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
   }
+
   .search-input {
     background: rgba(255, 255, 255, 0.9);
     border: 2px solid rgba(0, 0, 0, 0.1);
@@ -514,7 +580,7 @@
                       <button onclick="viewOrderDetails('<%= order._id %>')" class="order-btn btn-secondary">
                         <i class="fas fa-eye mr-1"></i>Details
                       </button>
-                      <button onclick="downloadInvoice('<%= order._id %>')" class="order-btn btn-primary">
+                      <button onclick="downloadInvoice('<%= order._id %>')" id="invoice-btn-<%= order._id %>" class="order-btn btn-primary">
                         <i class="fas fa-download mr-1"></i>Invoice
                       </button>
                       <% if (order.orderStatus !== 'Cancelled' && order.orderStatus !== 'Delivered' && order.orderStatus !== 'Returned' && order.orderStatus !== 'Return Request' && order.orderStatus !== 'Return Accepted' && order.orderStatus !== 'Return Rejected' && order.orderStatus !== 'Pending') { %>
@@ -539,7 +605,7 @@
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <% order.items.forEach(item => { %>
                       <div class="flex gap-4 p-4 bg-gray-50 rounded-xl">
-                        <% let imgSrc = item.product.images && item.product.images.length > 0 ? `/Uploads/product-images/${item.product.images[0]}` : '/images/default.jpg'; %>
+                        <% let imgSrc = item.product.images && item.product.images.length > 0 ? `/uploads/product-images/${item.product.images[0]}` : '/images/default.jpg'; %>
                         <img src="<%= imgSrc %>" alt="Product Image" class="w-16 h-16 object-cover rounded-lg flex-shrink-0">
                         <div class="flex-1 min-w-0">
                           <h4 class="font-semibold text-gray-800 text-sm mb-1 truncate"><%= item.product.productName %></h4>
@@ -776,8 +842,63 @@ function retryPayment(orderId) {
   window.location.href = `/order-failure?orderId=${orderId}`;
 }
 
-function downloadInvoice(orderId) {
-  window.open(`/orders/${orderId}/invoice`, '_blank');
+// Enhanced Download Invoice Function with Loading Animation [web:44][web:45][web:47]
+async function downloadInvoice(orderId) {
+  const downloadBtn = document.getElementById(`invoice-btn-${orderId}`);
+  
+  if (!downloadBtn) {
+    console.error('Download button not found');
+    return;
+  }
+
+  // Show downloading state
+  const originalContent = downloadBtn.innerHTML;
+  downloadBtn.classList.add('btn-loading');
+  downloadBtn.disabled = true;
+  
+  // Show downloading toaster with animated dots
+  showToaster('<span class="downloading-dots">Preparing your invoice for download</span>', 'downloading', 0);
+
+  try {
+    const response = await fetch(`/invoice/full/download/${orderId}`);
+
+    if (!response.ok) {
+      throw new Error('Download failed');
+    }
+
+    // Hide downloading toaster
+    hideToaster();
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+
+    const disposition = response.headers.get('Content-Disposition');
+    let fileName = `invoice-${orderId}.pdf`;
+    if (disposition && disposition.includes('filename=')) {
+      fileName = disposition.split('filename=')[1].replace(/"/g, '');
+    }
+
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+
+    // Show success message
+    showToaster('✅ Invoice downloaded successfully!', 'success', 3000);
+
+  } catch (err) {
+    console.error('Download error:', err);
+    hideToaster();
+    showToaster('❌ Failed to download invoice. Please try again.', 'error', 3000);
+  } finally {
+    // Restore button state
+    downloadBtn.classList.remove('btn-loading');
+    downloadBtn.disabled = false;
+    downloadBtn.innerHTML = originalContent;
+  }
 }
 
 function openActionModal(orderId, action, type, itemId = null) {
@@ -865,17 +986,24 @@ function logout() {
   }
 }
 
-// Toaster Message Function (Same as Profile Page)
+// Enhanced Toaster Message Function [web:44][web:45]
 function showToaster(message, type = 'success', duration = 3000) {
   const toaster = document.getElementById('toaster');
-  toaster.textContent = message;
+  toaster.innerHTML = message; // Use innerHTML to support HTML content
 
   toaster.className = '';
   toaster.classList.add('show', type);
 
-  setTimeout(() => {
-    toaster.classList.remove('show');
-  }, duration);
+  if (duration > 0) {
+    setTimeout(() => {
+      toaster.classList.remove('show');
+    }, duration);
+  }
+}
+
+function hideToaster() {
+  const toaster = document.getElementById('toaster');
+  toaster.classList.remove('show');
 }
 
 // Close modals when clicking outside

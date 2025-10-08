@@ -3,11 +3,18 @@ const GoogleStrategy = require("passport-google-oauth20").Strategy
 const User = require('../model/userSchema')
 const env = require('dotenv').config()
 
+// refferal code function
+const generateReferralCode = (name) => {
+  const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
+  return `${name.slice(0,3).toUpperCase()}${randomStr}`;
+};
+
 passport.use(new GoogleStrategy({
     clientID:process.env.GOOGLE_CLIENT_ID,
     clientSecret:process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL:'/auth/google/callback'
+    callbackURL:`${process.env.BASE_URL}/auth/google/callback`
 },
+
 
 async (accessToken,refreshToken,profile,done)=>{
     try {
@@ -22,6 +29,7 @@ async (accessToken,refreshToken,profile,done)=>{
             user = new User({
                 name:profile.displayName,
                 email:profile.emails[0].value,
+                referralCode: generateReferralCode(profile.displayName),
                 googleId:profile.id,   
             });
             await user.save();

@@ -448,7 +448,7 @@
             <div id="wishlistContainer">
               <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 <% wishlistItems.forEach((item, index) => {
-                  let imgSrc = item.product.images && item.product.images.length > 0 ? `/Uploads/product-images/${item.product.images[0]}` : '/images/default.jpg';
+                  let imgSrc = item.product.images && item.product.images.length > 0 ? `/uploads/product-images/${item.product.images[0]}` : '/images/default.jpg';
                 %>
                  <div 
                     class="wishlist-card p-4 opacity-0 fade-slide-up cursor-pointer"

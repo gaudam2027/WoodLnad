@@ -205,8 +205,8 @@
       <% } %>
       <!-- Main Image -->
       <div id="imageZoom" class="border rounded-lg overflow-hidden"
-           style="--url: url('/Uploads/product-images/<%= product.images[0] %>'); --zoom-x: 0%; --zoom-y: 0%; --display: none">
-        <img id="mainImage" src="/Uploads/product-images/<%= product.images[0] %>" 
+           style="--url: url('/uploads/product-images/<%= product.images[0] %>'); --zoom-x: 0%; --zoom-y: 0%; --display: none">
+        <img id="mainImage" src="/uploads/product-images/<%= product.images[0] %>" 
              class="w-full h-[300px] md:h-[350px] lg:h-[400px] object-cover" alt="Main Product Image">
       </div>
       
@@ -214,9 +214,9 @@
       <div class="flex gap-3 mt-4 flex-wrap mb-6">
         <% product.images.forEach((image, index) => { %>
           <img
-            src="/Uploads/product-images/<%= image %>"
+            src="/uploads/product-images/<%= image %>"
             class="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded cursor-pointer border hover:border-blue-500 transition"
-            onclick="changeMainImage('/Uploads/product-images/<%= image %>')"
+            onclick="changeMainImage('/uploads/product-images/<%= image %>')"
             alt="Thumbnail <%= index + 1 %>">
         <% }) %>
       </div>
@@ -625,7 +625,7 @@
       <div class="bg-white rounded-lg shadow hover:shadow-lg transition">
         <div class="relative">
           <a href="/shopDetails?id=<%= prod._id %>">
-            <img src="/Uploads/product-images/<%= prod.images[0] %>" alt="<%= prod.productName %>" 
+            <img src="/uploads/product-images/<%= prod.images[0] %>" alt="<%= prod.productName %>" 
                  class="h-44 w-full object-cover rounded-t-lg">
           </a>
           <% if (prod.variants[0].offerPercentage > 0) { %>

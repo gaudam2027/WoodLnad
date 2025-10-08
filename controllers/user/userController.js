@@ -5,6 +5,7 @@ const Cart = require('../../model/cartSchema');
 const Review = require('../../model/reviewschema');
 const Wishlist = require('../../model/wishlistSchema');
 const Coupon = require('../../model/couponSchema')
+const Order = require('../../model/orderSchema')
 const nodemailer =  require('nodemailer')
 const env = require('dotenv').config();
 const bcrypt = require("bcrypt");
@@ -27,35 +28,43 @@ const pageNotFound = async (req,res)=>{
     }
 }
 
-
-
-
 const loadHomepage = async (req, res) => {
   try {
-    const user = req.userData || null;  // populated by middleware if available
-    console.log('load user', user?._id || null);
+    const user = req.userData || null;
 
     const categories = await Category.find({ isListed: true });
-    let productData = await Product.find({
+
+    // Latest products
+    const latestProducts = await Product.find({
       isBlocked: false,
       category: { $in: categories.map(cat => cat._id) },
-      variants: { $elemMatch: { quantity: { $gt: 0 } } },
-    });
+      "variants.0.quantity": { $gt: 0 }
+    }).sort({ createdAt: -1 }).limit(4);
 
-    // Show latest 4 products
-    productData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    productData = productData.slice(0, 4);
+    // Most sold products
+    const mostSoldData = await Order.aggregate([
+      { $unwind: "$orderitems" },
+      { $group: { _id: "$orderitems.product", totalSold: { $sum: "$orderitems.quantity" } } },
+      { $lookup: { from: "products", localField: "_id", foreignField: "_id", as: "product" } },
+      { $unwind: "$product" },
+      { $match: { "product.isBlocked": false, "product.variants.0.quantity": { $gt: 0 } } },
+      { $sort: { totalSold: -1 } },
+      { $limit: 4 }
+    ]);
+    const mostSoldProducts = mostSoldData.map(p => p.product);
 
-    return res.render('home', {
+    res.render("home", {
       user,
-      products: productData,
+      latestProducts,
+      mostSoldProducts
     });
 
   } catch (error) {
-    console.log('Home page not found', error);
-    res.status(500).send('Server error');
+    console.log("Home page error:", error);
+    res.status(500).send("Server error");
   }
 };
+
 
 
 

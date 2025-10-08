@@ -1197,7 +1197,7 @@ function populateProducts() {
     productCard.innerHTML = `
       <div class="product-image">
         ${product.image ? 
-          `<img src="/Uploads/product-images/${product.image}" alt="${product.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          `<img src="/uploads/product-images/${product.image}" alt="${product.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
            <i class="fas fa-box" style="display:none;"></i>` : 
           `<i class="fas fa-box"></i>`
         }

@@ -391,6 +391,8 @@ const handleCOD = async (req, res) => {
     inStockItems.forEach(item => {
       totalPrice += item.totalPrice;
     });
+    
+    if(totalPrice>25000) return res.status(400).json({ success: false, message: 'COD orders cannot exceed ₹25,000' });
 
     const deliveryCharge = totalPrice >= 5000 ? 0 : 70;
 

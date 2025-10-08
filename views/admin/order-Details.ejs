@@ -158,9 +158,9 @@
                             : null;
                           let imgSrc = '/images/default.jpg'; // Default fallback image
                           if (variant && variant.image) {
-                            imgSrc = `/Uploads/product-images/${variant.image}`;
+                            imgSrc = `/uploads/product-images/${variant.image}`;
                           } else if (item.product && item.product.images && item.product.images.length > 0) {
-                            imgSrc = `/Uploads/product-images/${item.product.images[0]}`;
+                            imgSrc = `/uploads/product-images/${item.product.images[0]}`;
                           }
                         %>
                         <img class="w-16 h-16 rounded-lg object-cover border-2 border-gray-200" 

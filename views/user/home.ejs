@@ -3,28 +3,31 @@
 
 <%- include('../../views/partials/user/header') %>
 
+<!-- Toast Notification Container -->
+<div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
 <!-- Hero Section Slider -->
-<div class="swiper hero-section h-[500px]">
+<div class="swiper hero-section h-[400px] sm:h-[500px]">
   <div class="swiper-wrapper">
     <div class="swiper-slide flex items-center bg-cover bg-center" style="background-image: url('/images/banner1.jpg');">
-      <div class="container mx-auto px-6">
-        <h1 class="text-4xl font-bold text-white mb-4">Find the Perfect Sofa</h1>
-        <p class="text-white mb-8">Comfort and elegance combined</p>
-        <button class="bg-white text-gray-800 px-6 py-3 rounded-md font-medium hover:bg-gray-100 opacity-60">Shop Now</button>
+      <div class="container mx-auto px-4 sm:px-6">
+        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2 sm:mb-4">Find the Perfect Sofa</h1>
+        <p class="text-white text-sm sm:text-base mb-4 sm:mb-8">Comfort and elegance combined</p>
+        <button class="bg-white text-gray-800 px-4 sm:px-6 py-2 sm:py-3 rounded-md font-medium hover:bg-gray-100 opacity-60 text-sm sm:text-base">Shop Now</button>
       </div>
     </div>
     <div class="swiper-slide flex items-center bg-cover bg-center" style="background-image: url('/images/banner2.jpg');">
-      <div class="container mx-auto px-6">
-        <h1 class="text-4xl font-bold text-white mb-4">Stylish Seatings</h1>
-        <p class="text-white mb-8">Modern designs for your space</p>
-        <button class="bg-white text-gray-800 px-6 py-3 rounded-md font-medium hover:bg-gray-100">Explore</button>
+      <div class="container mx-auto px-4 sm:px-6">
+        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2 sm:mb-4">Stylish Seatings</h1>
+        <p class="text-white text-sm sm:text-base mb-4 sm:mb-8">Modern designs for your space</p>
+        <button class="bg-white text-gray-800 px-4 sm:px-6 py-2 sm:py-3 rounded-md font-medium hover:bg-gray-100 text-sm sm:text-base">Explore</button>
       </div>
     </div>
     <div class="swiper-slide flex items-center bg-cover bg-center" style="background-image: url('/images/banner3.jpg');">
-      <div class="container mx-auto px-6">
-        <h1 class="text-4xl font-bold text-white mb-4">Attractive Arrival</h1>
-        <p class="text-white mb-8">Perfect for every occasion</p>
-        <button class="bg-white text-gray-800 px-6 py-3 rounded-md font-medium hover:bg-gray-100">Browse</button>
+      <div class="container mx-auto px-4 sm:px-6">
+        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2 sm:mb-4">Attractive Arrival</h1>
+        <p class="text-white text-sm sm:text-base mb-4 sm:mb-8">Perfect for every occasion</p>
+        <button class="bg-white text-gray-800 px-4 sm:px-6 py-2 sm:py-3 rounded-md font-medium hover:bg-gray-100 text-sm sm:text-base">Browse</button>
       </div>
     </div>
   </div>
@@ -34,78 +37,84 @@
 </div>
 
 <!-- Sale Section -->
-<div class="bg-gray-50 py-12">
-  <div class="container mx-auto px-6 text-center">
-    <span class="sale-badge inline-block mb-4">SALE</span>
-    <h2 class="text-3xl font-semibold mb-6">New Collection Arrivals Are<br>Ready to Shop</h2>
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mt-12">
-      <% for(let i = 0; i < products.length; i++) { %>
-        <div class="rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-transform hover:scale-[1.03] duration-300">
+<div class="bg-gray-50 py-8 sm:py-12">
+  <div class="container mx-auto px-4 sm:px-6 text-center">
+    <span class="sale-badge inline-block mb-3 sm:mb-4 text-sm sm:text-base">SALE</span>
+    <h2 class="text-xl sm:text-2xl lg:text-3xl font-semibold mb-4 sm:mb-6">New Collection Arrivals Are<br>Ready to Shop</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-8 mt-8 sm:mt-12">
+      <% for(let i = 0; i < latestProducts.length; i++) { %>
+        <div class="bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:scale-[1.02] duration-300">
           <div class="relative overflow-hidden group">
-            <a href="/shopDetails?id=<%= products[i]._id %>">
-              <img src="/Uploads/product-images/<%= products[i].images[0] %>" alt="<%= products[i].productName %>" 
-                   class="w-full h-60 object-cover rounded-lg border border-gray-300 transform transition-transform duration-500 group-hover:scale-110">
+            <a href="/shopDetails?id=<%= latestProducts[i]._id %>">
+              <img src="/uploads/product-images/<%= latestProducts[i].images[0] %>" alt="<%= latestProducts[i].productName %>" 
+                   class="w-full h-32 sm:h-48 lg:h-60 object-cover transform transition-transform duration-500 group-hover:scale-110">
             </a>
-            <% if(products[i].variants[0].offerPercentage > 0) { %>
-              <div class="absolute top-2 left-2 z-10">
-                <span class="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
-                  <%= products[i].variants[0].offerPercentage %>% OFF
+            <% if(latestProducts[i].variants[0].offerPercentage > 0) { %>
+              <div class="absolute top-1 sm:top-2 left-1 sm:left-2 z-10">
+                <span class="bg-red-500 text-white text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full shadow-lg">
+                  <%= latestProducts[i].variants[0].offerPercentage %>% OFF
                 </span>
               </div>
             <% } %>
           </div>
-          <div class="p-4 relative flex flex-col h-[140px]">
-            <h3 class="text-lg font-semibold text-gray-800 mb-2 line-clamp-2 h-[48px] overflow-hidden">
-              <%= products[i].productName %>
+          
+          <!-- Product Content -->
+          <div class="p-2 sm:p-4">
+            <!-- Product Name -->
+            <h3 class="text-sm sm:text-lg font-semibold text-gray-800 mb-2 line-clamp-2 h-8 sm:h-12 overflow-hidden text-center leading-tight">
+              <%= latestProducts[i].productName %>
             </h3>
-            <div class="mt-auto">
-              <% if(products[i].variants[0].offerPercentage > 0) { %>
+            
+            <!-- Price Section -->
+            <div class="mb-2 sm:mb-3">
+              <% if(latestProducts[i].variants[0].offerPercentage > 0) { %>
                 <!-- With Offer -->
-                <div class="flex items-center justify-center gap-2 mb-1 min-h-[24px]">
-                  <p class="text-lg font-bold text-red-600">
-                    ₹<%= products[i].variants[0].finalPrice.toLocaleString('en-IN') %>
+                <div class="flex items-center justify-center gap-1 sm:gap-2 mb-1">
+                  <p class="text-sm sm:text-lg font-bold text-red-600">
+                    ₹<%= latestProducts[i].variants[0].finalPrice.toLocaleString('en-IN') %>
                   </p>
-                  <p class="text-sm text-gray-500 line-through">
-                    ₹<%= products[i].variants[0].regularPrice.toLocaleString('en-IN') %>
+                  <p class="text-xs sm:text-sm text-gray-500 line-through">
+                    ₹<%= latestProducts[i].variants[0].regularPrice.toLocaleString('en-IN') %>
                   </p>
                 </div>
-                <p class="text-xs text-green-600 font-semibold min-h-[16px]">
-                  You save ₹<%= (products[i].variants[0].regularPrice - products[i].variants[0].finalPrice).toLocaleString('en-IN') %>
+                <p class="text-xs text-green-600 font-semibold text-center">
+                  Save ₹<%= (latestProducts[i].variants[0].regularPrice - latestProducts[i].variants[0].finalPrice).toLocaleString('en-IN') %>
                 </p>
               <% } else { %>
                 <!-- Without Offer -->
-                <p class="text-lg font-bold text-gray-900 min-h-[24px]">
-                  ₹<%= products[i].variants[0].regularPrice.toLocaleString('en-IN') %>
+                <p class="text-sm sm:text-lg font-bold text-gray-900 text-center">
+                  ₹<%= latestProducts[i].variants[0].regularPrice.toLocaleString('en-IN') %>
                 </p>
-                <p class="text-xs text-green-600 min-h-[16px]"></p> <!-- Placeholder for alignment -->
               <% } %>
             </div>
-            <!-- Wishlist Icon and Add to Cart Button -->
-            <div class="relative mt-4 flex justify-center items-center">
+            
+            <!-- Actions -->
+            <div class="flex justify-between items-center mt-2 sm:mt-3">
+              <!-- Add to Cart Button -->
+              <button onclick="addToCart('<%= latestProducts[i]._id %>', '<%= latestProducts[i].variants[0]._id %>')"
+                      class="flex-1 bg-gray-900 text-white px-2 sm:px-4 py-1.5 sm:py-2 rounded-md hover:bg-gray-700 transition-colors duration-300 text-xs sm:text-sm text-center mr-2">
+                Add to Cart
+              </button>
+              
               <!-- Wishlist Icon -->
-              <a href="/addToWishlist/<%= products[i]._id %>" 
-                 class="absolute right-0 top-1 text-red-500 hover:text-red-600 transition duration-300 p-1">
-                <% if (products[i].isInWishlist) { %>
+              <button onclick="toggleWishlist('<%= latestProducts[i]._id %>', '<%= latestProducts[i].variants[0]._id %>', this)"
+                      class="text-red-500 hover:text-red-600 transition duration-300 p-1">
+                <% if (latestProducts[i].isInWishlist) { %>
                   <!-- Filled Heart -->
                   <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" 
-                       stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                       stroke-width="1.5" stroke="currentColor" class="w-4 h-4 sm:w-5 sm:h-5">
                     <path stroke-linecap="round" stroke-linejoin="round"
                           d="M21 8.25c0-2.485-2.014-4.5-4.5-4.5a4.478 4.478 0 00-3.643 1.908A4.478 4.478 0 009.214 3.75C6.73 3.75 4.714 5.765 4.714 8.25c0 5.25 7.286 9.75 7.286 9.75s7.286-4.5 7.286-9.75z"/>
                   </svg>
                 <% } else { %>
                   <!-- Outlined Heart -->
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
-                       stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                       stroke-width="1.5" stroke="currentColor" class="w-4 h-4 sm:w-5 sm:h-5">
                     <path stroke-linecap="round" stroke-linejoin="round" 
                           d="M21 8.25c0-2.485-2.014-4.5-4.5-4.5a4.478 4.478 0 00-3.643 1.908A4.478 4.478 0 009.214 3.75C6.73 3.75 4.714 5.765 4.714 8.25c0 5.25 7.286 9.75 7.286 9.75s7.286-4.5 7.286-9.75z"/>
                   </svg>
                 <% } %>
-              </a>
-              <!-- Add to Cart Button -->
-              <a href="/addToCart/<%= products[i]._id %>" 
-                 class="bg-gray-900 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors duration-300 text-sm">
-                Add to Cart
-              </a>
+              </button>
             </div>
           </div>
         </div>
@@ -115,13 +124,13 @@
 </div>
 
 <!-- Home Space Section -->
-<div class="py-16 bg-white">
-  <div class="container mx-auto px-6">
+<div class="py-12 sm:py-16 bg-white">
+  <div class="container mx-auto px-4 sm:px-6">
     <div class="flex flex-col md:flex-row items-center">
-      <div class="md:w-1/2 mb-8 md:mb-0">
-        <h2 class="text-3xl font-bold mb-4">Your Home Space Starts Here</h2>
-        <p class="text-gray-600 mb-6">Transform your living space with our curated collection of furniture and home decor.</p>
-        <button class="bg-gray-800 text-white px-6 py-3 rounded-md font-medium hover:bg-gray-700">Learn More</button>
+      <div class="md:w-1/2 mb-6 sm:mb-8 md:mb-0">
+        <h2 class="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">Your Home Space Starts Here</h2>
+        <p class="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">Transform your living space with our curated collection of furniture and home decor.</p>
+        <button class="bg-gray-800 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-md font-medium hover:bg-gray-700 text-sm sm:text-base">Learn More</button>
       </div>
       <div class="md:w-1/2">
         <img src="/images/interior.png" alt="Modern Interior" class="rounded-lg shadow-lg">
@@ -130,39 +139,74 @@
   </div>
 </div>
 
-<!-- Featured Products -->
-<div class="bg-gray-50 py-16">
-  <div class="container mx-auto px-6">
-    <h2 class="text-3xl font-bold mb-12 text-center">Featured Products</h2>
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-      <% for(let i = 0; i < products.length; i++) { %>
-        <div class="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow hover:scale-105">
-          <img src="/Uploads/product-images/<%= products[i].images[0] %>" alt="<%= products[i].productName %>" class="w-full h-48 object-cover">
-          <div class="p-4 flex flex-col h-[140px]">
-            <h3 class="text-lg font-medium line-clamp-2 h-[48px] overflow-hidden">
-              <%= products[i].productName %>
+<!-- Top Selling Products / Hot Sale -->
+<div class="bg-gray-50 py-12 sm:py-16">
+  <div class="container mx-auto px-4 sm:px-6">
+    <div class="text-center mb-8 sm:mb-12">
+      <span class="hot-sale-badge">
+        🔥 HOT SALE
+      </span>
+      <h2 class="text-2xl sm:text-3xl font-bold text-center">Top Selling Products</h2>
+      <p class="text-gray-600 text-sm sm:text-base mt-2">Most popular items loved by our customers</p>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
+      <% for(let i = 0; i < mostSoldProducts.length; i++) { %>
+        <div class="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all hover:scale-105 duration-300">
+          <a href="/shopDetails?id=<%= mostSoldProducts[i]._id %>">
+            <img src="/uploads/product-images/<%= mostSoldProducts[i].images[0] %>" alt="<%= mostSoldProducts[i].productName %>" class="w-full h-32 sm:h-48 object-cover">
+          </a>
+          <div class="p-2 sm:p-4">
+            <h3 class="text-sm sm:text-lg font-medium line-clamp-2 h-8 sm:h-12 overflow-hidden mb-2">
+              <%= mostSoldProducts[i].productName %>
             </h3>
             <div class="mt-auto">
-              <% if(products[i].variants[0].offerPercentage > 0) { %>
+              <% if(mostSoldProducts[i].variants[0].offerPercentage > 0) { %>
                 <!-- With Offer -->
-                <div class="flex items-center gap-2 mb-1 min-h-[24px]">
-                  <p class="text-lg font-bold text-red-600">
-                    ₹<%= products[i].variants[0].finalPrice.toLocaleString('en-IN') %>
+                <div class="flex items-center gap-1 sm:gap-2 mb-1">
+                  <p class="text-sm sm:text-lg font-bold text-red-600">
+                    ₹<%= mostSoldProducts[i].variants[0].finalPrice.toLocaleString('en-IN') %>
                   </p>
-                  <p class="text-sm text-gray-500 line-through">
-                    ₹<%= products[i].variants[0].regularPrice.toLocaleString('en-IN') %>
+                  <p class="text-xs sm:text-sm text-gray-500 line-through">
+                    ₹<%= mostSoldProducts[i].variants[0].regularPrice.toLocaleString('en-IN') %>
                   </p>
                 </div>
-                <p class="text-xs text-green-600 font-semibold min-h-[16px]">
-                  You save ₹<%= (products[i].variants[0].regularPrice - products[i].variants[0].finalPrice).toLocaleString('en-IN') %>
+                <p class="text-xs text-green-600 font-semibold">
+                  Save ₹<%= (mostSoldProducts[i].variants[0].regularPrice - mostSoldProducts[i].variants[0].finalPrice).toLocaleString('en-IN') %>
                 </p>
               <% } else { %>
                 <!-- Without Offer -->
-                <p class="text-lg font-bold text-gray-900 min-h-[24px]">
-                  ₹<%= products[i].variants[0].regularPrice.toLocaleString('en-IN') %>
+                <p class="text-sm sm:text-lg font-bold text-gray-900">
+                  ₹<%= mostSoldProducts[i].variants[0].regularPrice.toLocaleString('en-IN') %>
                 </p>
-                <p class="text-xs text-green-600 min-h-[16px]"></p> <!-- Placeholder for alignment -->
               <% } %>
+            </div>
+              <!-- Actions -->
+            <div class="flex justify-between items-center mt-2 sm:mt-3">
+              <!-- Add to Cart Button -->
+              <button onclick="addToCart('<%= mostSoldProducts[i]._id %>', '<%= mostSoldProducts[i].variants[0]._id %>')"
+                      class="flex-1 bg-gray-900 text-white px-2 sm:px-4 py-1.5 sm:py-2 rounded-md hover:bg-gray-700 transition-colors duration-300 text-xs sm:text-sm text-center mr-2">
+                Add to Cart
+              </button>
+              
+              <!-- Wishlist Icon -->
+              <button onclick="toggleWishlist('<%= mostSoldProducts[i]._id %>', '<%= mostSoldProducts[i].variants[0]._id %>', this)"
+                      class="text-red-500 hover:text-red-600 transition duration-300 p-1">
+                <% if (mostSoldProducts[i].isInWishlist) { %>
+                  <!-- Filled Heart -->
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" 
+                       stroke-width="1.5" stroke="currentColor" class="w-4 h-4 sm:w-5 sm:h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M21 8.25c0-2.485-2.014-4.5-4.5-4.5a4.478 4.478 0 00-3.643 1.908A4.478 4.478 0 009.214 3.75C6.73 3.75 4.714 5.765 4.714 8.25c0 5.25 7.286 9.75 7.286 9.75s7.286-4.5 7.286-9.75z"/>
+                  </svg>
+                <% } else { %>
+                  <!-- Outlined Heart -->
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
+                       stroke-width="1.5" stroke="currentColor" class="w-4 h-4 sm:w-5 sm:h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" 
+                          d="M21 8.25c0-2.485-2.014-4.5-4.5-4.5a4.478 4.478 0 00-3.643 1.908A4.478 4.478 0 009.214 3.75C6.73 3.75 4.714 5.765 4.714 8.25c0 5.25 7.286 9.75 7.286 9.75s7.286-4.5 7.286-9.75z"/>
+                  </svg>
+                <% } %>
+              </button>
             </div>
           </div>
         </div>
@@ -172,15 +216,15 @@
 </div>
 
 <!-- Testimonials -->
-<div class="py-16 bg-white">
-  <div class="container mx-auto px-6">
-    <h2 class="text-3xl font-bold mb-12 text-center">What People Are Saying About Us</h2>
+<div class="py-12 sm:py-16 bg-white">
+  <div class="container mx-auto px-4 sm:px-6">
+    <h2 class="text-2xl sm:text-3xl font-bold mb-8 sm:mb-12 text-center">What People Are Saying About Us</h2>
     <div class="flex flex-col md:flex-row items-center justify-center">
-      <div class="md:w-1/2 flex items-center mb-8 md:mb-0">
-        <img src="/images/review_prof.png" alt="Customer" class="w-16 h-16 rounded-full mr-4">
+      <div class="md:w-1/2 flex items-center mb-6 sm:mb-8 md:mb-0">
+        <img src="/images/review_prof.png" alt="Customer" class="w-12 h-12 sm:w-16 sm:h-16 rounded-full mr-3 sm:mr-4">
         <div>
-          <p class="text-gray-600 italic mb-2">"The furniture is beautiful and the quality is exceptional. Delivery was prompt and the assembly was easy. Highly recommend!"</p>
-          <p class="font-semibold">- Sarah Johnson</p>
+          <p class="text-gray-600 italic mb-2 text-sm sm:text-base">"The furniture is beautiful and the quality is exceptional. Delivery was prompt and the assembly was easy. Highly recommend!"</p>
+          <p class="font-semibold text-sm sm:text-base">- Sarah Johnson</p>
         </div>
       </div>
       <div class="md:w-1/2">
@@ -191,13 +235,13 @@
 </div>
 
 <!-- Promo Banner -->
-<div class="promo-banner py-12">
-  <div class="container mx-auto px-6 text-center">
-    <h2 class="text-3xl font-bold mb-4">Get 10% off your first order</h2>
-    <p class="mb-8">Sign up for our newsletter and receive a discount code</p>
+<div class="promo-banner py-8 sm:py-12">
+  <div class="container mx-auto px-4 sm:px-6 text-center">
+    <h2 class="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">Get 10% off your first order</h2>
+    <p class="mb-6 sm:mb-8 text-sm sm:text-base">Sign up for our newsletter and receive a discount code</p>
     <div class="max-w-md mx-auto flex">
-      <input type="email" placeholder="Your email address" class="flex-1 px-4 py-3 rounded-l-md focus:outline-none">
-      <button class="bg-white text-gray-800 px-6 py-3 rounded-r-md font-medium hover:bg-gray-100">Subscribe</button>
+      <input type="email" placeholder="Your email address" class="flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-l-md focus:outline-none text-sm sm:text-base">
+      <button class="bg-white text-gray-800 px-4 sm:px-6 py-2 sm:py-3 rounded-r-md font-medium hover:bg-gray-100 text-sm sm:text-base">Subscribe</button>
     </div>
   </div>
 </div>
@@ -205,25 +249,212 @@
 <%- include('../../views/partials/user/footer') %>
 
 <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
-<script>
-  const swiper = new Swiper('.swiper', {
-    loop: true,
-    autoplay: {
-      delay: 4000,
-    },
-    pagination: {
-      el: '.swiper-pagination',
-      clickable: true,
-    },
-    navigation: {
-      nextEl: '.swiper-button-next',
-      prevEl: '.swiper-button-prev',
-    },
-  });
 
-  window.addEventListener('pageshow', function (event) {
-    if (event.persisted) {
-      window.location.reload();
+<style>
+/* Toast Notification Styles */
+.toast {
+  position: relative;
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-left: 4px solid;
+  animation: slideInRight 0.3s ease-out forwards, fadeOut 0.5s ease-in-out forwards 3s;
+  transform: translateX(100%);
+  min-width: 300px;
+  max-width: 400px;
+}
+
+.toast.success {
+  border-left-color: #10b981;
+  background: #f0fdf4;
+}
+
+.toast.error {
+  border-left-color: #ef4444;
+  background: #fef2f2;
+}
+
+.toast-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toast-icon {
+  font-size: 20px;
+}
+
+.toast.success .toast-icon {
+  color: #10b981;
+}
+
+.toast.error .toast-icon {
+  color: #ef4444;
+}
+
+.toast-message {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+@keyframes slideInRight {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes fadeOut {
+  0% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(100%); }
+}
+
+/* Hot Sale Badge */
+.hot-sale-badge {
+  background: linear-gradient(135deg, #ef4444, #f97316);
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 8px 16px;
+  border-radius: 50px;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  display: inline-block;
+  margin-bottom: 16px;
+  animation: pulse 2s infinite;
+}
+
+@media (min-width: 640px) {
+  .hot-sale-badge {
+    font-size: 14px;
+    padding: 10px 20px;
+    margin-bottom: 20px;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+</style>
+
+<script>
+// Toast Notification System
+function showToast(message, type = 'success') {
+  const toastContainer = document.getElementById('toast-container');
+  
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  
+  const icon = type === 'success' ? '✓' : '✕';
+  
+  toast.innerHTML = `
+    <div class="toast-content">
+      <span class="toast-icon">${icon}</span>
+      <span class="toast-message">${message}</span>
+    </div>
+  `;
+  
+  toastContainer.appendChild(toast);
+  
+  // Remove toast after animation completes
+  setTimeout(() => {
+    if (toast.parentNode) {
+      toast.parentNode.removeChild(toast);
     }
-  });
+  }, 3500);
+}
+
+// Add to Cart Function
+async function addToCart(productId, variantId) {
+  try {
+    const response = await fetch(`/cart/${productId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        productId: productId,
+        variantId: variantId
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      showToast(result.message || 'Product added to cart successfully!', 'success');
+    } else {
+      showToast(result.message || 'Failed to add product to cart', 'error');
+    }
+  } catch (error) {
+    console.error('Error adding to cart:', error);
+    showToast('Network error. Please try again.', 'error');
+  }
+}
+
+// Toggle Wishlist Function
+async function toggleWishlist(productId, variantId, buttonElement) {
+  try {
+    const response = await fetch('/wishlist', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        productId: productId,
+        variantId: variantId
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      showToast(result.message || 'Wishlist updated successfully!', 'success');
+      
+      // Toggle heart icon
+      const svgElement = buttonElement.querySelector('svg');
+      const pathElement = svgElement.querySelector('path');
+      
+      if (svgElement.getAttribute('fill') === 'currentColor') {
+        // Change to outline heart
+        svgElement.setAttribute('fill', 'none');
+        pathElement.setAttribute('d', 'M21 8.25c0-2.485-2.014-4.5-4.5-4.5a4.478 4.478 0 00-3.643 1.908A4.478 4.478 0 009.214 3.75C6.73 3.75 4.714 5.765 4.714 8.25c0 5.25 7.286 9.75 7.286 9.75s7.286-4.5 7.286-9.75z');
+      } else {
+        // Change to filled heart
+        svgElement.setAttribute('fill', 'currentColor');
+        pathElement.setAttribute('d', 'M21 8.25c0-2.485-2.014-4.5-4.5-4.5a4.478 4.478 0 00-3.643 1.908A4.478 4.478 0 009.214 3.75C6.73 3.75 4.714 5.765 4.714 8.25c0 5.25 7.286 9.75 7.286 9.75s7.286-4.5 7.286-9.75z');
+      }
+    } else {
+      showToast(result.message || 'Failed to update wishlist', 'error');
+    }
+  } catch (error) {
+    console.error('Error updating wishlist:', error);
+    showToast('Network error. Please try again.', 'error');
+  }
+}
+
+// Swiper Initialization
+const swiper = new Swiper('.swiper', {
+  loop: true,
+  autoplay: {
+    delay: 4000,
+  },
+  pagination: {
+    el: '.swiper-pagination',
+    clickable: true,
+  },
+  navigation: {
+    nextEl: '.swiper-button-next',
+    prevEl: '.swiper-button-prev',
+  },
+});
+
+window.addEventListener('pageshow', function (event) {
+  if (event.persisted) {
+    window.location.reload();
+  }
+});
 </script>

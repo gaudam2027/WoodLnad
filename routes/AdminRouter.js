@@ -12,8 +12,8 @@ const {userAuth,adminAuth} = require('../middleware/auth')
 const salesReport = require('../controllers/admin/salesReportController')
 
 //DashBoard management
-router.get('/',adminController.loadDashboard)
-router.get('/dashboard/stats',adminController.getDashboardStats)
+router.get('/',adminAuth,adminController.loadDashboard)
+router.get('/dashboard/stats',adminAuth,adminController.getDashboardStats)
 router.post('/dashboard/generate-ledger',adminController.downloadLedger)
 
 //login management
@@ -30,45 +30,45 @@ router.post('/users-block',adminAuth,customerController.customerBlock)
 
 
 //category management
-router.get('/category',categoryController.categoryInfo);
-router.post('/addCategory',categoryController.addCategory);
-router.post('/editCategory',categoryController.updateCategory);
-router.post('/category-list',categoryController.categoryList);
+router.get('/category',adminAuth,categoryController.categoryInfo);
+router.post('/addCategory',adminAuth,categoryController.addCategory);
+router.post('/editCategory',adminAuth,categoryController.updateCategory);
+router.post('/category-list',adminAuth,categoryController.categoryList);
 
 //product management
-router.get('/Products',productController.productsPage);
+router.get('/Products',adminAuth,productController.productsPage);
 router.get('/addProduct',adminAuth,productController.productAddPage);
 router.post('/addProduct',adminAuth,uploads.array("images",4),productController.addProducts);
-router.get('/editProduct',productController.productEditPage);
+router.get('/editProduct',adminAuth,productController.productEditPage);
 router.post('/editProduct/:id',uploads.array("images",4),productController.editProduct);
 router.post('/deleteSingleImage',productController.deleteSingleImage);
 router.post('/product-block',adminAuth,productController.productBlock)
 
 //Coupon Mangement
-router.get('/coupons',couponController.couponsPage);
-router.get('/coupons/search', couponController.fetchCoupons);
-router.post('/coupons',couponController.addCoupons);
-router.put('/coupons/:id', couponController.editCoupons);
-router.patch('/coupons', couponController.listCoupons);
+router.get('/coupons',adminAuth,couponController.couponsPage);
+router.get('/coupons/search',adminAuth, couponController.fetchCoupons);
+router.post('/coupons',adminAuth,couponController.addCoupons);
+router.put('/coupons/:id',adminAuth, couponController.editCoupons);
+router.patch('/coupons',adminAuth, couponController.listCoupons);
 
 //Order Management
-router.get('/order',orderController.manageOrder);
+router.get('/order',adminAuth,orderController.manageOrder);
 router.put('/order-statusUpdate',orderController.statusUpdate);
 router.post('/orders/verify-return',orderController.verifyReturn);
-router.get('/order/:id',orderController.orderDetials);
+router.get('/order/:id',adminAuth,orderController.orderDetials);
 
 //offer management
-router.get('/offers',offerController.getOffers)
-router.get('/api/offers',offerController.getOffersApi)
+router.get('/offers',adminAuth,offerController.getOffers)
+router.get('/api/offers',adminAuth,offerController.getOffersApi)
 router.post('/offers',offerController.addOffer)
 router.put('/offers/:id',offerController.editOffer)
 router.patch('/offers/:id',offerController.toggleOfferStatus)
 router.delete('/offers/:id',offerController.deleteOffer)
 
 //sales Report Management
-router.get('/salesReport', salesReport.loadSalesReport);
-router.get('/api/sales-report', salesReport.generateSalesReport);
-router.get('/api/sales-report/export', salesReport.exportSalesReport);
+router.get('/salesReport',adminAuth, salesReport.loadSalesReport);
+router.get('/api/sales-report',adminAuth, salesReport.generateSalesReport);
+router.get('/api/sales-report/export',adminAuth, salesReport.exportSalesReport);
 
 
 module.exports = router;
